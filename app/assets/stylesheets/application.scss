@@ -1,0 +1,91 @@
+.navbar {
+    background-color: white;
+    border-bottom: 1px solid lightgray;
+}
+
+.divider {
+    height: 1px;
+    margin: 2px 0; /* Reduced margin */
+    border-top: 1px solid black;
+  }
+
+  @media (min-width: 992px) {
+    .divider {
+        height: 45px; 
+        margin: 0 5px; /* Reduced margin */
+        border-left: 1px solid black; 
+        border-top: none; 
+    }
+}
+
+@media (min-width: 992px) {
+    .divider.d-lg-none {
+        display: none;
+    }
+}
+
+.btn-green {
+    background-color: #76a835;
+    border-color: #76a835; 
+    color: white;
+}
+
+.large-screen-divider {
+    border-left: 1px solid black; 
+    margin: 0 20px; /* Adjust as needed */
+  }
+
+  .login-form {
+    width: 350px; 
+    margin: 50px auto; 
+    .card {
+      border: none; 
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    }
+    .form-label {
+      font-weight: bold; 
+    }
+    .shared-links {
+      margin-top: 20px;
+      text-align: center; 
+      a {
+        display: block;
+        margin-bottom: 5px; 
+      }
+    }
+    h2 { 
+        text-align: center; 
+        margin-bottom: 20px; 
+      }
+    
+      .actions { 
+        text-align: center; 
+      }
+  }
+
+  .edit-profile-form {
+    width: 350px; /* Same width as login form */
+    margin: 50px auto;
+    .card {
+      border: none;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .form-label {
+      font-weight: bold;
+    }
+    .shared-links {
+      margin-top: 20px;
+      text-align: center;
+      a {
+        display: block;
+        margin-bottom: 5px;
+      }
+    }
+    h2 { /* Style for the Surtibox title */
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .actions { /* Style to center the button */
+      text-align: center;
+    }
+  }
