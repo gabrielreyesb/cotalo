@@ -34,7 +34,7 @@
           </li>  
           <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
           <li class="nav-item">
-            <%= link_to '<i class="fas fa-file-pdf"></i> PDF Documents'.html_safe, pdf_path, class: "nav-link" %> 
+            <%= link_to '<i class="fas fa-file-pdf"></i> Generate PDF'.html_safe, pdf_generate_path, class: "nav-link", target: "_blank" %> 
           </li>
           <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
           <li class="nav-item dropdown"> 
@@ -51,6 +51,56 @@
     </nav>
   
     <main role="main" class="container mt-4">
+      <h2>Cotizaciones recientes</h2>
+      <br>
+      <table class="table table-striped"> 
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer Name</th>
+            <th>Amount</th>
+            <th>Tax</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>October 22, 2024</td>
+            <td>John Doe</td>
+            <td>$100</td>
+            <td>$10</td>
+            <td>$110</td>
+          </tr>
+          <tr>
+            <td>October 21, 2024</td>
+            <td>Jane Smith</td>
+            <td>$200</td>
+            <td>$20</td>
+            <td>$220</td>
+          </tr>
+          <tr>
+            <td>October 21, 2024</td>
+            <td>Jane Smith</td>
+            <td>$200</td>
+            <td>$20</td>
+            <td>$220</td>
+          </tr>
+          <tr>
+            <td>October 21, 2024</td>
+            <td>Jane Smith</td>
+            <td>$200</td>
+            <td>$20</td>
+            <td>$220</td>
+          </tr>
+          <tr>
+            <td>October 21, 2024</td>
+            <td>Jane Smith</td>
+            <td>$200</td>
+            <td>$20</td>
+            <td>$220</td>
+          </tr>
+        </tbody>
+      </table>
     </main>
   </div> 
 <% end %>
