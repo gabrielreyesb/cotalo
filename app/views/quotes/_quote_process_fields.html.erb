@@ -1,0 +1,13 @@
+<div class="nested-fields">
+  <div class="form-group">
+    <%= f.label :manufacturing_process_id, "Proceso:" %>
+    <div class="input-group">
+      <%= f.collection_select :manufacturing_process_id, ManufacturingProcess.all, :id, :description,
+                              { include_blank: 'Select one' },
+                              { class: "form-control", 
+                                'data-action': 'change->quotes#showProcessDetails' 
+                              } %>
+    </div>
+  </div>
+  <button type="button" class="btn btn-danger" data-action="click->quotes#removeField">Eliminar</button> 
+</div>

@@ -1,0 +1,16 @@
+<h1>Material Dimensions</h1>
+
+<%= form_with url: material_dimensions_path, local: true, method: :get do |form| %> 
+  <div class="form-group">
+    <%= form.label :material_id, "Material principal:" %>
+    <%= form.collection_select :material_id, Material.all, :id, :description, 
+                                { include_blank: 'Select one' }, 
+                                { class: "form-control",
+                                  'data-action': 'change->material-dimensions#showDimensions' 
+                                } %>
+  </div>
+
+  <div id="dimensions" data-material-dimensions-target="dimensions">
+    <%# The dimensions will be displayed here %>
+  </div>
+<% end %>

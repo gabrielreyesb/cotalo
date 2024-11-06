@@ -1,0 +1,7 @@
+<div class="nested-fields">
+  <div class="form-group">
+    <%= f.label :tooling_id, "Herramental:" %>
+    <%= f.collection_select :tooling_id, Tooling.all, :id, :description, {}, class: "form-control" %>
+  </div>
+  <button type="button" class="btn btn-danger" data-action="click->quotes#removeField">Eliminar</button>   
+</div>

@@ -1,0 +1,61 @@
+<h1>Nueva Cotización</h1>
+
+<%= form_with(model: quote, url: quotes_path,  # Assuming you have a Quote model and quotes_path
+                local: true) do |form| %> 
+  <% if quote.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(quote.errors.count, "error") %> prohibited this quote from being saved:</h2>
+      <ul>
+        <% quote.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :width, "Ancho del producto:" %>
+    <%= form.number_field :width, step: :any, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :length, "Largo del producto:" %>
+    <%= form.number_field :length, step: :any, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :pieces, "Cantidad de piezas:" %>
+    <%= form.number_field :pieces, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :material_id, "Material principal:" %>
+    <%= form.collection_select :material_id, Material.all, :id, :description, {}, class: "form-control" %>
+  </div>
+
+  <h2>Procesos</h2>
+  <div id="processes">
+    <%= form.fields_for :quote_processes do |quote_process| %> 
+      <%= render 'quote_process_fields', form: quote_process %> 
+    <% end %>
+    <div class="links">
+      <%= link_to_add_association 'Agregar Proceso', form, :quote_processes, 
+                                  partial: 'quote_process_fields', class: 'btn btn-green' %> 
+    </div>
+  </div>
+
+  <h2>Herramentales</h2>
+  <div id="toolings">
+    <%= form.fields_for :quote_toolings do |quote_tooling| %> 
+      <%= render 'quote_tooling_fields', form: quote_tooling %> 
+    <% end %>
+    <div class="links">
+      <%= link_to_add_association 'Agregar Herramental', form, :quote_toolings, 
+                                  partial: 'quote_tooling_fields', class: 'btn btn-green' %>
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Crear Cotización", class: "btn btn-green" %>
+  </div>
+<% end %>

@@ -89,3 +89,24 @@
       text-align: center;
     }
   }
+
+  .customers-index {
+    width: 800px; 
+    margin: 50px auto;
+    .card {
+      border: none;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #customers {  /* Style for the customer list container */
+      text-align: center;  /* Center the content within the div */
+    }
+    .btn-primary {
+      display: block; 
+      width: 100%;   
+      margin-top: 10px; 
+    }
+  }

@@ -1,0 +1,19 @@
+<div id="<%= dom_id tooling %>">
+  <p>
+    <strong>Description:</strong>
+    <%= tooling.description %>
+  </p>
+
+  <p>
+    <strong>Price:</strong>
+    <%= tooling.price %>
+  </p>
+
+  <p>
+    <strong>Unit:</strong>
+    <% if tooling.unit %> <%# Add this conditional check %>
+      <%= tooling.unit.description %>
+    <% end %>
+  </p>
+
+</div>

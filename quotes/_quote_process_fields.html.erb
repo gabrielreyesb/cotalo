@@ -1,0 +1,7 @@
+<div class="nested-fields"> 
+  <div class="form-group">
+    <%= form.label :process_id, "Proceso:" %>
+    <%= form.collection_select :process_id, ManufacturingProcess.all, :id, :description, {}, class: "form-control" %>
+  </div>
+  <%= link_to_remove_association "Eliminar", form, class: "btn btn-danger" %> 
+</div>

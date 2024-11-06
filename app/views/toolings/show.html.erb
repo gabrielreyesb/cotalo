@@ -1,0 +1,10 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @tooling %>
+
+<div>
+  <%= link_to "Edit this tooling", edit_tooling_path(@tooling) %> |
+  <%= link_to "Back to toolings", toolings_path %>
+
+  <%= button_to "Destroy this tooling", @tooling, method: :delete %>
+</div>

@@ -1,0 +1,10 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @manufacturing_process %>
+
+<div>
+  <%= link_to "Edit this manufacturing process", edit_manufacturing_process_path(@manufacturing_process) %> |
+  <%= link_to "Back to manufacturing processes", manufacturing_processes_path %>
+
+  <%= button_to "Destroy this manufacturing process", @manufacturing_process, method: :delete %>
+</div>

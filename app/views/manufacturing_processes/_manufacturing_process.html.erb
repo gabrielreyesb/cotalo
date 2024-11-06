@@ -1,0 +1,32 @@
+<%= form_with(model: manufacturing_process) do |form| %>
+  <% if manufacturing_process.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(manufacturing_process.errors.count, "error") %> prohibited this manufacturing process from being saved:</h2>
+
+      <ul>
+        <% manufacturing_process.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :description, style: "display: block" %>
+    <%= form.text_field :description %>
+  </div>
+
+  <div>
+    <%= form.label :price, style: "display: block" %>
+    <%= form.text_field :price %>
+  </div>
+
+  <div>
+    <%= form.label :unit_id, style: "display: block" %> dwdw
+    <%= form.collection_select :unit_id, Unit.all, :id, :description %> 
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>

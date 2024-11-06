@@ -25,7 +25,7 @@ class MaterialsController < ApplicationController
 
     respond_to do |format|
       if @material.save
-        format.html { redirect_to material_url(@material), notice: "Material was successfully created." }
+        format.html { redirect_to materials_path, notice: "Material was successfully created." } 
         format.json { render :show, status: :created, location: @material }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -65,6 +65,6 @@ class MaterialsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def material_params
-      params.require(:material).permit(:description, :weight, :width, :height, :lenght, :comments)
+      params.require(:material).permit(:description, :width, :lenght, :comments, :price, :unit_id)
     end
 end

@@ -1,7 +1,6 @@
 <% if user_signed_in? %>
   <div class="container-fluid">
   <nav class="navbar navbar-expand-lg navbar-light" style="padding: 0;">
-      
       <a class="navbar-brand" href="#">
         <%= image_tag("logo.png", alt: "Surtibox Logo", width: 250) %> 
       </a>
@@ -12,26 +11,24 @@
       
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-              <a class="nav-link" href="#"><i class="fas fa-cogs"></i> Cotizar</a>
+        <li class="nav-item">
+          <%= link_to '<i class="fas fa-cogs"></i> Cotizar'.html_safe, new_quote_path, class: "nav-link" %> 
+        </li>
+          <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
+          <li class="nav-item dropdown"> 
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-book"></i> Catálogos 
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown"> 
+              <a class="dropdown-item" href="<%= materials_path %>">Materiales</a>
+              <a class="dropdown-item" href="<%= manufacturing_processes_path %>">Procesos</a>
+              <a class="dropdown-item" href="<%= toolings_path %>">Herramental</a>
+              <div class="dropdown-divider"></div> 
+              <a class="dropdown-item" href="<%= customers_path %>">Clientes</a>
+              <a class="dropdown-item" href="<%= vendors_path %>">Proveedores</a>
+              <a class="dropdown-item" href="<%= units_path %>">Unidades</a>
+            </div>
           </li>
-          <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
-          <li class="nav-item">
-              <a class="nav-link" href="#"><i class="fas fa-cogs"></i> Ver cotizaciones</a>
-          </li>
-          <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
-          <li class="nav-item divider d-lg-none"> </li>
-          <li class="nav-item active">    
-            <a class="nav-link" href="<%= vendors_path %>"><i class="fas fa-book"></i> Proveedores</a> 
-          </li>
-          <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="<%= materials_path %>"><i class="fas fa-book"></i> Materiales</a>
-          </li>  
-          <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="#"><i class="fas fa-book"></i> Precios</a>
-          </li>  
           <li class="nav-item large-screen-divider d-none d-lg-block"> </li>
           <li class="nav-item">
             <%= link_to '<i class="fas fa-file-pdf"></i> Generate PDF'.html_safe, pdf_generate_path, class: "nav-link", target: "_blank" %> 
@@ -70,6 +67,7 @@
             <td>$100</td>
             <td>$10</td>
             <td>$110</td>
+            <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
           </tr>
           <tr>
             <td>October 21, 2024</td>
@@ -77,6 +75,7 @@
             <td>$200</td>
             <td>$20</td>
             <td>$220</td>
+            <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn btn-green" %></td> <%# Add button %>
           </tr>
           <tr>
             <td>October 21, 2024</td>
@@ -84,6 +83,7 @@
             <td>$200</td>
             <td>$20</td>
             <td>$220</td>
+            <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
           </tr>
           <tr>
             <td>October 21, 2024</td>
@@ -91,6 +91,7 @@
             <td>$200</td>
             <td>$20</td>
             <td>$220</td>
+            <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
           </tr>
           <tr>
             <td>October 21, 2024</td>
@@ -98,6 +99,7 @@
             <td>$200</td>
             <td>$20</td>
             <td>$220</td>
+            <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
           </tr>
         </tbody>
       </table>

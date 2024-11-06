@@ -1,0 +1,142 @@
+<div data-controller="quotes">
+
+  <h1 class="ml-3">Cálculo de cotización</h1>
+  <hr>
+
+  <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
+    <% if @quote.errors.any? %>
+      <div style="color: red">
+        <h2><%= pluralize(@quote.errors.count, "error") %> prohibited this quote from being saved:</h2>
+        <ul>
+          <% @quote.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="row ml-3">
+      <div class="col-5">
+        <div class="form-group">
+          <%= form.label :pieces, "Cantidad de piezas:" %>
+          <%= form.number_field :pieces, step: :any, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :width, "Ancho del producto:" %>
+          <%= form.number_field :width, step: :any, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :length, "Largo del producto:" %>
+          <%= form.number_field :length, step: :any, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :material_id, "Material principal:" %>
+          <%= form.select :material_id,
+                    options_for_select(
+                      Material.all.map { |m|
+                      [m.description, m.id, { 'data-width' => m.width, 'data-length' => m.lenght, 'data-price' => m.price, 'data-unit' => m.unit.description }]
+                      },
+                      selected: @quote.material_id
+                    ),
+                    { include_blank: 'Select one' },
+                    { class: "form-control",
+                      'data-action': 'change->quotes#showMaterialPrice' 
+          } %>
+          <div class="input-group-append">
+            <span class="input-group-text" id="material_price_display">$0.00</span>
+            <span class="input-group-text ml-1" id="material_unit_display"></span>
+          </div>
+        </div>
+
+        <button data-action="quotes#calculateProducts" class="btn btn-green">
+          Calcular Productos
+        </button>
+      </div>
+
+      <div class="col-5">
+        <div class="form-group">
+          <%= form.label :products_fit, "Productos que caben:" %>
+          <%= form.number_field :products_fit, value: 0, class: "form-control", readonly: true, data: { quotes_target: "productsFit" }  %> 
+        </div>
+
+        <div class="form-group">
+          <%= form.label :material_pieces, "Pliegos necesarios:" %>
+          <%= form.number_field :material_pieces, value: 0, class: "form-control ", readonly: true, data: { quotes_target: "materialPieces" } %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :material_price, "Precio material:" %>
+          <%= form.number_field :material_price, value: 0, class: "form-control", readonly: true, data: { quotes_target: "materialPrice" } %>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <h2 class="ml-3">Agregar procesos</h2>
+    
+    <div class="nested-fields" data-controller="quotes"> 
+      <div class="row ml-3">
+        <div class="col-5">
+          <div class="form-group">
+            <%= form.label :manufacturing_process_id, "Proceso:" %>
+            <div class="input-group"> 
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="manufacturing_process_price_display">$0.00</span>
+                <span class="input-group-text ml-1" id="manufacturing_process_unit_display"></span>
+              </div>
+              <%= form.select :manufacturing_process_id,
+                        options_for_select(
+                          ManufacturingProcess.all.map { |mp|
+                          ["#{mp.name} - #{mp.description}", mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
+                          },
+                          selected: @quote.manufacturing_process_id
+                        ),
+                        { include_blank: 'Select one' },
+                        { class: "form-control",
+                          'data-action': 'change->quotes#showManufactureProcessInfo' 
+              } %>
+            </div>
+          </div>
+
+          <button data-action="quotes#addProcess" class="btn btn-green">
+            Agregar Proceso
+          </button> 
+        </div>
+
+        <div class="col-5">
+          <ul data-quotes-target="processes"></ul> 
+        </div>
+      </div>
+    </div>
+
+    <h2 class="ml-3">Herramentales</h2>
+    <div id="toolings" data-quotes-target="toolings">
+      <ul></ul>
+      <%= form.fields_for :quote_toolings do |quote_tooling_form| %>
+        <%= render 'quote_tooling_fields', f: quote_tooling_form %>
+      <% end %>
+    </div>
+    <div class="row ml-3">
+      <div class="col-6">
+        <button data-action="quotes#addTooling" class="btn btn-green">
+          Agregar Herramental
+        </button>
+      </div>
+      <div class="col-6">
+        </div>
+    </div>
+
+    <div class="row ml-3">
+      <div class="col-6">
+        <%= form.submit "Crear Cotización", class: "btn btn-green" %>
+      </div>
+      <div class="col-6">
+        </div>
+    </div>
+
+  <% end %>
+</div>
