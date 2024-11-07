@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "processes", "toolings", "productsFit", "materialPieces", "materialPrice"] 
+  static targets = [ "processes", "toolings", "productsFit", "materialPieces", "materialPrice", "squareMeters"] 
 
   addProcess(event) {
     event.preventDefault();
@@ -90,6 +90,9 @@ export default class extends Controller {
 
         const quoteValue = materialPrice * piecesNeeded;
         this.materialPriceTarget.value = quoteValue; 
+
+        const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
+        this.squareMetersTarget.value = squareMeters;
 
       } else {
         console.error("No material selected!");

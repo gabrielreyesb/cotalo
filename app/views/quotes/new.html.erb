@@ -1,6 +1,6 @@
 <div data-controller="quotes">
 
-  <h1 class="ml-3">Cálculo de cotización</h1>
+  <h1 class="text-center col-8">Cálculo de cotización</h1>
   <hr>
 
   <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
@@ -16,7 +16,7 @@
     <% end %>
 
     <div class="row ml-3">
-      <div class="col-5">
+      <div class="col-3">
         <div class="form-group">
           <%= form.label :pieces, "Cantidad de piezas:" %>
           <%= form.number_field :pieces, step: :any, class: "form-control" %>
@@ -34,20 +34,22 @@
 
         <div class="form-group">
           <%= form.label :material_id, "Material principal:" %>
-          <%= form.select :material_id,
-                    options_for_select(
-                      Material.all.map { |m|
-                      [m.description, m.id, { 'data-width' => m.width, 'data-length' => m.lenght, 'data-price' => m.price, 'data-unit' => m.unit.description }]
-                      },
-                      selected: @quote.material_id
-                    ),
-                    { include_blank: 'Select one' },
-                    { class: "form-control",
-                      'data-action': 'change->quotes#showMaterialPrice' 
-          } %>
-          <div class="input-group-append">
-            <span class="input-group-text" id="material_price_display">$0.00</span>
-            <span class="input-group-text ml-1" id="material_unit_display"></span>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="material_price_display">$0.00</span>
+              <span class="input-group-text ml-1" id="material_unit_display"></span>
+            </div>
+            <%= form.select :material_id,
+                      options_for_select(
+                        Material.all.map { |m|
+                        [m.description, m.id, { 'data-width' => m.width, 'data-length' => m.lenght, 'data-price' => m.price, 'data-unit' => m.unit.description }]
+                        },
+                        selected: @quote.material_id
+                      ),
+                      { include_blank: 'Select one' },
+                      { class: "form-control",
+                        'data-action': 'change->quotes#showMaterialPrice' 
+            } %>
           </div>
         </div>
 
@@ -56,7 +58,7 @@
         </button>
       </div>
 
-      <div class="col-5">
+      <div class="col-3">
         <div class="form-group">
           <%= form.label :products_fit, "Productos que caben:" %>
           <%= form.number_field :products_fit, value: 0, class: "form-control", readonly: true, data: { quotes_target: "productsFit" }  %> 
@@ -71,6 +73,11 @@
           <%= form.label :material_price, "Precio material:" %>
           <%= form.number_field :material_price, value: 0, class: "form-control", readonly: true, data: { quotes_target: "materialPrice" } %>
         </div>
+
+        <div class="form-group">
+          <%= form.label :square_meters, "Metros cuadrados de material:" %>
+          <%= form.number_field :square_meters, value: 0, class: "form-control", readonly: true, data: { quotes_target: "squareMeters" } %>
+        </div>
       </div>
     </div>
 
@@ -80,7 +87,7 @@
     
     <div class="nested-fields" data-controller="quotes"> 
       <div class="row ml-3">
-        <div class="col-5">
+        <div class="col-4">
           <div class="form-group">
             <%= form.label :manufacturing_process_id, "Proceso:" %>
             <div class="input-group"> 
@@ -107,11 +114,21 @@
           </button> 
         </div>
 
-        <div class="col-5">
+        <div class="col-4">
           <ul data-quotes-target="processes"></ul> 
         </div>
       </div>
     </div>
+    <hr>
+
+    <div class="row ml-3">
+      <div class="col-4">
+        <button data-action="quotes#caclculateQuote" class="btn btn-green">
+          Calcular cotización
+        </button> 
+      </div>
+    </div>
+    <hr>
 
     <h2 class="ml-3">Herramentales</h2>
     <div id="toolings" data-quotes-target="toolings">
@@ -121,7 +138,7 @@
       <% end %>
     </div>
     <div class="row ml-3">
-      <div class="col-6">
+      <div class="col-4">
         <button data-action="quotes#addTooling" class="btn btn-green">
           Agregar Herramental
         </button>
