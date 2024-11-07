@@ -16,7 +16,19 @@ export default class extends Controller {
             const processPrice = parseFloat(selectedOption.dataset.price);
             const processUnit = selectedOption.dataset.unit;
 
-            this.addProcessToList(processDescription, processPrice, processUnit);
+            const materialPieces = parseFloat(document.getElementById('material-pieces').textContent);
+            const squareMeters = parseFloat(document.getElementById('square-meters').textContent);
+
+            let calculatedPrice = 0;
+            if (processUnit === "pliego") {
+              calculatedPrice = processPrice * materialPieces;
+            } else if (processUnit === "m2") {
+              calculatedPrice = processPrice * squareMeters;
+            } else {
+              console.error("Unknown process unit:", processUnit, calculatedPrice);
+            }
+
+            this.addProcessToList(processDescription, processPrice, processUnit, calculatedPrice);
         } else {
             console.error("No option selected in the manufacturing process select.");
         }
@@ -76,23 +88,24 @@ export default class extends Controller {
 
         if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(productWidth) || isNaN(productLength)) {
           console.error("Invalid dimensions. Please check the input values and data attributes.");
-          this.productsFitTarget.value = 0; // Set the field to 0 or display an error message
+          this.productsFitTarget.value = 0;
           return;
         }
 
         const productsInWidth = Math.floor(materialWidth / productWidth);
         const productsInLength = Math.floor(materialLength / productLength);
         const totalProducts = productsInWidth * productsInLength;
-        this.productsFitTarget.value = totalProducts;
+        document.getElementById('products-fit').textContent = totalProducts;
 
         const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
-        this.materialPiecesTarget.value = piecesNeeded; 
+        document.getElementById('material-pieces').textContent = piecesNeeded;
 
         const quoteValue = materialPrice * piecesNeeded;
-        this.materialPriceTarget.value = quoteValue; 
+        const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        document.getElementById('material-price').textContent = formattedQuoteValue; 
 
         const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
-        this.squareMetersTarget.value = squareMeters;
+        document.getElementById('square-meters').textContent = squareMeters;
 
       } else {
         console.error("No material selected!");
@@ -148,12 +161,29 @@ export default class extends Controller {
     return newToolingFields;
   }
 
-  addProcessToList(processDescription, processPrice, processUnit) {
-    const newProcess = document.createElement('li');
-    const formattedPrice = `$${processPrice.toFixed(2)}`;
-  
-    newProcess.textContent = `${processDescription} ${formattedPrice} x ${processUnit}`;
-    this.processesTarget.appendChild(newProcess); 
+  addProcessToList(processDescription, processPrice, processUnit, calculatedPrice) {
+    const newRow = document.createElement('tr'); 
+    const descriptionCell = document.createElement('td');
+    
+    descriptionCell.textContent = processDescription;
+    newRow.appendChild(descriptionCell);
+
+    const priceCell = document.createElement('td');
+    priceCell.textContent = calculatedPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+    priceCell.style.textAlign = 'right';
+    newRow.appendChild(priceCell);
+
+    const removeCell = document.createElement('td');
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'Eliminar';
+    removeButton.classList.add('btn', 'btn-danger');
+    removeButton.addEventListener('click', () => {
+      newRow.remove();
+    });
+    removeCell.appendChild(removeButton);
+    newRow.appendChild(removeCell);
+
+    this.processesTarget.querySelector('tbody').appendChild(newRow); 
   }
 
   addToolingToList(toolingDescription) {
@@ -229,5 +259,28 @@ export default class extends Controller {
     } else {
       return ''; // Or handle the case where no fieldId is found
     }
+  }
+
+  calculateQuote(event) {
+    event.preventDefault();
+
+    if (this.processesTarget === null) {
+      alert("Por favor, calcula los productos primero.");
+      return;
+    }
+    
+    const materialPrice = parseFloat(document.getElementById('material-price').textContent.replace(/[^0-9.-]+/g, "")); 
+
+    let processPricesSum = 0;
+    const processRows = this.processesTarget.querySelectorAll('tbody tr'); 
+    processRows.forEach(row => {
+      const priceCell = row.querySelector('td:nth-child(2)'); 
+      const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, "")); 
+      processPricesSum += priceValue;
+    });
+
+    const finalQuoteValue = materialPrice + processPricesSum;
+    const formattedFinalQuoteValue = finalQuoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    document.getElementById('final-quote-value').textContent = formattedFinalQuoteValue;
   }
 }

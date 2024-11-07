@@ -110,3 +110,25 @@
       margin-top: 10px; 
     }
   }
+
+[data-controller="quotes"] table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+[data-controller="quotes"] th {
+  background-color: #f8f9fa;
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #dee2e6;
+}
+
+[data-controller="quotes"] tbody td:nth-child(2) {
+  text-align: right; 
+  padding: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.col-4 > table td:nth-child(2) { 
+  text-align: right; 
+}
