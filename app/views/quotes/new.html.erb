@@ -1,7 +1,6 @@
 <div data-controller="quotes" class="container"> 
 
   <h1 class="text-center col-12">Cálculo de cotización</h1>
-  <hr>
 
   <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
     <% if @quote.errors.any? %>
@@ -15,6 +14,7 @@
       </div>
     <% end %>
 
+    <hr style="border: 1px solid black;">
     <div class="row ml-3">
       <div class="col-6">
         <div class="form-group">
@@ -98,8 +98,8 @@
         </table>
       </div>
     </div>
-    <hr class="border-3">
-
+    
+    <hr style="border: 1px solid black;">
     <div class="nested-fields"> 
       <div class="row ml-3">
         <div class="col-6">
@@ -146,13 +146,58 @@
         
       </div>
     </div>
-    <hr>
+    <hr style="border: 1px solid black;">
+
+    <% waste_config = GeneralConfiguration.find_by(description: "Merma") %>
+    <% margin_config = GeneralConfiguration.find_by(description: "Margen") %>
 
     <div class="row ml-3">
       <div class="col-6">
-        <button data-action="quotes#calculateQuote" class="btn btn-green">
-          Calcular cotización
-        </button> 
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><%= form.label :waste_percentage, "Desperdicio:" %></span>
+            <div style="display: flex; align-items: center; white-space: nowrap;">
+              <span id="waste-percentage"><%= waste_config ? "#{waste_config.amount}%" : "N/A" %></span> 
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6"> 
+        <div class="form-group">
+          <div style="display: flex; justify-content: flex-end; align-items: center;"> 
+            <%= form.text_field :waste_value, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row ml-3">
+      <div class="col-6">
+        <button data-action="quotes#calculateSubTotal" class="btn btn-green">
+          Calcular subtotal
+        </button>
+        <span><%= form.label :pieces, "Subtotal:", class: "font-weight-bold" %></span>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; white-space: nowrap;">
+              <%= form.text_field :sub_total_value, step: :any, class: "form-control", style: "width: 150px; text-align: right;", id: "sub-total-value" %>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr style="border: 1px solid black;">
+
+    <div class="row ml-3">
+    <div class="col-6">
+        <div class="form-group">
+          <%= form.label :margin_percentage, "Margen:" %>
+          <div id="margin-percentage" style="text-align: right;"><%= margin_config ? "#{margin_config.amount}%" : "N/A" %></div> 
+          <%= form.text_field :margin_value, step: :any, class: "form-control" %>
+          </div>
       </div>
       <div class="col-6">
         <div class="form-group">
@@ -160,8 +205,14 @@
           <div id="final-quote-value" style="text-align: right;"></div> 
         </div>
       </div>
+      <div class="col-6">
+        <button data-action="quotes#calculateQuote" class="btn btn-green">
+          Calcular cotización
+        </button> 
+      </div>
+      
     </div>
-    <hr>
+    <hr style="border: 1px solid black;">
 
     <div class="row ml-3">
       <div class="col-6">
@@ -170,7 +221,7 @@
         </button> 
       </div>
     </div>
-    <hr>
+    <hr style="border: 1px solid black;">
 
     <h2 class="ml-3">Herramentales</h2>
     <div id="toolings" data-quotes-target="toolings">

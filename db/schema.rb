@@ -64,15 +64,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_09_192408) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "processes", force: :cascade do |t|
-    t.string "description"
-    t.decimal "price"
-    t.integer "unit_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["unit_id"], name: "index_processes_on_unit_id"
-  end
-
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
@@ -111,13 +102,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_09_192408) do
     t.index ["unit_id"], name: "index_toolings_on_unit_id"
   end
 
-  create_table "unit_of_measurements", force: :cascade do |t|
-    t.string "description", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["description"], name: "index_unit_of_measurements_on_description", unique: true
-  end
-
   create_table "units", force: :cascade do |t|
     t.string "description"
     t.datetime "created_at", null: false
@@ -146,7 +130,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_09_192408) do
   add_foreign_key "general_configurations", "units"
   add_foreign_key "manufacturing_processes", "units"
   add_foreign_key "materials", "units"
-  add_foreign_key "processes", "units"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"
   add_foreign_key "quote_toolings", "quotes"

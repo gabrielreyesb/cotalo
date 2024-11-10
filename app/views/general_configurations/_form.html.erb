@@ -2,7 +2,7 @@
   <h1 class="text-center mb-4"><%= general_configuration.new_record? ? 'Nueva Configuración' : 'Editar Configuración' %></h1> 
 
   <div class="row">
-    <div class="col-md-6 offset-md-3"> 
+    <div class="col-md-10 "> 
       <%= form_with(model: general_configuration) do |form| %>
         <% if general_configuration.errors.any? %>
           <div style="color: red">
@@ -30,10 +30,13 @@
           <%= form.label :unit_id, "Unidad de medida:", style: "display: block" %> 
           <%= form.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-control" %> 
         </div>
-
+        
         <div class="text-center mt-3"> 
           <%= form.submit "Guardar configuración", class: "btn btn-green" %> 
-          <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
+        </div>
+
+        <div class="text-center mt-3"> 
+          <%= link_to 'Volver a configraciones generales', general_configurations_path, class: 'btn btn-green' %>
         </div>
       <% end %>
     </div>

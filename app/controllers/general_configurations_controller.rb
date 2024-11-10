@@ -20,7 +20,7 @@ class GeneralConfigurationsController < ApplicationController
 
     respond_to do |format|
       if @general_configuration.save
-        format.html { redirect_to general_configuration_url(@general_configuration), notice: "General configuration was successfully created." }
+        format.html { redirect_to general_configurations_url, notice: "General configuration was successfully created." }
         format.json { render :show, status: :created, location: @general_configuration }
       else
         format.html { render :new, status: :unprocessable_entity }

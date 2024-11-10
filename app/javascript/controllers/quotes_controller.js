@@ -263,28 +263,96 @@ export default class extends Controller {
 
   calculateQuote(event) {
     event.preventDefault();
-
-    if (this.processesTarget === null) {
-      alert("Por favor, calcula los productos primero.");
+  
+    const subTotalValueElement = document.getElementById('sub-total-value');
+    if (!subTotalValueElement) {
+      console.error("Subtotal value element not found.");
       return;
     }
+    const subTotalValue = parseFloat(subTotalValueElement.textContent.replace(/[^0-9.-]+/g, ""));
 
-    const materialPrice = parseFloat(document.getElementById('material-price').textContent.replace(/[^0-9.-]+/g, "")); 
-
-    let processPricesSum = 0;
-    const processRows = this.processesTarget.querySelectorAll('tbody tr'); 
-    processRows.forEach(row => {
-      const priceCell = row.querySelector('td:nth-child(2)'); 
-      const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, "")); 
-      processPricesSum += priceValue;
-    });
-
-    const finalQuoteValue = materialPrice + processPricesSum;
-    const formattedFinalQuoteValue = finalQuoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    document.getElementById('final-quote-value').textContent = formattedFinalQuoteValue;
+    const wasteValueElement = document.getElementById('quote_waste_value');
+    if (!wasteValueElement) {
+      console.error("Waste value element not found.");
+      return;
+    }
+    const wasteValue = parseFloat(wasteValueElement.value.replace(/[^0-9.-]+/g, ""));
+  
+    const marginPercentageElement = document.getElementById('margin-percentage');
+    if (!marginPercentageElement) {
+      console.error("Margin percentage element not found.");
+      return;
+    }
+    const marginPercentage = parseFloat(marginPercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
+  
+    const marginValue = (subTotalValue * marginPercentage) / 100;
+    const finalQuoteValue = subTotalValue + wasteValue + marginValue;
+  
+    const finalQuoteValueElement = document.getElementById('final-quote-value');
+    if (!finalQuoteValueElement) {
+      console.error("Final quote value element not found.");
+      return;
+    }
+    finalQuoteValueElement.textContent = finalQuoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  
+    const marginValueElement = document.getElementById('quote_margin_value');
+    if (marginValueElement) {
+      marginValueElement.value = `$${marginValue.toFixed(2)}`;
+    }
   }
 
   createQuotePDF(event){
     window.location.href = `/quotes/${this.quoteId}/calculate_quote.pdf`; 
+  }
+
+  calculateSubTotal(event) {
+    event.preventDefault();
+  
+    const materialPriceElement = document.getElementById('material-price');
+    if (!materialPriceElement) {
+      console.error("Material price element not found.");
+      return;
+    }
+    const materialPrice = parseFloat(materialPriceElement.textContent.replace(/[^0-9.-]+/g, ""));
+  
+    let processPricesSum = 0;
+    if (this.processesTarget) {
+      const processRows = this.processesTarget.querySelectorAll('tbody tr');
+      processRows.forEach(row => {
+        const priceCell = row.querySelector('td:nth-child(2)');
+        if (priceCell) {
+          const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
+          processPricesSum += priceValue;
+        } else {
+          console.error("Price cell not found in process row.");
+        }
+      });
+    } else {
+      console.warn("Processes target not found. Assuming no processes added.");
+    }
+  
+    const subTotalValue = materialPrice + processPricesSum;
+  
+    const subTotalValueElement = document.getElementById('sub-total-value');
+    if (!subTotalValueElement) {
+      console.error("Subtotal value element not found.");
+      return;
+    }
+    subTotalValueElement.value = subTotalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+  
+    const wastePercentageElement = document.getElementById('waste-percentage');
+    if (!wastePercentageElement) {
+      console.error("Waste percentage element not found.");
+      return;
+    }
+    const wastePercentage = parseFloat(wastePercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
+    const wasteValue = (subTotalValue * wastePercentage) / 100;
+  
+    const wasteValueElement = document.getElementById('quote_waste_value');
+    if (!wasteValueElement) {
+      console.error("Waste value element not found.");
+      return;
+    }
+    wasteValueElement.value = `$${wasteValue.toFixed(2)}`;
   }
 }

@@ -25,7 +25,7 @@ class UnitsController < ApplicationController
 
     respond_to do |format|
       if @unit.save
-        format.html { redirect_to unit_url(@unit), notice: "Unit was successfully created." }
+        format.html { redirect_to units_url, notice: "Unit was successfully created." }
         format.json { render :show, status: :created, location: @unit }
       else
         format.html { render :new, status: :unprocessable_entity }

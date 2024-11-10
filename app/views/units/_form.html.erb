@@ -2,7 +2,7 @@
   <h1 class="text-center mb-4"><%= unit.new_record? ? 'Nueva Unidad' : 'Editar Unidad' %></h1> 
 
   <div class="row">
-    <div class="col-md-6 offset-md-3"> 
+    <div class="col-md-10"> 
       <%= form_with(model: unit) do |form| %>
         <% if unit.errors.any? %>
           <div style="color: red">
@@ -23,7 +23,10 @@
 
         <div class="text-center mt-3"> 
           <%= form.submit unit.new_record? ? "Crear unidad" : "Actualizar unidad", class: "btn btn-green" %> 
-          <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
+        </div>
+        
+        <div class="text-center mt-3"> 
+          <%= link_to 'Volver a unidades de medida', units_path, class: 'btn btn-green' %>
         </div>
       <% end %>
     </div>
