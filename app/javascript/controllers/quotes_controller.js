@@ -268,7 +268,7 @@ export default class extends Controller {
       alert("Por favor, calcula los productos primero.");
       return;
     }
-    
+
     const materialPrice = parseFloat(document.getElementById('material-price').textContent.replace(/[^0-9.-]+/g, "")); 
 
     let processPricesSum = 0;
@@ -282,5 +282,9 @@ export default class extends Controller {
     const finalQuoteValue = materialPrice + processPricesSum;
     const formattedFinalQuoteValue = finalQuoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     document.getElementById('final-quote-value').textContent = formattedFinalQuoteValue;
+  }
+
+  createQuotePDF(event){
+    window.location.href = `/quotes/${this.quoteId}/calculate_quote.pdf`; 
   }
 }

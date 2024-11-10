@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :general_configurations
   get 'material_dimensions/show'
   get 'quotes/new'
   get 'quotes/create'
@@ -20,4 +21,11 @@ Rails.application.routes.draw do
   resources :papers do
     get :new_form, on: :collection 
   end
+  
+  resources :quotes do
+    member do
+      get 'calculate_quote'
+    end
+  end
+  
 end

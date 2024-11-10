@@ -10,13 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_04_225105) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_09_192408) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
     t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "general_configurations", force: :cascade do |t|
+    t.string "description"
+    t.decimal "amount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "unit_id"
+    t.index ["unit_id"], name: "index_general_configurations_on_unit_id"
   end
 
   create_table "manufacturing_processes", force: :cascade do |t|
@@ -134,6 +143,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_04_225105) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "general_configurations", "units"
   add_foreign_key "manufacturing_processes", "units"
   add_foreign_key "materials", "units"
   add_foreign_key "processes", "units"

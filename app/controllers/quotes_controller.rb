@@ -15,6 +15,16 @@ class QuotesController < ApplicationController
     end
   end
 
+  def calculate_quote
+    respond_to do |format|
+      format.html
+      format.pdf do
+        pdf = QuotePdf.new(@quote)
+        send_data pdf.render, filename: "quote_#{@quote.id}.pdf", type: "application/pdf", disposition: "inline" 
+      end
+    end
+  end
+
   private
 
   def quote_params

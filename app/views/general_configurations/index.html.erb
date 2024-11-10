@@ -1,0 +1,38 @@
+<div class="container mt-4">
+  <h1 class="text-center mb-4">Configuraciones Generales</h1>
+
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-hover table-bordered">
+        <thead style="background-color: #76a835; color: white"> 
+          <tr>
+            <th>Descripción</th>
+            <th>Cantidad</th>
+            <th>Unidad</th>
+            <th colspan="3">Acciones</th> 
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @general_configurations.each do |config| %>
+            <tr>
+              <td><%= config.description %></td>
+              <td><%= config.amount %></td>
+              <td><%= config.unit.description %></td> 
+              <td><%= link_to 'Ver', config, class: 'btn btn-sm btn-outline-success' %></td>
+              <td><%= link_to 'Editar', edit_general_configuration_path(config), class: 'btn btn-sm btn-outline-primary' %></td>
+              <td><%= link_to 'Eliminar', config, method: :delete, data: { confirm: '¿Estás seguro?' }, class: 'btn btn-sm btn-outline-danger' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <div class="text-center mt-3">
+        <%= link_to 'Nueva Configuración', new_general_configuration_path, class: 'btn btn-green' %>
+      </div>
+      <div class="text-center mt-3">
+        <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
+      </div>
+    </div>
+  </div>
+</div>

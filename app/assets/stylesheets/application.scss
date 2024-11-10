@@ -5,8 +5,9 @@
 
 .divider {
     height: 1px;
-    margin: 2px 0; /* Reduced margin */
+    margin: 2px 0; 
     border-top: 1px solid black;
+    border: 3;
   }
 
   @media (min-width: 992px) {
@@ -131,4 +132,10 @@
 
 .col-4 > table td:nth-child(2) { 
   text-align: right; 
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }

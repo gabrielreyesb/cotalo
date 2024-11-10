@@ -1,14 +1,34 @@
-<p style="color: green"><%= notice %></p>
+<div class="container mt-4">
+  <h1 class="text-center mb-4">Unidades</h1>
 
-<h1>Units</h1>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-hover table-bordered">
+        <thead style="background-color: #76a835; color: white"> 
+          <tr>
+            <th>Descripción</th> 
+            <th colspan="3">Acciones</th> 
+          </tr>
+        </thead>
 
-<div id="units">
-  <% @units.each do |unit| %>
-    <%= render unit %>
-    <p>
-      <%= link_to "Show this unit", unit %>
-    </p>
-  <% end %>
+        <tbody>
+          <% @units.each do |unit| %>
+            <tr>
+              <td><%= unit.description %></td> 
+              <td><%= link_to 'Ver', unit, class: 'btn btn-sm btn-outline-success' %></td>
+              <td><%= link_to 'Editar', edit_unit_path(unit), class: 'btn btn-sm btn-outline-primary' %></td>
+              <td><%= link_to 'Eliminar', unit, method: :delete, data: { confirm: '¿Estás seguro?' }, class: 'btn btn-sm btn-outline-danger' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <div class="text-center mt-3">
+        <%= link_to 'Nueva Unidad', new_unit_path, class: 'btn btn-green' %>
+      </div>
+      <div class="text-center mt-3">
+        <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
+      </div>
+    </div>
+  </div>
 </div>
-
-<%= link_to "New unit", new_unit_path %>

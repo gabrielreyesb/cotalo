@@ -1,6 +1,6 @@
-<div data-controller="quotes">
+<div data-controller="quotes" class="container"> 
 
-  <h1 class="text-center col-8">Cálculo de cotización</h1>
+  <h1 class="text-center col-12">Cálculo de cotización</h1>
   <hr>
 
   <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
@@ -16,24 +16,34 @@
     <% end %>
 
     <div class="row ml-3">
-      <div class="col-4">
+      <div class="col-6">
         <div class="form-group">
-          <%= form.label :pieces, "Cantidad de piezas:" %>
+          <%= form.label :pieces, "Nombre del proyecto:", class: "font-weight-bold" %>
+          <%= form.text_field :projects_name, step: :any, class: "form-control", value: "Nombre del proyecto" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :customer, "Cliente:", class: "font-weight-bold" %>
+          <%= form.text_field :projects_name, step: :any, class: "form-control", value: "Nombre del cliente" %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :pieces, "Cantidad de piezas:", class: "font-weight-bold" %>
           <%= form.number_field :pieces, step: :any, class: "form-control", value: 2000 %>
         </div>
 
         <div class="form-group">
-          <%= form.label :width, "Ancho del producto:" %>
+          <%= form.label :width, "Ancho del producto:", class: "font-weight-bold" %>
           <%= form.number_field :width, step: :any, class: "form-control", value: 34 %>
         </div>
 
         <div class="form-group">
-          <%= form.label :length, "Largo del producto:" %>
+          <%= form.label :length, "Largo del producto:", class: "font-weight-bold" %>
           <%= form.number_field :length, step: :any, class: "form-control", value: 23 %>
         </div>
 
         <div class="form-group">
-          <%= form.label :material_id, "Material principal:" %>
+          <%= form.label :material_id, "Material principal:", class: "font-weight-bold" %>
           <div class="input-group">
             <div class="input-group-prepend">
               <span class="input-group-text" id="material_price_display">$0.00</span>
@@ -58,7 +68,8 @@
         </button>
       </div>
 
-      <div class="col-4">
+      <div class="col-6">
+        <br><br><br><br><br><br>
         <table class="table table-bordered"> 
           <thead class="thead-light"> 
             <tr>
@@ -87,15 +98,13 @@
         </table>
       </div>
     </div>
-    <hr>
+    <hr class="border-3">
 
-    <h2 class="ml-3">Agregar procesos</h2>
-    
     <div class="nested-fields"> 
       <div class="row ml-3">
-        <div class="col-4">
+        <div class="col-6">
           <div class="form-group">
-            <%= form.label :manufacturing_process_id, "Procesos:" %>
+            <%= form.label :manufacturing_process_id, "Procesos:", class: "font-weight-bold" %>
             <div class="input-group"> 
               <div class="input-group-prepend">
                 <span class="input-group-text" id="manufacturing_process_price_display">$0.00</span>
@@ -119,8 +128,9 @@
             Agregar Proceso
           </button> 
         </div>
-
-        <div class="col-4">
+                              
+        <div class="col-6">
+        <br>
           <table data-quotes-target="processes" class="table table-bordered"> 
             <thead class="thead-light"> 
               <tr>
@@ -139,16 +149,25 @@
     <hr>
 
     <div class="row ml-3">
-      <div class="col-4">
+      <div class="col-6">
         <button data-action="quotes#calculateQuote" class="btn btn-green">
           Calcular cotización
         </button> 
       </div>
-      <div class="col-4">
+      <div class="col-6">
         <div class="form-group">
           <%= form.label :final_quote_value, "Precio total de la cotización:" %>
           <div id="final-quote-value" style="text-align: right;"></div> 
         </div>
+      </div>
+    </div>
+    <hr>
+
+    <div class="row ml-3">
+      <div class="col-6">
+        <button data-action="quotes#createQuotePDF" class="btn btn-green">
+          Generar cotización en PDF
+        </button> 
       </div>
     </div>
     <hr>

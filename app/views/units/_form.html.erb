@@ -1,22 +1,31 @@
-<%= form_with(model: unit) do |form| %>
-  <% if unit.errors.any? %>
-    <div style="color: red">
-      <h2><%= pluralize(unit.errors.count, "error") %> prohibited this unit from being saved:</h2>
+<div class="container mt-4"> 
+  <h1 class="text-center mb-4"><%= unit.new_record? ? 'Nueva Unidad' : 'Editar Unidad' %></h1> 
 
-      <ul>
-        <% unit.errors.each do |error| %>
-          <li><%= error.full_message %></li>
+  <div class="row">
+    <div class="col-md-6 offset-md-3"> 
+      <%= form_with(model: unit) do |form| %>
+        <% if unit.errors.any? %>
+          <div style="color: red">
+            <h2><%= pluralize(unit.errors.count, "error") %> prohibited this unit from being saved:</h2>
+
+            <ul>
+              <% unit.errors.each do |error| %>
+                <li><%= error.full_message %></li>
+              <% end %>
+            </ul>
+          </div>
         <% end %>
-      </ul>
+
+        <div class="form-group">
+          <%= form.label :description, "Descripción:", style: "display: block" %> 
+          <%= form.text_field :description, class: "form-control" %> 
+        </div>
+
+        <div class="text-center mt-3"> 
+          <%= form.submit unit.new_record? ? "Crear unidad" : "Actualizar unidad", class: "btn btn-green" %> 
+          <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
+        </div>
+      <% end %>
     </div>
-  <% end %>
-
-  <div>
-    <%= form.label :description, style: "display: block" %>
-    <%= form.text_field :description %>
   </div>
-
-  <div>
-    <%= form.submit %>
-  </div>
-<% end %>
+</div>
