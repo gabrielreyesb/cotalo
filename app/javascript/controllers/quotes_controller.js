@@ -57,14 +57,30 @@ export default class extends Controller {
 
   addTooling(event) {
     event.preventDefault();
-    const selectElement = this.toolingsTarget.querySelector('select[name*="[tooling_id]"]');
+
+    const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[tooling_id]"]'); 
+    const quantityInput = event.target.closest('.nested-fields').querySelector('input[name*="[quantity]"]'); // Get the quantity input
+
     if (selectElement) {
-      const toolingId = selectElement.value;  
-      if (toolingId) {
-        const toolingDescription = selectElement.options[selectElement.selectedIndex].text;
-        this.addToolingToList(toolingDescription);
-        selectElement.value = '';
-      }
+      const selectedOption = selectElement.selectedOptions[0];
+
+      if (selectedOption && quantityInput) {
+        const toolingDescription = selectedOption.text;
+        const toolingPrice = parseFloat(selectedOption.dataset.price);
+        const toolingUnit = selectedOption.dataset.unit;
+        const toolingQuantity = parseInt(quantityInput.value);
+
+        let calculatedPrice = 0;
+        if (toolingUnit === "pieza") {
+          calculatedPrice = toolingPrice * toolingQuantity;;
+        } else {
+          console.error("Unknown tooling unit:", toolingUnit, calculatedPrice);
+        }
+
+        this.addToolingToList(toolingDescription, toolingPrice, toolingUnit, calculatedPrice);
+      } else {
+          console.error("No option selected in the tooling select.");
+      } 
     } else {
       console.error("Select element for tooling not found!");
     }
@@ -147,6 +163,22 @@ export default class extends Controller {
     }
   }
 
+  showToolingInfo(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    const toolingPrice = parseFloat(selectedOption.getAttribute('data-price'));
+    const toolingUnit = selectedOption.getAttribute('data-unit');
+
+    const toolingPriceDisplay = document.getElementById('tooling_price_display');
+    if (toolingPriceDisplay) {
+      toolingPriceDisplay.textContent = `$${toolingPrice.toFixed(2)}`;
+    }
+
+    const toolingUnitDisplay = document.getElementById('tooling_unit_display');
+    if (toolingUnitDisplay) {
+      toolingUnitDisplay.textContent = toolingUnit;
+    }
+  }
+
   createProcessField() {
     const newId = new Date().getTime(); 
     const regexp = new RegExp("new_quote_process", "g"); 
@@ -186,10 +218,29 @@ export default class extends Controller {
     this.processesTarget.querySelector('tbody').appendChild(newRow); 
   }
 
-  addToolingToList(toolingDescription) {
-    const listItem = document.createElement('li');
-    listItem.textContent = toolingDescription;
-    this.toolingsTarget.querySelector('ul').appendChild(listItem);
+  addToolingToList(toolingDescription, toolingPrice, toolingUnit, calculatedPrice) {
+    const newRow = document.createElement('tr'); 
+    const descriptionCell = document.createElement('td');
+    
+    descriptionCell.textContent = toolingDescription;
+    newRow.appendChild(descriptionCell);
+
+    const priceCell = document.createElement('td');
+    priceCell.textContent = calculatedPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+    priceCell.style.textAlign = 'right';
+    newRow.appendChild(priceCell);
+
+    const removeCell = document.createElement('td');
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'Eliminar';
+    removeButton.classList.add('btn', 'btn-danger');
+    removeButton.addEventListener('click', () => {
+      newRow.remove();
+    });
+    removeCell.appendChild(removeButton);
+    newRow.appendChild(removeCell);
+
+    this.toolingsTarget.querySelector('tbody').appendChild(newRow); 
   }
 
   get processFieldsTemplate() {
@@ -261,7 +312,7 @@ export default class extends Controller {
     }
   }
 
-  calculateQuote(event) {
+  calculateQuote_old(event) {
     event.preventDefault();
   
     const subTotalValueElement = document.getElementById('sub-total-value');
@@ -305,9 +356,10 @@ export default class extends Controller {
     window.location.href = `/quotes/${this.quoteId}/calculate_quote.pdf`; 
   }
 
-  calculateSubTotal(event) {
+  calculateQuote(event) {
     event.preventDefault();
   
+    // Get the material price
     const materialPriceElement = document.getElementById('material-price');
     if (!materialPriceElement) {
       console.error("Material price element not found.");
@@ -315,6 +367,7 @@ export default class extends Controller {
     }
     const materialPrice = parseFloat(materialPriceElement.textContent.replace(/[^0-9.-]+/g, ""));
   
+    // Calculate the sum of process prices
     let processPricesSum = 0;
     if (this.processesTarget) {
       const processRows = this.processesTarget.querySelectorAll('tbody tr');
@@ -330,9 +383,28 @@ export default class extends Controller {
     } else {
       console.warn("Processes target not found. Assuming no processes added.");
     }
+
+    // Calculate the sum of tooling prices
+    let toolingPricesSum = 0;
+    if (this.toolingsTarget) {
+      const toolingRows = this.toolingsTarget.querySelectorAll('tbody tr');
+      toolingRows.forEach(row => {
+        const priceCell = row.querySelector('td:nth-child(2)');
+        if (priceCell) {
+          const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
+          toolingPricesSum += priceValue;
+        } else {
+          console.error("Price cell not found in tooling row.");
+        }
+      });
+    } else {
+      console.warn("Tooling target not found. Assuming no tooling added.");
+    }
   
-    const subTotalValue = materialPrice + processPricesSum;
+    // Calculate the subtotal
+    const subTotalValue = materialPrice + processPricesSum + toolingPricesSum;
   
+    // Update the subtotal field in the form
     const subTotalValueElement = document.getElementById('sub-total-value');
     if (!subTotalValueElement) {
       console.error("Subtotal value element not found.");
@@ -340,6 +412,7 @@ export default class extends Controller {
     }
     subTotalValueElement.value = subTotalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
   
+    // Calculate the waste value
     const wastePercentageElement = document.getElementById('waste-percentage');
     if (!wastePercentageElement) {
       console.error("Waste percentage element not found.");
@@ -348,11 +421,40 @@ export default class extends Controller {
     const wastePercentage = parseFloat(wastePercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
     const wasteValue = (subTotalValue * wastePercentage) / 100;
   
-    const wasteValueElement = document.getElementById('quote_waste_value');
+    // Update the waste value field in the form
+    const wasteValueElement = document.getElementById('quote_waste_value'); 
     if (!wasteValueElement) {
       console.error("Waste value element not found.");
       return;
     }
-    wasteValueElement.value = `$${wasteValue.toFixed(2)}`;
+    wasteValueElement.value = wasteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+
+    // Calculate the margin value
+    const marginPercentageElement = document.getElementById('margin-percentage');
+    if (!marginPercentageElement) {
+      console.error("Margin percentage element not found.");
+      return;
+    }
+    const marginPercentage = parseFloat(marginPercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
+    const marginValue = (subTotalValue * marginPercentage) / 100;
+  
+    // Update the margin value field in the form
+    const marginValueElement = document.getElementById('quote_margin_value'); 
+    if (!marginValueElement) {
+      console.error("Margin value element not found.");
+      return;
+    }
+    marginValueElement.value = marginValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+
+    // Calculate the total value
+    const totalValue = subTotalValue + wasteValue + marginValue;
+
+    // Update the total value field in the form  
+    const totalValueElement = document.getElementById('total-value'); 
+    if (!totalValueElement) {
+      console.error("Total value element not found.");
+      return;
+    }
+    totalValueElement.value = totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
   }
 }

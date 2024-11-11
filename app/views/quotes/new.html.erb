@@ -3,6 +3,8 @@
   <h1 class="text-center col-12">Cálculo de cotización</h1>
 
   <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
+    
+    <%# Manejo de errores %>
     <% if @quote.errors.any? %>
       <div style="color: red">
         <h2><%= pluralize(@quote.errors.count, "error") %> prohibited this quote from being saved:</h2>
@@ -15,6 +17,8 @@
     <% end %>
 
     <hr style="border: 1px solid black;">
+    
+    <%# Datos de Proyecto %>
     <div class="row ml-3">
       <div class="col-6">
         <div class="form-group">
@@ -100,6 +104,8 @@
     </div>
     
     <hr style="border: 1px solid black;">
+
+    <%# Datos de procesos %>
     <div class="nested-fields"> 
       <div class="row ml-3">
         <div class="col-6">
@@ -143,19 +149,90 @@
             </tbody>
           </table>
         </div>
-        
       </div>
     </div>
+    
     <hr style="border: 1px solid black;">
 
-    <% waste_config = GeneralConfiguration.find_by(description: "Merma") %>
-    <% margin_config = GeneralConfiguration.find_by(description: "Margen") %>
+    <%# Herramentales %>
+    <div class="nested-fields">
+      <div class="row ml-3">
+        <div class="col-6"> <%# This div was missing %>
+          <div class="form-group">
+            <%= form.label :tooling_id, "Herramentales:", class: "font-weight-bold" %>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="tooling_price_display">$0.00</span>
+                <span class="input-group-text ml-1" id="tooling_unit_display"></span>
+              </div>
 
+              <%= form.fields_for :quote_toolings do |quote_tooling_form| %>
+                <%= quote_tooling_form.select :tooling_id,
+                        options_for_select(
+                          Tooling.all.map { |t|
+                          ["#{t.description}", t.id, { 'data-price' => t.price, 'data-unit' => t.unit.description }]
+                          }
+                        ),
+                        { include_blank: 'Select one' },
+                        { class: "form-control",
+                          'data-action': 'change->quotes#showToolingInfo'
+                } %>
+                <div class="input-group-append">
+                  <%= quote_tooling_form.number_field :quantity, value: 0, min: 1, class: "form-control", style: "width: 70px;" %> 
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <button data-action="quotes#addTooling" class="btn btn-green">
+            Agregar Herramental
+          </button>
+        </div> <%# Added closing div tag here %> 
+
+        <div class="col-6">
+          <br>
+          <table data-quotes-target="toolings" class="table table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>Herramental</th>
+                <th>Precio Total</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <hr style="border: 1px solid black;">
+
+    <%# Subtotal %>
     <div class="row ml-3">
       <div class="col-6">
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><%= form.label :waste_percentage, "Desperdicio:" %></span>
+            <span><%= form.label :pieces, "Subtotal:", class: "font-weight-bold" %></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <div style="display: flex; justify-content: flex-end; align-items: center;">
+            <%= form.text_field :sub_total_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "sub-total-value" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Merma %>
+    <div class="row ml-3">
+      <% waste_config = GeneralConfiguration.find_by(description: "Merma") %>
+      <div class="col-6">
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><%= form.label :waste_percentage, "Merma:" %></span>
             <div style="display: flex; align-items: center; white-space: nowrap;">
               <span id="waste-percentage"><%= waste_config ? "#{waste_config.amount}%" : "N/A" %></span> 
             </div>
@@ -171,49 +248,58 @@
       </div>
     </div>
 
+    <%# Margen %>
     <div class="row ml-3">
-      <div class="col-6">
-        <button data-action="quotes#calculateSubTotal" class="btn btn-green">
-          Calcular subtotal
-        </button>
-        <span><%= form.label :pieces, "Subtotal:", class: "font-weight-bold" %></span>
-      </div>
+      <% margin_config = GeneralConfiguration.find_by(description: "Margen") %>
       <div class="col-6">
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><%= form.label :margin_percentage, "Margen:" %></span>
             <div style="display: flex; align-items: center; white-space: nowrap;">
-              <%= form.text_field :sub_total_value, step: :any, class: "form-control", style: "width: 150px; text-align: right;", id: "sub-total-value" %>
+              <span id="margin-percentage"><%= margin_config ? "#{margin_config.amount}%" : "N/A" %></span> 
+            </div>
           </div>
+        </div>
+      </div>
+      <div class="col-6"> 
+        <div class="form-group">
+          <div style="display: flex; justify-content: flex-end; align-items: center;"> 
+            <%= form.text_field :margin_value, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
           </div>
         </div>
       </div>
     </div>
 
-    <hr style="border: 1px solid black;">
-
+    <%# Total %>
     <div class="row ml-3">
-    <div class="col-6">
+      <div class="col-6">
         <div class="form-group">
-          <%= form.label :margin_percentage, "Margen:" %>
-          <div id="margin-percentage" style="text-align: right;"><%= margin_config ? "#{margin_config.amount}%" : "N/A" %></div> 
-          <%= form.text_field :margin_value, step: :any, class: "form-control" %>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><%= form.label :final_quote_value, "Precio total de la cotización:", class: "font-weight-bold" %></span>
           </div>
+        </div>
       </div>
       <div class="col-6">
         <div class="form-group">
-          <%= form.label :final_quote_value, "Precio total de la cotización:" %>
-          <div id="final-quote-value" style="text-align: right;"></div> 
-        </div>
+          <div style="display: flex; justify-content: flex-end; align-items: center;">
+            <%= form.text_field :total_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-value" %>
+          </div>
+        </div> 
       </div>
+    </div>
+    
+    <%# Calcula total %>
+    <div class="row ml-3">
       <div class="col-6">
         <button data-action="quotes#calculateQuote" class="btn btn-green">
           Calcular cotización
         </button> 
       </div>
-      
     </div>
+  
     <hr style="border: 1px solid black;">
 
+    <%# Generar PDF %>
     <div class="row ml-3">
       <div class="col-6">
         <button data-action="quotes#createQuotePDF" class="btn btn-green">
@@ -221,32 +307,5 @@
         </button> 
       </div>
     </div>
-    <hr style="border: 1px solid black;">
-
-    <h2 class="ml-3">Herramentales</h2>
-    <div id="toolings" data-quotes-target="toolings">
-      <ul></ul>
-      <%= form.fields_for :quote_toolings do |quote_tooling_form| %>
-        <%= render 'quote_tooling_fields', f: quote_tooling_form %>
-      <% end %>
-    </div>
-    <div class="row ml-3">
-      <div class="col-4">
-        <button data-action="quotes#addTooling" class="btn btn-green">
-          Agregar Herramental
-        </button>
-      </div>
-      <div class="col-6">
-        </div>
-    </div>
-
-    <div class="row ml-3">
-      <div class="col-6">
-        <%= form.submit "Crear Cotización", class: "btn btn-green" %>
-      </div>
-      <div class="col-6">
-        </div>
-    </div>
-
   <% end %>
 </div>
