@@ -7,13 +7,14 @@ export default class extends Controller {
     event.preventDefault();
 
     const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[manufacturing_process_id]"]'); 
+    const priceInput = document.getElementById('manufacturing_process_price_display');
 
     if (selectElement) { 
         const selectedOption = selectElement.selectedOptions[0];
 
         if (selectedOption) {
             const processDescription = selectedOption.text;
-            const processPrice = parseFloat(selectedOption.dataset.price);
+            const processPrice = parseFloat(priceInput.value);
             const processUnit = selectedOption.dataset.unit;
 
             const materialPieces = parseFloat(document.getElementById('material-pieces').textContent);
@@ -37,36 +38,23 @@ export default class extends Controller {
     }
   }
 
-  showProcessDetails(event) {
-    const selectedOption = event.target.selectedOptions[0];
-    const processPrice = parseFloat(selectedOption.dataset.price);
-    const processUnit = selectedOption.dataset.unit;
-
-    const nestedFieldsDiv = event.target.closest('.nested-fields'); 
-    const processPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="processPrice"]');
-    const processUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="processUnit"]');
-  
-    if (processPriceDisplay) {
-      processPriceDisplay.textContent = `$${processPrice.toFixed(2)}`;
-    }
-  
-    if (processUnitDisplay) {
-      processUnitDisplay.textContent = processUnit;
-    }
-  }
-
   addTooling(event) {
     event.preventDefault();
 
     const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[tooling_id]"]'); 
-    const quantityInput = event.target.closest('.nested-fields').querySelector('input[name*="[quantity]"]'); // Get the quantity input
+    const quantityInput = event.target.closest('.nested-fields').querySelector('input[name*="[quantity]"]'); 
+    const priceInput = event.target.closest('.nested-fields').querySelector('input[type="number"]');
+
+    console.log("selectElement:", selectElement);
+    console.log("quantityInput:", quantityInput);
+    console.log("priceInput:", priceInput);
 
     if (selectElement) {
       const selectedOption = selectElement.selectedOptions[0];
 
       if (selectedOption && quantityInput) {
         const toolingDescription = selectedOption.text;
-        const toolingPrice = parseFloat(selectedOption.dataset.price);
+        const toolingPrice = parseFloat(priceInput.value);
         const toolingUnit = selectedOption.dataset.unit;
         const toolingQuantity = parseInt(quantityInput.value);
 
@@ -86,6 +74,43 @@ export default class extends Controller {
     }
   }
 
+  showProcessDetails(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    const processPrice = parseFloat(selectedOption.dataset.price);
+    const processUnit = selectedOption.dataset.unit;
+
+    const nestedFieldsDiv = event.target.closest('.nested-fields'); 
+    const processPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="processPrice"]');
+    const processUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="processUnit"]');
+  
+    if (processPriceDisplay) {
+      processPriceDisplay.textContent = `$${processPrice.toFixed(2)}`;
+    }
+  
+    if (processUnitDisplay) {
+      processUnitDisplay.textContent = processUnit;
+    }
+  }
+
+  showToolingDetails(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    const toolingPrice = parseFloat(selectedOption.dataset.price);
+    const toolingUnit = selectedOption.dataset.unit;
+
+    const nestedFieldsDiv = event.target.closest('.nested-fields'); 
+    const toolingPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingPrice"]');
+    const toolingUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingUnit"]');
+  
+    if (toolingPriceDisplay) {
+      toolingPriceDisplay.textContent = `$${toolingPrice.toFixed(2)}`;
+    }
+  
+    if (toolingUnitDisplay) {
+      toolingUnitDisplay.textContent = toolingUnit;
+    }
+  }
+
+  
   calculateProducts(event) {
     event.preventDefault();
 
@@ -151,31 +176,39 @@ export default class extends Controller {
     const selectedOption = event.target.selectedOptions[0];
     const manufacturingProcessPrice = parseFloat(selectedOption.getAttribute('data-price'));
     const manufacturingProcessUnit = selectedOption.getAttribute('data-unit');
-
+  
     const manufacturingProcessPriceDisplay = document.getElementById('manufacturing_process_price_display');
     if (manufacturingProcessPriceDisplay) {
-      manufacturingProcessPriceDisplay.textContent = `$${manufacturingProcessPrice.toFixed(2)}`;
+      manufacturingProcessPriceDisplay.value = manufacturingProcessPrice.toFixed(2); // Update the value property
     }
-
+  
     const manufacturingProcessUnitDisplay = document.getElementById('manufacturing_process_unit_display');
-    if (manufacturingProcessUnitDisplay) {
+    if (manufacturingProcessUnitDisplay) {  
       manufacturingProcessUnitDisplay.textContent = manufacturingProcessUnit;
     }
   }
 
   showToolingInfo(event) {
-    const selectedOption = event.target.selectedOptions[0];
-    const toolingPrice = parseFloat(selectedOption.getAttribute('data-price'));
-    const toolingUnit = selectedOption.getAttribute('data-unit');
-
-    const toolingPriceDisplay = document.getElementById('tooling_price_display');
-    if (toolingPriceDisplay) {
-      toolingPriceDisplay.textContent = `$${toolingPrice.toFixed(2)}`;
+    const selectElement = event.target; 
+    const priceDisplay = selectElement.parentNode.querySelector('input[type="number"]');
+    const price = selectElement.options[selectElement.selectedIndex].dataset.price;
+    const unit = selectElement.options[selectElement.selectedIndex].dataset.unit;
+  
+    if (priceDisplay) {
+      priceDisplay.value = parseFloat(price).toFixed(2);
+    } else {
+      console.error("Price display element not found for tooling.");
     }
-
+    
+    // The following lines should be inside the if(priceDisplay) block
+    const toolingPriceDisplay = document.getElementById('tooling_price_display'); 
+    if (toolingPriceDisplay) {
+      toolingPriceDisplay.textContent = `$${parseFloat(price).toFixed(2)}`; // Use price here
+    }
+  
     const toolingUnitDisplay = document.getElementById('tooling_unit_display');
     if (toolingUnitDisplay) {
-      toolingUnitDisplay.textContent = toolingUnit;
+      toolingUnitDisplay.textContent = unit; 
     }
   }
 
