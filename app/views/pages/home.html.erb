@@ -1,13 +1,15 @@
+<div style="display: flex; justify-content: center;"> 
+  <h2>Cotizaciones recientes</h2> 
+</div>
 
-<h2>Cotizaciones recientes</h2>
 <br>
 <table class="table table-striped"> 
   <thead>
     <tr>
-      <th>Date</th>
-      <th>Customer Name</th>
-      <th>Amount</th>
-      <th>Tax</th>
+      <th>Fecha</th>
+      <th>Nombre de cliente</th>
+      <th>Cantidad</th>
+      <th>Impuestos</th>
       <th>Total</th>
     </tr>
   </thead>
@@ -18,7 +20,7 @@
       <td>$100</td>
       <td>$10</td>
       <td>$110</td>
-      <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
+      <td><%= button_to "Enviar cotización", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td>
     </tr>
     <tr>
       <td>October 21, 2024</td>
@@ -26,7 +28,7 @@
       <td>$200</td>
       <td>$20</td>
       <td>$220</td>
-      <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn btn-green" %></td> <%# Add button %>
+      <td><%= button_to "Enviar cotización", send_quote_path(1), method: :post, class: "btn btn-sm btn btn-green" %></td>
     </tr>
     <tr>
       <td>October 21, 2024</td>
@@ -34,7 +36,7 @@
       <td>$200</td>
       <td>$20</td>
       <td>$220</td>
-      <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
+      <td><%= button_to "Enviar cotización", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td>
     </tr>
     <tr>
       <td>October 21, 2024</td>
@@ -42,7 +44,7 @@
       <td>$200</td>
       <td>$20</td>
       <td>$220</td>
-      <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
+      <td><%= button_to "Enviar cotización", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td>
     </tr>
     <tr>
       <td>October 21, 2024</td>
@@ -50,7 +52,7 @@
       <td>$200</td>
       <td>$20</td>
       <td>$220</td>
-      <td><%= button_to "Send Quote", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
+      <td><%= button_to "Enviar cotización", send_quote_path(1), method: :post, class: "btn btn-sm btn-green" %></td> <%# Add button %>
     </tr>
   </tbody>
 </table>

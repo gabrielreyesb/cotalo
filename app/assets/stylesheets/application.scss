@@ -1,3 +1,11 @@
+$surtibox-green: #75A443; 
+
+.btn-green {
+  background-color: $surtibox-green;
+  border-color: $surtibox-green; 
+  /* ... other button styles ... */
+}
+
 .navbar {
     background-color: white;
     border-bottom: 1px solid lightgray;
