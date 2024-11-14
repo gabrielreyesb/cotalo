@@ -1,0 +1,10 @@
+<!-- app/views/quotes/_simple_form.html.erb -->
+<%= form_with model: quote, local: true do |form| %>
+  <div>
+    <%= form.label :customer_name %>
+    <%= form.text_field :customer_name %>
+  </div>
+  <div>
+    <%= form.submit "Create Quote" %>
+  </div>
+<% end %>

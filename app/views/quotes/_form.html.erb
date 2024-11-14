@@ -1,8 +1,4 @@
-<div data-controller="quotes" class="container"> 
-
-  <h1 class="text-center col-12">Cálculo de cotización</h1>
-
-  <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
+<%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
     
     <%# Manejo de errores %>
     <% if @quote.errors.any? %>
@@ -314,4 +310,3 @@
     <hr style="border: 1px solid black;">
     
   <% end %>
-</div>

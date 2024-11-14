@@ -45,10 +45,6 @@ export default class extends Controller {
     const quantityInput = event.target.closest('.nested-fields').querySelector('input[name*="[quantity]"]'); 
     const priceInput = event.target.closest('.nested-fields').querySelector('input[type="number"]');
 
-    console.log("selectElement:", selectElement);
-    console.log("quantityInput:", quantityInput);
-    console.log("priceInput:", priceInput);
-
     if (selectElement) {
       const selectedOption = selectElement.selectedOptions[0];
 
@@ -110,18 +106,19 @@ export default class extends Controller {
     }
   }
 
-  
   calculateProducts(event) {
     event.preventDefault();
 
     const materialSelect = document.getElementById('quote_material_id');
+    const priceInput = document.getElementById('material_price_display');
+
     if (materialSelect) {
       const selectedOption = materialSelect.selectedOptions[0];
 
       if (selectedOption) {
         const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
         const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
-        const materialPrice = parseFloat(selectedOption.getAttribute('data-price'));
+        const materialPrice = parseFloat(priceInput.value);
 
         const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
         const productWidth = parseFloat(document.getElementById('quote_width').value);
@@ -163,7 +160,7 @@ export default class extends Controller {
 
     const materialPriceDisplay = document.getElementById('material_price_display');
     if (materialPriceDisplay) {
-      materialPriceDisplay.textContent = `$${materialPrice.toFixed(2)}`;
+      materialPriceDisplay.value = materialPrice.toFixed(2);
     }
 
     const materialUnitDisplay = document.getElementById('material_unit_display');
@@ -179,7 +176,7 @@ export default class extends Controller {
   
     const manufacturingProcessPriceDisplay = document.getElementById('manufacturing_process_price_display');
     if (manufacturingProcessPriceDisplay) {
-      manufacturingProcessPriceDisplay.value = manufacturingProcessPrice.toFixed(2); // Update the value property
+      manufacturingProcessPriceDisplay.value = manufacturingProcessPrice.toFixed(2);
     }
   
     const manufacturingProcessUnitDisplay = document.getElementById('manufacturing_process_unit_display');
@@ -345,55 +342,14 @@ export default class extends Controller {
     }
   }
 
-  calculateQuote_old(event) {
-    event.preventDefault();
-  
-    const subTotalValueElement = document.getElementById('sub-total-value');
-    if (!subTotalValueElement) {
-      console.error("Subtotal value element not found.");
-      return;
-    }
-    const subTotalValue = parseFloat(subTotalValueElement.textContent.replace(/[^0-9.-]+/g, ""));
-
-    const wasteValueElement = document.getElementById('quote_waste_value');
-    if (!wasteValueElement) {
-      console.error("Waste value element not found.");
-      return;
-    }
-    const wasteValue = parseFloat(wasteValueElement.value.replace(/[^0-9.-]+/g, ""));
-  
-    const marginPercentageElement = document.getElementById('margin-percentage');
-    if (!marginPercentageElement) {
-      console.error("Margin percentage element not found.");
-      return;
-    }
-    const marginPercentage = parseFloat(marginPercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
-  
-    const marginValue = (subTotalValue * marginPercentage) / 100;
-    const finalQuoteValue = subTotalValue + wasteValue + marginValue;
-  
-    const finalQuoteValueElement = document.getElementById('final-quote-value');
-    if (!finalQuoteValueElement) {
-      console.error("Final quote value element not found.");
-      return;
-    }
-    finalQuoteValueElement.textContent = finalQuoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-  
-    const marginValueElement = document.getElementById('quote_margin_value');
-    if (marginValueElement) {
-      marginValueElement.value = `$${marginValue.toFixed(2)}`;
-    }
-  }
-
-  createQuotePDF(event){
-    window.location.href = `/quotes/${this.quoteId}/calculate_quote.pdf`; 
-  }
-
   calculateQuote(event) {
+    console.log("calculateQuote function called"); 
     event.preventDefault();
   
     // Get the material price
     const materialPriceElement = document.getElementById('material-price');
+    const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
+
     if (!materialPriceElement) {
       console.error("Material price element not found.");
       return;
@@ -489,5 +445,15 @@ export default class extends Controller {
       return;
     }
     totalValueElement.value = totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+
+    // Update the value per piece field in the form  
+    const valuePerPieceElement = document.getElementById('value-per-piece'); 
+    if (!valuePerPieceElement) {
+      console.error("Value per piece element not found.");
+      return;
+    }
+
+    const valuePerPiece = totalValue / productQuantity; 
+    valuePerPieceElement.value = valuePerPiece.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
   }
 }
