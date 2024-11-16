@@ -456,4 +456,40 @@ export default class extends Controller {
     const valuePerPiece = totalValue / productQuantity; 
     valuePerPieceElement.value = valuePerPiece.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
   }
+
+  searchCustomer(event) {
+    event.preventDefault();
+  
+    console.log("Search Customer button clicked!"); 
+
+    const form = event.target.form;
+    const formData = new FormData(form);
+  
+    fetch(form.action, {
+      method: form.method,
+      body: formData
+    })
+    .then(response => { 
+      console.log("Received response from server:", response); 
+      response.text();
+    })
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const emailElement = doc.querySelector('#customer_email');
+      const email = emailElement ? emailElement.textContent : null;
+  
+      const customerInfoDiv = document.getElementById('customer_info');
+      if (email) {
+        customerInfoDiv.innerHTML = `<p>Email: ${email}</p>`;
+      } else {
+        customerInfoDiv.innerHTML = '<p>Customer not found.</p>';
+      }
+    })
+    .catch(error => console.error("Error searching customer:", error));
+  }
+
+  clearCustomerInfo() {  // Make sure this method is defined
+    document.getElementById('customer_info').innerHTML = '';
+  }
 }

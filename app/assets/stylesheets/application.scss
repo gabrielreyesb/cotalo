@@ -1,5 +1,6 @@
 $surtibox-green: #75A443; 
 
+
 .btn-green {
   background-color: $surtibox-green;
   border-color: $surtibox-green; 
@@ -7,8 +8,17 @@ $surtibox-green: #75A443;
 }
 
 .navbar {
-    background-color: white;
-    border-bottom: 1px solid lightgray;
+  position: fixed; 
+  top: 0;
+  left: 0; /* Add this to ensure it sticks to the left edge */
+  width: 100%;
+  z-index: 100;
+  background-color: white;
+  border-bottom: 1px solid lightgray;
+}
+
+body {
+  margin: 0; /* Reset any default body margins */
 }
 
 .navbar-nav > li {
@@ -18,6 +28,13 @@ $surtibox-green: #75A443;
 
 .navbar-nav > li:first-child {
   border-left: none;
+}
+
+.scrollable-content {
+  margin-top: 60px; /* Adjust to your navbar's height */
+  padding-top: 1rem; 
+  overflow-y: auto; 
+  height: 100vh; /* Ensure the scrollable area takes up full viewport height */
 }
 
 .divider {

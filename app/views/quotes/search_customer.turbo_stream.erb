@@ -1,0 +1,10 @@
+# search_customer.turbo_stream.erb
+<%= turbo_stream.update 'customer_info' do %>
+  <% if @customer %>
+    <p>Customer found: <%= @customer.name %></p>
+    <p>Email: <%= @customer.email %></p>
+    <p>Phone: <%= @customer.phone %></p>
+  <% else %>
+    <p>Customer not found.</p>
+  <% end %>
+<% end %>

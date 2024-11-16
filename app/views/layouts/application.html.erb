@@ -13,7 +13,7 @@
 <body>
   <% if user_signed_in? %>
     <div class="container-fluid">
-      <nav class="navbar navbar-expand-lg navbar-light" style="padding: 0;">
+      <nav class="navbar navbar-expand-lg navbar-light">
         <a class="navbar-brand" href="<%= root_path %>"> 
           <%= image_tag("logo.png", alt: "Surtibox Logo", width: 250) %> 
         </a>
@@ -34,17 +34,12 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown"> 
                 <a class="dropdown-item" href="<%= materials_path %>" data-turbo-frame="main-content">Materiales</a> 
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<%= manufacturing_processes_path %>" data-turbo-frame="main-content">Procesos</a> 
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<%= toolings_path %>" data-turbo-frame="main-content">Herramental</a> 
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<%= units_path %>" data-turbo-frame="main-content">Unidades de medida</a> 
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<%= general_configurations_path %>" data-turbo-frame="main-content">Configuraciones generales</a> 
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<%= customers_path %>" data-turbo-frame="main-content">Clientes</a> 
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<%= vendors_path %>" data-turbo-frame="main-content">Proveedores</a> 
               </div>
             </li>
@@ -62,11 +57,13 @@
         </div>
       </nav>
       
-      <main role="main" class="container mt-4">
-        <turbo-frame id="main-content"> 
-          <%= yield %>
-        </turbo-frame>
-      </main>
+      <div class="scrollable-content"> 
+        <main role="main" class="container mt-4">
+          <turbo-frame id="main-content"> 
+            <%= yield %>
+          </turbo-frame>
+        </main>
+      </div> 
     </div> 
   <% else %>
     <div class="container">

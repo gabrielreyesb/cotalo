@@ -14,6 +14,12 @@ Rails.application.routes.draw do
   resources :vendors
   resources :papers
   resources :quotes, only: [:new, :create, :show]
+
+  resources :quotes do
+    collection do
+      post :search_customer
+    end
+  end
   
   root 'pages#home'
 

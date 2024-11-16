@@ -2,7 +2,8 @@
 
   <h1 class="text-center col-12">Cálculo de cotización</h1>
 
-  <%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
+  <%= form_with(model: @quote, url: quotes_path, local: true, data: { turbo_frame: '_top' }) do |form| %>
+
     
     <%# Manejo de errores %>
     <% if @quote.errors.any? %>
@@ -312,6 +313,20 @@
     </div>
   
     <hr style="border: 1px solid black;">
+
+    <div class="row ml-3">
+      <div class="col-6"> 
+        <%= form.label :customer_name, "Buscar Cliente en Pipedrive:", class: "font-weight-bold" %>
+        <%= form.text_field :customer_name, class: "form-control", 
+              data: { action: "input->quotes#clearCustomerInfo" } %>  
+      </div>
+      <div class="col-6">
+        <%= form.submit "Search Pipedrive", class: "btn btn-green", 
+              data: { disable_with: "Buscando...", action: "click->quotes#searchCustomer" } %> 
+      </div>
+    </div>
+
+    <div id="customer_info"></div>
     
   <% end %>
 </div>
