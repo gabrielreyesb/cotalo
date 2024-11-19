@@ -17,6 +17,7 @@ gem "sassc", "~> 2.4"
 gem 'devise'
 gem 'prawn'
 gem 'actionmailer'
+gem 'pg'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
