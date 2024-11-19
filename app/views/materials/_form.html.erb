@@ -1,10 +1,8 @@
 <turbo-frame id="main-content">
   <div class="container mt-4"> 
     <h1 class="text-center mb-4"><%= material.new_record? ? 'Nuevo material' : 'Editar material' %></h1> 
-
-    <div class="row">
-
-      <div class="col-md-6 offset-md-3"> 
+    <div class="row justify-content-center">
+      <div class="col-md-6"> 
 
         <%= form_with(model: material) do |form| %>
 
