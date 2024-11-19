@@ -1,7 +1,8 @@
-<turbo-frame id="main-content">
-  <div class="container mt-4">
-    <h1 class="text-center mb-4"><%= manufacturing_process.new_record? ? 'Nuevo Proceso' : 'Editar Proceso' %></h1>
 
+<div class="container mt-4">
+  <h1 class="text-center mb-4"><%= manufacturing_process.new_record? ? 'Nuevo Proceso' : 'Editar Proceso' %></h1>
+
+  <turbo-frame id="main-content">
     <div class="row">
       <div class="col-md-6 offset-md-3">
         <%= form_with(model: manufacturing_process) do |form| %>
@@ -74,5 +75,5 @@
         <% end %>
       </div>
     </div>
-  </div>
-</turbo-frame>
+  </turbo-frame>
+</div>
