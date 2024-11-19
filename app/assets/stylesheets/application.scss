@@ -1,16 +1,15 @@
 $surtibox-green: #75A443; 
 
-
 .btn-green {
   background-color: $surtibox-green;
   border-color: $surtibox-green; 
-  /* ... other button styles ... */
+  color: white;
 }
 
 .navbar {
   position: fixed; 
   top: 0;
-  left: 0; /* Add this to ensure it sticks to the left edge */
+  left: 0;
   width: 100%;
   z-index: 100;
   background-color: white;
@@ -18,16 +17,7 @@ $surtibox-green: #75A443;
 }
 
 body {
-  margin: 0; /* Reset any default body margins */
-}
-
-.navbar-nav > li {
-  border-left: 1px solid #ccc;
-  padding-left: 15px;
-}
-
-.navbar-nav > li:first-child {
-  border-left: none;
+  margin: 0;
 }
 
 .scrollable-content {
@@ -38,37 +28,9 @@ body {
 }
 
 .divider {
-    height: 1px;
-    margin: 2px 0; 
-    border-top: 1px solid black;
-    border: 3;
+  border-left: 1px solid black; 
+  margin: 0 10px; // Adjusted margin
 }
-
-@media (min-width: 992px) {
-  .divider {
-      height: 45px; 
-      margin: 0 5px; /* Reduced margin */
-      border-left: 1px solid black; 
-      border-top: none; 
-  }
-}
-
-@media (min-width: 992px) {
-    .divider.d-lg-none {
-        display: none;
-    }
-}
-
-.btn-green {
-    background-color: #76a835;
-    border-color: #76a835; 
-    color: white;
-}
-
-.large-screen-divider {
-    border-left: 1px solid black; 
-    margin: 0 20px; /* Adjust as needed */
-  }
 
 .login-form {
   width: 350px; 

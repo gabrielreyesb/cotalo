@@ -47,10 +47,30 @@ class QuotesController < ApplicationController
     if response.code == '200'
       data = JSON.parse(response.body)
   
-      # Instead of rendering a partial, inspect the response data:
-      render plain: data.inspect 
+      # Check if any results were found
+      if data['data'] && data['data']['items'].any?
+        @customer = data['data']['items'].first['item']
+        # Log the found customer's details (optional)
+        logger.debug("Customer found in Pipedrive: #{@customer.inspect}") 
+      else
+        @customer = nil
+        # Log that the customer was not found (optional)
+        logger.debug("Customer not found in Pipedrive.") 
+      end
     else
-      render plain: "API Error: #{response.code} - #{response.body}"
+      @customer = nil
+      # Log the API error response (optional)
+      logger.error("Pipedrive API error: #{response.code} - #{response.body}") 
+    end
+  
+    respond_to do |format|
+      format.html {
+        if @customer
+          render partial: 'customer_email', locals: { customer: @customer }
+        else
+          render partial: 'customer_not_found' 
+        end
+      }
     end
   end
 
