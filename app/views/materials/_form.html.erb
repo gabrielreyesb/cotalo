@@ -2,8 +2,11 @@
   <div class="container mt-4"> 
     <h1 class="text-center mb-4"><%= material.new_record? ? 'Nuevo Material' : 'Editar Material' %></h1> 
       <div class="row">
+
         <div class="col-md-6 offset-md-3"> 
+
           <%= form_with(model: material) do |form| %>
+
             <% if material.errors.any? %>
               <div style="color: red">
                 <h2><%= pluralize(material.errors.count, "error") %> prohibited this material from being saved:</h2>
@@ -50,8 +53,10 @@
               <%= form.submit "Crear material", class: "btn btn-green" %> 
               <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
             </div>
+
           <% end %>
         </div>
+        
       </div>
     </div>
   </div>
