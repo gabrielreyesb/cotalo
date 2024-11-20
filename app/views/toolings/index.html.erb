@@ -1,14 +1,39 @@
-<p style="color: green"><%= notice %></p>
+<turbo-frame id="main-content">
+  <div class="container mt-4">
+    <h1 class="text-center mb-4">Herramentales</h1> 
 
-<h1>Toolings</h1>
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-hover table-bordered">
+          <thead style="background-color: #76a835; color: white"> 
+            <tr>
+              <th>Descripción</th>
+              <th>Precio</th>
+              <th>Unidad</th>
+              <th>Comentarios</th>
+              <th colspan="3">Acciones</th> 
+            </tr>
+          </thead>
 
-<div id="toolings">
-  <% @toolings.each do |tooling| %>
-    <%= render tooling %>
-    <p>
-      <%= link_to "Show this tooling", tooling %>
-    </p>
-  <% end %>
-</div>
+          <tbody>
+            <% @toolings.each do |tooling| %> 
+              <tr>
+                <td><%= tooling.description %></td>
+                <td><%= tooling.price %></td>
+                <td><%= tooling.unit.description %></td> 
+                <td><%= tooling.comments %></td>
+                <td><%= link_to 'Ver', tooling, class: 'btn btn-sm btn-outline-success' %></td>
+                <td><%= link_to 'Editar', edit_tooling_path(tooling), class: 'btn btn-sm btn-outline-primary' %></td>
+                <td><%= link_to 'Eliminar', tooling, method: :delete, data: { confirm: '¿Estás seguro?' }, class: 'btn btn-sm btn-outline-danger' %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
 
-<%= link_to "New tooling", new_tooling_path %>
+        <div class="text-center mt-3">
+          <%= link_to 'Nuevo herramental', new_tooling_path, class: 'btn btn-green' %> 
+        </div>
+      </div>
+    </div>
+  </div>
+</turbo-frame>

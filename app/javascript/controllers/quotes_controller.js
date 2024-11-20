@@ -460,36 +460,34 @@ export default class extends Controller {
   searchCustomer(event) {
     event.preventDefault();
   
-    console.log("Search Customer button clicked!"); 
-
+    console.log("Search Customer button clicked!");
+  
     const form = event.target.form;
     const formData = new FormData(form);
   
     fetch(form.action, {
       method: form.method,
-      body: formData
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
     })
-    .then(response => { 
-      console.log("Received response from server:", response); 
-      response.text();
-    })
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const emailElement = doc.querySelector('#customer_email');
-      const email = emailElement ? emailElement.textContent : null;
-  
-      const customerInfoDiv = document.getElementById('customer_info');
-      if (email) {
-        customerInfoDiv.innerHTML = `<p>Email: ${email}</p>`;
+    .then(response => response.json())
+    .then(data => {
+      const organizationField = document.getElementById('quote_customer_organization');
+      if (data.organization) {
+        organizationField.value = data.organization;
       } else {
-        customerInfoDiv.innerHTML = '<p>Customer not found.</p>';
+        organizationField.value = '';
       }
     })
     .catch(error => console.error("Error searching customer:", error));
   }
 
-  clearCustomerInfo() {  // Make sure this method is defined
-    document.getElementById('customer_info').innerHTML = '';
+  clearCustomerInfo() {
+    const customerInfoDiv = document.getElementById('customer_info'); 
+    if (customerInfoDiv) {
+      customerInfoDiv.innerHTML = '';
+    }
   }
 }

@@ -44,33 +44,40 @@ class QuotesController < ApplicationController
   
     response = Net::HTTP.get_response(url)
   
-    if response.code == '200'
-      data = JSON.parse(response.body)
+    logger.debug("Pipedrive API request URL: #{url}")
+    logger.debug("Pipedrive API response code: #{response.code}")
   
-      # Check if any results were found
-      if data['data'] && data['data']['items'].any?
-        @customer = data['data']['items'].first['item']
-        # Log the found customer's details (optional)
-        logger.debug("Customer found in Pipedrive: #{@customer.inspect}") 
-      else
-        @customer = nil
-        # Log that the customer was not found (optional)
-        logger.debug("Customer not found in Pipedrive.") 
+    if response.code == '200'
+      begin
+        data = JSON.parse(response.body)
+        logger.debug("Pipedrive API response data: #{data.inspect}")
+  
+        if data['data']
+          if data['data']['items'] && !data['data']['items'].empty?
+            @customer = data['data']['items'].first['item']
+            logger.debug("Customer found: #{@customer.inspect}")
+          else
+            logger.debug("No customers found in the API response.")
+            @customer = nil
+          end
+        else
+          logger.debug("The 'data' key is missing from the API response.")
+          @customer = nil
+        end
+  
+        # Respond with the customer's organization name as JSON
+        respond_to do |format|
+          format.json {
+            render json: { organization: @customer ? @customer['organization']['name'] : nil }
+          }
+        end
+      rescue JSON::ParserError => e
+        logger.error("Error parsing JSON response: #{e.message}")
+        render json: { error: "Error parsing JSON response." }, status: :unprocessable_entity
       end
     else
-      @customer = nil
-      # Log the API error response (optional)
-      logger.error("Pipedrive API error: #{response.code} - #{response.body}") 
-    end
-  
-    respond_to do |format|
-      format.html {
-        if @customer
-          render partial: 'customer_email', locals: { customer: @customer }
-        else
-          render partial: 'customer_not_found' 
-        end
-      }
+      logger.error("Pipedrive API error: #{response.code} - #{response.body}")
+      render json: { error: "API Error: #{response.code} - #{response.body}" }, status: :unprocessable_entity
     end
   end
 
@@ -83,7 +90,18 @@ class QuotesController < ApplicationController
       :pieces,
       :material_id,
       :customer_name,
-      :manufacturing_process_id, quote_processes_attributes: [:id, :process_id, :destroy], quote_toolings_attributes: [:id, :toolingid, :quantity, :destroy]
+      :manufacturing_process_id,
+      :projects_name,    # Add this
+      :length,           # Add this
+      :tooling_id,       # Add this
+      :sub_total_value, # Add this
+      :waste_value,     # Add this
+      :margin_value,    # Add this
+      :total_value,     # Add this
+      :value_per_piece, # Add this
+      :customer_organization, # Add this for the new field
+      quote_processes_attributes: [:id, :process_id, :destroy], 
+      quote_toolings_attributes: [:id, :toolingid, :quantity, :destroy]
     )
   end
 end
