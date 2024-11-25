@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_20_013943) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_23_213313) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -108,6 +108,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_20_013943) do
     t.decimal "margin_value"
     t.decimal "total_value"
     t.decimal "value_per_piece"
+    t.string "customer_organization"
     t.index ["material_id"], name: "index_quotes_on_material_id"
     t.index ["tooling_id"], name: "index_quotes_on_tooling_id"
   end

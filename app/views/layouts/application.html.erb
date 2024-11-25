@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
+  <style>
+    body { 
+      background-color: #f5fffa;
+    }
+    .navbar {
+      background-color: #f5fffa;
+    }
+  </style>
 </head>
 
 <body>
@@ -58,7 +66,7 @@
       </nav>
       
       <div class="scrollable-content"> 
-        <main role="main" class="container mt-4">
+        <main role="main" class="container-fluid mt-4">
           <turbo-frame id="main-content"> 
             <%= yield %>
           </turbo-frame>
@@ -66,7 +74,7 @@
       </div> 
     </div> 
   <% else %>
-    <div class="container">
+    <div class="container-fluid">
       <%= yield %>
     </div>
   <% end %>

@@ -3,6 +3,56 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [ "processes", "toolings", "productsFit", "materialPieces", "materialPrice", "squareMeters"] 
 
+  calculateProducts(event) {
+    event.preventDefault();
+
+    const materialSelect = document.getElementById('quote_material_id');
+    const priceInput = document.getElementById('material_price_display');
+
+    if (materialSelect) {
+      const selectedOption = materialSelect.selectedOptions[0];
+
+      if (selectedOption) {
+        const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
+        const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
+        const materialPrice = parseFloat(priceInput.value);
+
+        const marginAnchoConfig = parseFloat(document.getElementById('quote_margin_ancho').value);
+        const marginLargoConfig = parseFloat(document.getElementById('quote_margin_largo').value);
+
+        const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
+        const productWidth = parseFloat(document.getElementById('quote_width').value);
+        const productLength = parseFloat(document.getElementById('quote_length').value);
+
+        if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(productWidth) || isNaN(productLength)) {
+          console.error("Invalid dimensions. Please check the input values and data attributes.");
+          this.productsFitTarget.value = 0;
+          return;
+        }
+
+        const productsInWidth = Math.floor(materialWidth / productWidth);
+        const productsInLength = Math.floor(materialLength / productLength);
+        const totalProducts = productsInWidth * productsInLength;
+        document.getElementById('products-fit').value = totalProducts;
+
+        const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
+        document.getElementById('material-pieces').textContent = piecesNeeded;
+
+        const quoteValue = materialPrice * piecesNeeded;
+        const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        document.getElementById('material-price').textContent = formattedQuoteValue; 
+
+        const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
+        document.getElementById('square-meters').textContent = squareMeters;
+
+      } else {
+        console.error("No material selected!");
+      }
+    } else {
+      console.error("Material select element not found!");
+    }
+  }
+
   addProcess(event) {
     event.preventDefault();
 
@@ -30,11 +80,38 @@ export default class extends Controller {
             }
 
             this.addProcessToList(processDescription, processPrice, processUnit, calculatedPrice);
+            this.updateProcessesSubtotal();
         } else {
             console.error("No option selected in the manufacturing process select.");
         }
     } else {
         console.error("Select element for manufacturing process not found!");
+    }
+  }
+
+  updateProcessesSubtotal() {
+    let subtotal = 0;
+    const processRows = this.processesTarget.querySelectorAll('tbody tr');
+    processRows.forEach(row => {
+      const priceCell = row.querySelector('td:last-child');
+      if (priceCell) {
+        const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
+        subtotal += priceValue;
+      }
+    });
+  
+    const subtotalSpan = document.getElementById('processes-subtotal');
+    if (subtotalSpan) {
+      subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+  }
+
+  removeProcess(event) {
+    event.preventDefault();
+    const row = event.target.closest('tr'); 
+    if (row) {
+      row.remove();
+      this.updateProcessesSubtotal();
     }
   }
 
@@ -62,11 +139,55 @@ export default class extends Controller {
         }
 
         this.addToolingToList(toolingDescription, toolingPrice, toolingUnit, calculatedPrice);
+        this.updateToolingsSubtotal();
       } else {
           console.error("No option selected in the tooling select.");
       } 
     } else {
       console.error("Select element for tooling not found!");
+    }
+  }
+
+  updateToolingsSubtotal() {
+    let subtotal = 0;
+    const toolingRows = this.toolingsTarget.querySelectorAll('tbody tr');
+    toolingRows.forEach(row => {
+      const priceCell = row.querySelector('td:last-child');
+      if (priceCell) {
+        const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
+        subtotal += priceValue;
+      }
+    });
+  
+    const subtotalSpan = document.getElementById('toolings-subtotal');
+    if (subtotalSpan) {
+      subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+  }
+
+  updateProcessesSubtotal() {
+    let subtotal = 0;
+    const processRows = this.processesTarget.querySelectorAll('tbody tr');
+    processRows.forEach(row => {
+      const priceCell = row.querySelector('td:last-child');
+      if (priceCell) {
+        const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
+        subtotal += priceValue;
+      }
+    });
+  
+    const subtotalSpan = document.getElementById('processes-subtotal');
+    if (subtotalSpan) {
+      subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+  }
+
+  removeTooling(event) {
+    event.preventDefault();
+    const row = event.target.closest('tr'); 
+    if (row) {
+      row.remove();
+      this.updateToolingsSubtotal();
     }
   }
 
@@ -105,54 +226,41 @@ export default class extends Controller {
       toolingUnitDisplay.textContent = toolingUnit;
     }
   }
-
-  calculateProducts(event) {
+  
+  reCalculateProducts(event) {
     event.preventDefault();
-
+  
     const materialSelect = document.getElementById('quote_material_id');
     const priceInput = document.getElementById('material_price_display');
-
-    if (materialSelect) {
+    const productsFitField = document.getElementById('products-fit'); 
+    const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
+  
+    if (materialSelect && priceInput && productsFitField) {
       const selectedOption = materialSelect.selectedOptions[0];
-
-      if (selectedOption) {
-        const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
-        const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
-        const materialPrice = parseFloat(priceInput.value);
-
-        const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
-        const productWidth = parseFloat(document.getElementById('quote_width').value);
-        const productLength = parseFloat(document.getElementById('quote_length').value);
-
-        if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(productWidth) || isNaN(productLength)) {
-          console.error("Invalid dimensions. Please check the input values and data attributes.");
-          this.productsFitTarget.value = 0;
-          return;
-        }
-
-        const productsInWidth = Math.floor(materialWidth / productWidth);
-        const productsInLength = Math.floor(materialLength / productLength);
-        const totalProducts = productsInWidth * productsInLength;
-        document.getElementById('products-fit').textContent = totalProducts;
-
-        const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
-        document.getElementById('material-pieces').textContent = piecesNeeded;
-
-        const quoteValue = materialPrice * piecesNeeded;
-        const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        document.getElementById('material-price').textContent = formattedQuoteValue; 
-
-        const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
-        document.getElementById('square-meters').textContent = squareMeters;
-
-      } else {
-        console.error("No material selected!");
+      const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
+      const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
+      const materialPrice = parseFloat(priceInput.value);
+      const totalProducts = parseFloat(productsFitField.value); // Get value from input field
+  
+      if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(totalProducts)) {
+        console.error("Invalid dimensions. Please check the input values and data attributes.");
+        return;
       }
+  
+      const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
+      document.getElementById('material-pieces').textContent = piecesNeeded;
+  
+      const quoteValue = materialPrice * piecesNeeded;
+      const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      document.getElementById('material-price').textContent = formattedQuoteValue; 
+  
+      const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
+      document.getElementById('square-meters').textContent = squareMeters;
     } else {
-      console.error("Material select element not found!");
+      console.error("Missing elements: material select, price input, or products-fit field.");
     }
   }
-  
+
   showMaterialPrice(event) {
     const selectedOption = event.target.selectedOptions[0];
     const materialPrice = parseFloat(selectedOption.getAttribute('data-price'));
@@ -230,20 +338,23 @@ export default class extends Controller {
     descriptionCell.textContent = processDescription;
     newRow.appendChild(descriptionCell);
 
-    const priceCell = document.createElement('td');
-    priceCell.textContent = calculatedPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
-    priceCell.style.textAlign = 'right';
-    newRow.appendChild(priceCell);
-
     const removeCell = document.createElement('td');
     const removeButton = document.createElement('button');
     removeButton.textContent = 'Eliminar';
     removeButton.classList.add('btn', 'btn-danger');
-    removeButton.addEventListener('click', () => {
+    removeButton.setAttribute('data-action', 'click->quotes#removeProcess');
+    removeButton.addEventListener('click', (event) => {
+      event.preventDefault();
       newRow.remove();
+      this.updateProcessesSubtotal();
     });
     removeCell.appendChild(removeButton);
     newRow.appendChild(removeCell);
+
+    const priceCell = document.createElement('td');
+    priceCell.textContent = calculatedPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+    priceCell.style.textAlign = 'right';
+    newRow.appendChild(priceCell);
 
     this.processesTarget.querySelector('tbody').appendChild(newRow); 
   }
@@ -255,20 +366,23 @@ export default class extends Controller {
     descriptionCell.textContent = toolingDescription;
     newRow.appendChild(descriptionCell);
 
-    const priceCell = document.createElement('td');
-    priceCell.textContent = calculatedPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
-    priceCell.style.textAlign = 'right';
-    newRow.appendChild(priceCell);
-
     const removeCell = document.createElement('td');
     const removeButton = document.createElement('button');
     removeButton.textContent = 'Eliminar';
     removeButton.classList.add('btn', 'btn-danger');
-    removeButton.addEventListener('click', () => {
+    removeButton.setAttribute('data-action', 'click->quotes#removeTooling');
+    removeButton.addEventListener('click', (event) => {
+      event.preventDefault(); 
       newRow.remove();
+      this.updateToolingsSubtotal();
     });
     removeCell.appendChild(removeButton);
     newRow.appendChild(removeCell);
+
+    const priceCell = document.createElement('td');
+    priceCell.textContent = calculatedPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+    priceCell.style.textAlign = 'right';
+    newRow.appendChild(priceCell);
 
     this.toolingsTarget.querySelector('tbody').appendChild(newRow); 
   }
@@ -342,8 +456,29 @@ export default class extends Controller {
     }
   }
 
+  updateWasteValue(event) {
+    const wastePercentage = parseFloat(event.target.value);
+    const subTotal = parseFloat(document.getElementById('sub-total-value').value); // Get the subtotal value
+  
+    if (!isNaN(wastePercentage) && !isNaN(subTotal)) {
+      const wasteValue = (wastePercentage / 100) * subTotal;
+      document.getElementById('quote_waste_value').value = wasteValue.toFixed(2); // Update waste value field
+      this.calculateQuote(); // Recalculate the quote
+    }
+  }
+  
+  updateMarginValue(event) {
+    const marginPercentage = parseFloat(event.target.value);
+    const subTotal = parseFloat(document.getElementById('sub-total-value').value); // Get the subtotal value
+  
+    if (!isNaN(marginPercentage) && !isNaN(subTotal)) {
+      const marginValue = (marginPercentage / 100) * subTotal;
+      document.getElementById('quote_margin_value').value = marginValue.toFixed(2); // Update margin value field
+      this.calculateQuote(); // Recalculate the quote
+    }
+  }
+  
   calculateQuote(event) {
-    console.log("calculateQuote function called"); 
     event.preventDefault();
   
     // Get the material price
@@ -361,7 +496,7 @@ export default class extends Controller {
     if (this.processesTarget) {
       const processRows = this.processesTarget.querySelectorAll('tbody tr');
       processRows.forEach(row => {
-        const priceCell = row.querySelector('td:nth-child(2)');
+        const priceCell = row.querySelector('td:last-child');
         if (priceCell) {
           const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
           processPricesSum += priceValue;
@@ -372,26 +507,9 @@ export default class extends Controller {
     } else {
       console.warn("Processes target not found. Assuming no processes added.");
     }
-
-    // Calculate the sum of tooling prices
-    let toolingPricesSum = 0;
-    if (this.toolingsTarget) {
-      const toolingRows = this.toolingsTarget.querySelectorAll('tbody tr');
-      toolingRows.forEach(row => {
-        const priceCell = row.querySelector('td:nth-child(2)');
-        if (priceCell) {
-          const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
-          toolingPricesSum += priceValue;
-        } else {
-          console.error("Price cell not found in tooling row.");
-        }
-      });
-    } else {
-      console.warn("Tooling target not found. Assuming no tooling added.");
-    }
   
     // Calculate the subtotal
-    const subTotalValue = materialPrice + processPricesSum + toolingPricesSum;
+    const subTotalValue = materialPrice + processPricesSum;
   
     // Update the subtotal field in the form
     const subTotalValueElement = document.getElementById('sub-total-value');
@@ -407,7 +525,7 @@ export default class extends Controller {
       console.error("Waste percentage element not found.");
       return;
     }
-    const wastePercentage = parseFloat(wastePercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
+    const wastePercentage = parseFloat(wastePercentageElement.value); // Get value from input
     const wasteValue = (subTotalValue * wastePercentage) / 100;
   
     // Update the waste value field in the form
@@ -424,7 +542,7 @@ export default class extends Controller {
       console.error("Margin percentage element not found.");
       return;
     }
-    const marginPercentage = parseFloat(marginPercentageElement.textContent.replace(/[^0-9.%]+/g, ""));
+    const marginPercentage = parseFloat(marginPercentageElement.value); // Get value from input
     const marginValue = (subTotalValue * marginPercentage) / 100;
   
     // Update the margin value field in the form
@@ -460,7 +578,14 @@ export default class extends Controller {
   searchCustomer(event) {
     event.preventDefault();
   
-    console.log("Search Customer button clicked!");
+    const existingSelect = document.getElementById('quote_customer_organization_select');
+    if (existingSelect) {
+      const organizationField = document.createElement('input'); 
+      organizationField.type = 'text';
+      organizationField.id = 'quote_customer_organization';
+      organizationField.classList.add('form-control');
+      existingSelect.replaceWith(organizationField);
+    }
   
     const form = event.target.form;
     const formData = new FormData(form);
@@ -475,8 +600,24 @@ export default class extends Controller {
     .then(response => response.json())
     .then(data => {
       const organizationField = document.getElementById('quote_customer_organization');
-      if (data.organization) {
-        organizationField.value = data.organization;
+      if (data.organizations && data.organizations.length > 0) {
+        const selectElement = document.createElement('select'); 
+        selectElement.id = 'quote_customer_organization_select'; 
+        selectElement.classList.add('form-control');
+  
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = 'Selecciona el cliente';
+        selectElement.appendChild(defaultOption);
+  
+        data.organizations.forEach(organization => {
+          const option = document.createElement('option');
+          option.value = organization;
+          option.text = organization;
+          selectElement.appendChild(option);
+        });
+  
+        organizationField.replaceWith(selectElement); 
       } else {
         organizationField.value = '';
       }

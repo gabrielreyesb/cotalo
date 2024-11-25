@@ -38,39 +38,34 @@ class QuotesController < ApplicationController
 
   def search_customer
     customer_name = params[:quote][:customer_name]
+    logger.error("-----------------------------------------")
+    logger.error("Customer name: #{customer_name}")
+    logger.error("-----------------------------------------")
+
     api_token = Rails.application.credentials.pipedrive[:api_key]
   
     url = URI("https://api.pipedrive.com/v1/persons/search?term=#{CGI.escape(customer_name)}&api_token=#{api_token}")
   
     response = Net::HTTP.get_response(url)
   
-    logger.debug("Pipedrive API request URL: #{url}")
-    logger.debug("Pipedrive API response code: #{response.code}")
-  
     if response.code == '200'
       begin
         data = JSON.parse(response.body)
-        logger.debug("Pipedrive API response data: #{data.inspect}")
   
-        if data['data']
-          if data['data']['items'] && !data['data']['items'].empty?
-            @customer = data['data']['items'].first['item']
-            logger.debug("Customer found: #{@customer.inspect}")
-          else
-            logger.debug("No customers found in the API response.")
-            @customer = nil
+        organizations = []
+        if data['data'] && data['data']['items']
+          data['data']['items'].each do |item|
+            customer = item['item']
+            organizations << customer['organization']['name'] if customer['organization']
           end
         else
-          logger.debug("The 'data' key is missing from the API response.")
-          @customer = nil
+          logger.debug("No customers found in the API response.")
         end
   
-        # Respond with the customer's organization name as JSON
         respond_to do |format|
-          format.json {
-            render json: { organization: @customer ? @customer['organization']['name'] : nil }
-          }
+          format.json { render json: { organizations: organizations } }
         end
+  
       rescue JSON::ParserError => e
         logger.error("Error parsing JSON response: #{e.message}")
         render json: { error: "Error parsing JSON response." }, status: :unprocessable_entity
