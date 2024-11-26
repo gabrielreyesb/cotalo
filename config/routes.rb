@@ -13,11 +13,12 @@ Rails.application.routes.draw do
   resources :materials
   resources :vendors
   resources :papers
-  resources :quotes, only: [:new, :create, :show]
+  resources :quotes, only: [:index, :new, :create, :show]
 
   resources :quotes do
     collection do
       post :search_customer
+      post :generate_pdf
     end
   end
   

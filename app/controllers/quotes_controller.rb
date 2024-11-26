@@ -9,9 +9,18 @@ class QuotesController < ApplicationController
     @quote = Quote.new
     @quote.quote_processes.build
     @quote.quote_toolings.build
+    @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
+    @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
 
     respond_to do |format|
-      format.html { render 'new' }
+      format.html { 
+        render 'new', 
+               locals: { 
+                 quote: @quote, 
+                 configuration_margin_width: @configuration_margin_width,
+                 configuration_margin_length: @configuration_margin_length 
+               } 
+      }
       format.turbo_stream {
         render turbo_stream: turbo_stream.replace(
           'main-content',
@@ -19,6 +28,11 @@ class QuotesController < ApplicationController
           locals: { quote: @quote }
         )
       }
+      format.pdf do
+        render pdf: "quote_#{@quote.id}",
+               template: 'quotes/show.html.erb',
+               layout: 'pdf'
+      end
     end
   end
 
@@ -27,21 +41,16 @@ class QuotesController < ApplicationController
   
     if params[:quote][:customer_name].present?
       search_customer
-    elsif @quote.save # Move this elsif block here
-      # Handle successful save (e.g., redirect)
-      # For example: redirect_to @quote, notice: 'Quote was successfully created.'
+    elsif @quote.save
+      configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
+      configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
     else
-      # Handle failure (e.g., render 'new' again)
       render :new
     end
   end
 
   def search_customer
     customer_name = params[:quote][:customer_name]
-    logger.error("-----------------------------------------")
-    logger.error("Customer name: #{customer_name}")
-    logger.error("-----------------------------------------")
-
     api_token = Rails.application.credentials.pipedrive[:api_key]
   
     url = URI("https://api.pipedrive.com/v1/persons/search?term=#{CGI.escape(customer_name)}&api_token=#{api_token}")
@@ -86,15 +95,18 @@ class QuotesController < ApplicationController
       :material_id,
       :customer_name,
       :manufacturing_process_id,
-      :projects_name,    # Add this
-      :length,           # Add this
-      :tooling_id,       # Add this
-      :sub_total_value, # Add this
-      :waste_value,     # Add this
-      :margin_value,    # Add this
-      :total_value,     # Add this
-      :value_per_piece, # Add this
-      :customer_organization, # Add this for the new field
+      :projects_name,
+      :length,
+      :tooling_id,
+      :sub_total_value,
+      :waste_value,
+      :margin_value,
+      :total_value,
+      :value_per_piece,
+      :customer_organization,
+      :config_margin_width, 
+      :config_margin_length,
+      :manual_material_unit,
       quote_processes_attributes: [:id, :process_id, :destroy], 
       quote_toolings_attributes: [:id, :toolingid, :quantity, :destroy]
     )

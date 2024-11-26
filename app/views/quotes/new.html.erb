@@ -5,6 +5,11 @@
 
       <%= form_with(model: @quote, url: quotes_path, local: true, data: { turbo_frame: '_top' }) do |form| %>
 
+        <div>
+          <%= hidden_field_tag 'config_margin_width', configuration_margin_width %> 
+          <%= hidden_field_tag 'config_margin_length', configuration_margin_length %> 
+        </div>
+
         <%# Manejo de errores %>
         <% if @quote.errors.any? %>
           <div style="color: red">
@@ -20,10 +25,7 @@
         <hr style="border: 1px solid black;">
         <br>
       
-        <%# Datos de Proyecto %>
-        <%= form.hidden_field :margin_ancho, value: @margin_ancho %>
-        <%= form.hidden_field :margin_largo, value: @margin_largo %>
-      
+        <%# Datos de Proyecto %>      
         <div class="row ml-3">
           <div class="col-lg-6">
             <div class="form-group">
@@ -71,6 +73,34 @@
                   <input type="number" step="any" class="form-control" id="material_price_display" style="width: 100px;">
                 </div>
               </div>
+            </div>
+
+            <div class="form-group">
+              <%= form.label :manual_material, "Material manual:", class: "font-weight-bold" %>
+              <div class="input-group">
+                <%= form.text_field :manual_material, step: :any, class: "form-control text-left" %>
+                <div class="input-group-append"> 
+                  <%= form.select :manual_material_unit, 
+                            options_from_collection_for_select(Unit.all, :id, :description, selected: @quote.manual_material_unit), 
+                            {}, 
+                            { class: "form-control" } 
+                  %>
+                </div>
+                <div class="input-group-prepend">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step: :any, class="form-control" id="manual_material_price" style="width: 100px;">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <%= form.label :manual_material_width, "Ancho:", class: "font-weight-bold" %>
+              <%= form.number_field :manual_material_width, step: :any, class: "form-control text-right" %>
+            </div>
+
+            <div class="form-group">
+              <%= form.label :manual_material_length, "Largo:", class: "font-weight-bold" %>
+              <%= form.number_field :manual_material_length, step: :any, class: "form-control text-right" %>
             </div>
 
             <button data-action="click->quotes#calculateProducts" class="btn btn-green">
@@ -357,6 +387,13 @@
         </div>
       
         <hr style="border: 1px solid black;">
+
+        <%# Genera PDF %>
+        <div class="row ml-3">
+          <div class="col-lg-6">
+            <%= button_to 'Generate PDF', generate_pdf_quotes_path, class: 'btn btn-green', method: :post %>
+          </div>
+        </div>
       <% end %>
     </div>
   </div>

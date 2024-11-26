@@ -9,48 +9,71 @@ export default class extends Controller {
     const materialSelect = document.getElementById('quote_material_id');
     const priceInput = document.getElementById('material_price_display');
 
-    if (materialSelect) {
-      const selectedOption = materialSelect.selectedOptions[0];
+    const manualMaterial = document.getElementById('quote_manual_material').value;
+    const manualMaterialPrice = parseFloat(document.getElementById('manual_material_price').value);
+    const manualMaterialWidth = parseFloat(document.getElementById('quote_manual_material_width').value); 
+    const manualMaterialLength = parseFloat(document.getElementById('quote_manual_material_length').value);   
+    
+    let materialWidth, materialLength, materialPrice;
 
-      if (selectedOption) {
-        const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
-        const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
-        const materialPrice = parseFloat(priceInput.value);
-
-        const marginAnchoConfig = parseFloat(document.getElementById('quote_margin_ancho').value);
-        const marginLargoConfig = parseFloat(document.getElementById('quote_margin_largo').value);
-
-        const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
-        const productWidth = parseFloat(document.getElementById('quote_width').value);
-        const productLength = parseFloat(document.getElementById('quote_length').value);
-
-        if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(productWidth) || isNaN(productLength)) {
-          console.error("Invalid dimensions. Please check the input values and data attributes.");
-          this.productsFitTarget.value = 0;
+    if (manualMaterial !== "") {
+      materialWidth = manualMaterialWidth;
+      materialLength = manualMaterialLength;
+      materialPrice = manualMaterialPrice;
+    } else {
+      if (materialSelect) {
+        const selectedOption = materialSelect.selectedOptions[0];
+  
+        if (selectedOption) {
+          materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
+          materialLength = parseFloat(selectedOption.getAttribute('data-length'));
+          materialPrice = parseFloat(priceInput.value);
+        } else {
+          console.error("No material selected!");
           return;
         }
-
-        const productsInWidth = Math.floor(materialWidth / productWidth);
-        const productsInLength = Math.floor(materialLength / productLength);
-        const totalProducts = productsInWidth * productsInLength;
-        document.getElementById('products-fit').value = totalProducts;
-
-        const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
-        document.getElementById('material-pieces').textContent = piecesNeeded;
-
-        const quoteValue = materialPrice * piecesNeeded;
-        const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        document.getElementById('material-price').textContent = formattedQuoteValue; 
-
-        const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
-        document.getElementById('square-meters').textContent = squareMeters;
-
       } else {
-        console.error("No material selected!");
+        console.error("Material select element not found!");
+        return;
       }
-    } else {
-      console.error("Material select element not found!");
     }
+  
+    const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
+    const productWidth = parseFloat(document.getElementById('quote_width').value);
+    const productLength = parseFloat(document.getElementById('quote_length').value);
+
+    const configMarginWidth = parseFloat(document.getElementById('config_margin_width').value); 
+    const configMarginLength = parseFloat(document.getElementById('config_margin_length').value); 
+
+    const finalProductWidth = productWidth + configMarginWidth
+    const finalProductLength = productLength + configMarginLength
+
+    if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(finalProductWidth) || isNaN(finalProductLength)) {
+      alert("Dimensiones inválidas. El producto no cabe en el material.");  
+  
+      const productsFitElement = document.getElementById('products-fit'); 
+      if (productsFitElement) {
+        productsFitElement.value = 0;
+      } else {
+        console.error("products-fit element not found!");
+      }
+      return;
+    }
+
+    const productsInWidth = Math.floor(materialWidth / finalProductWidth);
+    const productsInLength = Math.floor(materialLength / finalProductLength);
+    const totalProducts = productsInWidth * productsInLength;
+    document.getElementById('products-fit').value = totalProducts;
+
+    const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
+    document.getElementById('material-pieces').textContent = piecesNeeded;
+
+    const quoteValue = materialPrice * piecesNeeded;
+    const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    document.getElementById('material-price').textContent = formattedQuoteValue; 
+
+    const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
+    document.getElementById('square-meters').textContent = squareMeters;
   }
 
   addProcess(event) {
@@ -349,6 +372,7 @@ export default class extends Controller {
       this.updateProcessesSubtotal();
     });
     removeCell.appendChild(removeButton);
+    removeCell.classList.add('text-center');
     newRow.appendChild(removeCell);
 
     const priceCell = document.createElement('td');
@@ -377,6 +401,7 @@ export default class extends Controller {
       this.updateToolingsSubtotal();
     });
     removeCell.appendChild(removeButton);
+    removeCell.classList.add('text-center');
     newRow.appendChild(removeCell);
 
     const priceCell = document.createElement('td');
