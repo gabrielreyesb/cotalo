@@ -18,6 +18,7 @@ gem 'devise'
 gem 'prawn'
 gem 'actionmailer'
 gem 'pg'
+gem 'wicked_pdf'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]

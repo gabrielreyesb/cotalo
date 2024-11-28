@@ -1,4 +1,7 @@
 class Quote < ApplicationRecord
+    validates :customer_email, presence: true
+    validates :product_quantity, numericality: { greater_than: 0 }
+
     belongs_to :material
     has_many :quote_processes, dependent: :destroy
     has_many :quote_toolings, dependent: :destroy

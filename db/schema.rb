@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_25_225925) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_28_003536) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -47,7 +47,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_25_225925) do
   create_table "materials", force: :cascade do |t|
     t.string "description"
     t.decimal "width"
-    t.decimal "lenght"
+    t.decimal "length"
     t.string "comments"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -93,27 +93,34 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_25_225925) do
   end
 
   create_table "quotes", force: :cascade do |t|
-    t.decimal "width"
-    t.decimal "length"
     t.integer "pieces"
-    t.integer "material_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "manufacturing_process_id"
-    t.integer "tooling_id", default: 1
     t.string "customer_name"
     t.string "projects_name"
-    t.decimal "sub_total_value"
-    t.decimal "waste_value"
-    t.decimal "margin_value"
-    t.decimal "total_value"
-    t.decimal "value_per_piece"
     t.string "customer_organization"
-    t.decimal "config_margin_width"
-    t.decimal "config_margin_length"
-    t.integer "manual_material_unit"
-    t.index ["material_id"], name: "index_quotes_on_material_id"
-    t.index ["tooling_id"], name: "index_quotes_on_tooling_id"
+    t.string "customer_email"
+    t.integer "product_quantity"
+    t.decimal "product_width"
+    t.decimal "product_length"
+    t.integer "material_id"
+    t.integer "material_unit_id"
+    t.decimal "material_price"
+    t.integer "products_per_sheet"
+    t.integer "amount_of_sheets"
+    t.decimal "material_total_price"
+    t.decimal "material_square_meters"
+    t.decimal "subtotal"
+    t.decimal "waste_percentage"
+    t.decimal "margin_percentage"
+    t.decimal "total_quote_value"
+    t.decimal "product_value_per_piece"
+    t.string "manual_material"
+    t.integer "manual_material_unit_id"
+    t.decimal "manual_material_price"
+    t.string "manual_material_width"
+    t.string "manual_material_length"
+    t.integer "manufacturing_process_id"
   end
 
   create_table "toolings", force: :cascade do |t|
@@ -166,7 +173,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_25_225925) do
   add_foreign_key "quote_processes", "quotes"
   add_foreign_key "quote_toolings", "quotes"
   add_foreign_key "quote_toolings", "toolings"
-  add_foreign_key "quotes", "materials"
-  add_foreign_key "quotes", "toolings"
   add_foreign_key "toolings", "units"
 end

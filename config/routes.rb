@@ -1,9 +1,6 @@
 Rails.application.routes.draw do
   resources :general_configurations
 
-  get 'material_dimensions/show'
-  get 'quotes/create'
-  
   devise_for :users
   
   resources :toolings
@@ -13,11 +10,14 @@ Rails.application.routes.draw do
   resources :materials
   resources :vendors
   resources :papers
-  resources :quotes, only: [:index, :new, :create, :show]
 
-  resources :quotes do
+  get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes 
+
+  resources :quotes, only: [:new, :create, :show] do
     collection do
       post :search_customer
+    end
+    member do
       post :generate_pdf
     end
   end

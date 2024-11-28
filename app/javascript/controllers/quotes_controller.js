@@ -440,19 +440,25 @@ export default class extends Controller {
 
   get toolingFieldsTemplate() {
     return `
-        <div class="nested-fields">
-          <div class="form-group">
-            <label for="quote_quote_toolings_attributes_new_quote_tooling_tooling_id">Herramental:</label>
-            <select class="form-control" name="quote[quote_toolings_attributes][new_quote_tooling][tooling_id]" id="quote_quote_toolings_attributes_new_quote_tooling_tooling_id">
-              <option value="">Select one</option>
-              <% Tooling.all.each do |tooling| %>
-                <option value="<%= tooling.id %>"><%= tooling.description %></option>
-              <% end %>
-            </select>
-          </div>
-          <button type="button" class="btn btn-danger" data-action="click->quotes#removeField">Eliminar</button>
+      <div class="nested-fields">
+        <div class="form-group">
+          <label for="quote_quote_toolings_attributes_new_quote_tooling_tooling_id">Herramental:</label>
+          <select class="form-control" name="quote[quote_toolings_attributes][new_quote_tooling][tooling_id]" id="quote_quote_toolings_attributes_new_quote_tooling_tooling_id"
+                  data-action="change->quotes#showToolingDetails"> <%# Add data-action %>
+            <option value="">Select one</option>
+            <% Tooling.all.each do |tooling| %>
+              <option value="<%= tooling.id %>" data-price="<%= tooling.price %>" data-unit="<%= tooling.unit.description %>"> <%# Add data attributes %>
+                <%= tooling.description %> 
+              </option>
+            <% end %>
+          </select>
         </div>
-      </template>
+        <div class="input-group-append">
+          <span class="input-group-text" data-quotes-target="toolingPrice">$0.00</span> <%# Add price display %>
+          <span class="input-group-text ml-1" data-quotes-target="toolingUnit"></span> <%# Add unit display %>
+        </div>
+        <button type="button" class="btn btn-danger" data-action="click->quotes#removeField">Eliminar</button>
+      </div>
     `.trim();
   }
 
@@ -483,22 +489,22 @@ export default class extends Controller {
 
   updateWasteValue(event) {
     const wastePercentage = parseFloat(event.target.value);
-    const subTotal = parseFloat(document.getElementById('sub-total-value').value); // Get the subtotal value
+    const subTotal = parseFloat(document.getElementById('sub-total-value').value);
   
     if (!isNaN(wastePercentage) && !isNaN(subTotal)) {
       const wasteValue = (wastePercentage / 100) * subTotal;
-      document.getElementById('quote_waste_value').value = wasteValue.toFixed(2); // Update waste value field
-      this.calculateQuote(); // Recalculate the quote
+      document.getElementById('quote_waste_value').value = wasteValue.toFixed(2);
+      this.calculateQuote();
     }
   }
   
   updateMarginValue(event) {
     const marginPercentage = parseFloat(event.target.value);
-    const subTotal = parseFloat(document.getElementById('sub-total-value').value); // Get the subtotal value
+    const subTotal = parseFloat(document.getElementById('sub-total-value').value);
   
     if (!isNaN(marginPercentage) && !isNaN(subTotal)) {
       const marginValue = (marginPercentage / 100) * subTotal;
-      document.getElementById('quote_margin_value').value = marginValue.toFixed(2); // Update margin value field
+      document.getElementById('quote_margin_value').value = marginValue.toFixed(2);
       this.calculateQuote(); // Recalculate the quote
     }
   }
@@ -537,7 +543,7 @@ export default class extends Controller {
     const subTotalValue = materialPrice + processPricesSum;
   
     // Update the subtotal field in the form
-    const subTotalValueElement = document.getElementById('sub-total-value');
+    const subTotalValueElement = document.getElementById('quote_subtotal');
     if (!subTotalValueElement) {
       console.error("Subtotal value element not found.");
       return;
@@ -602,52 +608,63 @@ export default class extends Controller {
 
   searchCustomer(event) {
     event.preventDefault();
-  
-    const existingSelect = document.getElementById('quote_customer_organization_select');
-    if (existingSelect) {
-      const organizationField = document.createElement('input'); 
-      organizationField.type = 'text';
-      organizationField.id = 'quote_customer_organization';
-      organizationField.classList.add('form-control');
-      existingSelect.replaceWith(organizationField);
+
+    let organizationField = document.getElementById('quote_customer_organization');
+    let selectElement = document.getElementById('quote_customer_organization_select'); 
+    
+    const searchCustomerPath = '/quotes/search_customer'; 
+
+    if (!selectElement) { 
+      selectElement = document.createElement('select'); 
+      selectElement.id = 'quote_customer_organization_select';
+      selectElement.name = 'quote[customer_organization]';
+      selectElement.classList.add('form-control');
+      organizationField.replaceWith(selectElement); 
+    } else { 
+      selectElement.innerHTML = ''; 
     }
-  
+
     const form = event.target.form;
     const formData = new FormData(form);
-  
-    fetch(form.action, {
-      method: form.method,
+
+    fetch(searchCustomerPath, {
+      method: 'POST',
       body: formData,
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json(); 
+    })
     .then(data => {
-      const organizationField = document.getElementById('quote_customer_organization');
       if (data.organizations && data.organizations.length > 0) {
-        const selectElement = document.createElement('select'); 
-        selectElement.id = 'quote_customer_organization_select'; 
-        selectElement.classList.add('form-control');
-  
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
-        defaultOption.text = 'Selecciona el cliente';
+        defaultOption.text = 'Selecciona la organización';
         selectElement.appendChild(defaultOption);
-  
+
         data.organizations.forEach(organization => {
           const option = document.createElement('option');
-          option.value = organization;
+          option.value = organization; 
           option.text = organization;
           selectElement.appendChild(option);
         });
-  
-        organizationField.replaceWith(selectElement); 
       } else {
-        organizationField.value = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = 'No se encontraron organizaciones'; 
+        selectElement.appendChild(defaultOption);
       }
     })
-    .catch(error => console.error("Error searching customer:", error));
+    .catch(error => {
+      console.error("Error searching customer:", error); 
+      alert("Error searching customer. Please try again."); 
+    });
   }
 
   clearCustomerInfo() {

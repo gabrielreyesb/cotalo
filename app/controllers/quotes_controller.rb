@@ -5,7 +5,7 @@ require 'json'
 class QuotesController < ApplicationController
   protect_from_forgery with: :exception
 
-  def new
+  def calculate
     @quote = Quote.new
     @quote.quote_processes.build
     @quote.quote_toolings.build
@@ -14,7 +14,7 @@ class QuotesController < ApplicationController
 
     respond_to do |format|
       format.html { 
-        render 'new', 
+        render 'calculate', 
                locals: { 
                  quote: @quote, 
                  configuration_margin_width: @configuration_margin_width,
@@ -28,24 +28,24 @@ class QuotesController < ApplicationController
           locals: { quote: @quote }
         )
       }
-      format.pdf do
-        render pdf: "quote_#{@quote.id}",
-               template: 'quotes/show.html.erb',
-               layout: 'pdf'
-      end
     end
+  end
+
+  def new
+    @quote = Quote.new
   end
 
   def create
     @quote = Quote.new(quote_params)
   
-    if params[:quote][:customer_name].present?
-      search_customer
-    elsif @quote.save
-      configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
-      configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
+    puts "----------------------------------" 
+    puts "Quote params: #{quote_params.inspect}" 
+    puts "----------------------------------" 
+
+    if @quote.save
+      redirect_to @quote, notice: "Quote was successfully created." 
     else
-      render :new
+      render :new, status: :unprocessable_entity 
     end
   end
 
@@ -64,51 +64,64 @@ class QuotesController < ApplicationController
         organizations = []
         if data['data'] && data['data']['items']
           data['data']['items'].each do |item|
-            customer = item['item']
-            organizations << customer['organization']['name'] if customer['organization']
+            organization_name = item.dig('item', 'organization', 'name')
+            organizations << organization_name if organization_name
           end
-        else
-          logger.debug("No customers found in the API response.")
         end
-  
-        respond_to do |format|
-          format.json { render json: { organizations: organizations } }
-        end
+
+      respond_to do |format|
+        format.html { render json: { organizations: organizations } } 
+        format.json { render json: { organizations: organizations } }
+      end
   
       rescue JSON::ParserError => e
         logger.error("Error parsing JSON response: #{e.message}")
-        render json: { error: "Error parsing JSON response." }, status: :unprocessable_entity
+        render json: { error: "Error parsing JSON response." }, status: :unprocessable_entity 
       end
     else
       logger.error("Pipedrive API error: #{response.code} - #{response.body}")
-      render json: { error: "API Error: #{response.code} - #{response.body}" }, status: :unprocessable_entity
+      render json: { error: "API Error: #{response.code} - #{response.body}" }, status: :unprocessable_entity 
     end
   end
+
 
   private
 
   def quote_params
     params.require(:quote).permit(
-      :width,
-      :lenght,
-      :pieces,
+      :customer_email,
+      :product_quantity,
+      :product_width,
+      :product_length,
       :material_id,
+      :material_unit_id,
+      :material_price,
+      :products_per_sheet,
+      :amount_of_sheets,
+      :material_total_price,
+      :material_square_meters,
+      :subtotal,
+      :waste_percentage,
+      :margin_percentage,
+      :total_quote_value,
+      :product_value_per_piece,
       :customer_name,
-      :manufacturing_process_id,
       :projects_name,
-      :length,
+      :customer_organization,
+      :manual_material,
+      :manual_material_unit_id,
+      :manual_material_price, 
+      :manual_material_width,
+      :manual_material_length,
+      :manufacturing_process_id,
       :tooling_id,
-      :sub_total_value,
       :waste_value,
       :margin_value,
       :total_value,
-      :value_per_piece,
-      :customer_organization,
-      :config_margin_width, 
-      :config_margin_length,
-      :manual_material_unit,
-      quote_processes_attributes: [:id, :process_id, :destroy], 
-      quote_toolings_attributes: [:id, :toolingid, :quantity, :destroy]
+      :value_per_piece, 
+      quote_processes_attributes: [:id, :manufacturing_process_id, :_destroy],
+      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy]
     )
   end
+
 end
