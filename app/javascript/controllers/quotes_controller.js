@@ -5,9 +5,9 @@ export default class extends Controller {
 
   calculateProducts(event) {
     event.preventDefault();
-
+    
     const materialSelect = document.getElementById('quote_material_id');
-    const priceInput = document.getElementById('material_price_display');
+    const priceInput = document.getElementById('material_price');
 
     const manualMaterial = document.getElementById('quote_manual_material').value;
     const manualMaterialPrice = parseFloat(document.getElementById('manual_material_price').value);
@@ -38,9 +38,9 @@ export default class extends Controller {
       }
     }
   
-    const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
-    const productWidth = parseFloat(document.getElementById('quote_width').value);
-    const productLength = parseFloat(document.getElementById('quote_length').value);
+    const productQuantity = parseFloat(document.getElementById('quote_product_pieces').value);
+    const productWidth = parseFloat(document.getElementById('quote_product_width').value);
+    const productLength = parseFloat(document.getElementById('quote_product_length').value);
 
     const configMarginWidth = parseFloat(document.getElementById('config_margin_width').value); 
     const configMarginLength = parseFloat(document.getElementById('config_margin_length').value); 
@@ -51,11 +51,11 @@ export default class extends Controller {
     if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(finalProductWidth) || isNaN(finalProductLength)) {
       alert("Dimensiones inválidas. El producto no cabe en el material.");  
   
-      const productsFitElement = document.getElementById('products-fit'); 
+      const productsFitElement = document.getElementById('products-per-sheet'); 
       if (productsFitElement) {
         productsFitElement.value = 0;
       } else {
-        console.error("products-fit element not found!");
+        console.error("products-per-sheet element not found!");
       }
       return;
     }
@@ -63,17 +63,17 @@ export default class extends Controller {
     const productsInWidth = Math.floor(materialWidth / finalProductWidth);
     const productsInLength = Math.floor(materialLength / finalProductLength);
     const totalProducts = productsInWidth * productsInLength;
-    document.getElementById('products-fit').value = totalProducts;
+    document.getElementById('products-per-sheet').value = totalProducts;
 
     const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
-    document.getElementById('material-pieces').textContent = piecesNeeded;
+    document.getElementById('sheets-needed').textContent = piecesNeeded;
 
     const quoteValue = materialPrice * piecesNeeded;
     const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    document.getElementById('material-price').textContent = formattedQuoteValue; 
+    document.getElementById('material-total-price').textContent = formattedQuoteValue; 
 
     const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
-    document.getElementById('square-meters').textContent = squareMeters;
+    document.getElementById('material-square-meters').textContent = squareMeters;
   }
 
   addProcess(event) {
@@ -89,9 +89,9 @@ export default class extends Controller {
             const processDescription = selectedOption.text;
             const processPrice = parseFloat(priceInput.value);
             const processUnit = selectedOption.dataset.unit;
-
-            const materialPieces = parseFloat(document.getElementById('material-pieces').textContent);
-            const squareMeters = parseFloat(document.getElementById('square-meters').textContent);
+            
+            const materialPieces = parseFloat(document.getElementById('sheets-needed').textContent);
+            const squareMeters = parseFloat(document.getElementById('material-square-meters').textContent);
 
             let calculatedPrice = 0;
             if (processUnit === "pliego") {
@@ -288,8 +288,9 @@ export default class extends Controller {
     const selectedOption = event.target.selectedOptions[0];
     const materialPrice = parseFloat(selectedOption.getAttribute('data-price'));
     const materialUnit = selectedOption.getAttribute('data-unit');
+    const materialUnitId = selectedOption.getAttribute('data-unit-id');
 
-    const materialPriceDisplay = document.getElementById('material_price_display');
+    const materialPriceDisplay = document.getElementById('material_price');
     if (materialPriceDisplay) {
       materialPriceDisplay.value = materialPrice.toFixed(2);
     }
@@ -297,6 +298,11 @@ export default class extends Controller {
     const materialUnitDisplay = document.getElementById('material_unit_display');
     if (materialUnitDisplay) {
       materialUnitDisplay.textContent = materialUnit;
+    }
+
+    const unitIdField = document.getElementById('quote_material_unit_id');
+    if (unitIdField) {
+      unitIdField.value = materialUnitId;
     }
   }
 
@@ -511,17 +517,18 @@ export default class extends Controller {
   
   calculateQuote(event) {
     event.preventDefault();
-  
+
     // Get the material price
-    const materialPriceElement = document.getElementById('material-price');
-    const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
+    const materialPriceElement = document.getElementById('material-total-price');
+    
+    const productQuantity = parseFloat(document.getElementById('sheets-needed').value);
 
     if (!materialPriceElement) {
       console.error("Material price element not found.");
       return;
     }
     const materialPrice = parseFloat(materialPriceElement.textContent.replace(/[^0-9.-]+/g, ""));
-  
+
     // Calculate the sum of process prices
     let processPricesSum = 0;
     if (this.processesTarget) {
@@ -538,7 +545,7 @@ export default class extends Controller {
     } else {
       console.warn("Processes target not found. Assuming no processes added.");
     }
-  
+
     // Calculate the subtotal
     const subTotalValue = materialPrice + processPricesSum;
   
@@ -551,39 +558,38 @@ export default class extends Controller {
     subTotalValueElement.value = subTotalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
   
     // Calculate the waste value
-    const wastePercentageElement = document.getElementById('waste-percentage');
+    const wastePercentageElement = document.getElementById('waste');
     if (!wastePercentageElement) {
       console.error("Waste percentage element not found.");
       return;
     }
-    const wastePercentage = parseFloat(wastePercentageElement.value); // Get value from input
+    const wastePercentage = parseFloat(wastePercentageElement.value);
     const wasteValue = (subTotalValue * wastePercentage) / 100;
-  
+
     // Update the waste value field in the form
-    const wasteValueElement = document.getElementById('quote_waste_value'); 
+    const wasteValueElement = document.getElementById('quote_waste_price'); 
+    console.error("Segundo check");
     if (!wasteValueElement) {
-      console.error("Waste value element not found.");
       return;
     }
     wasteValueElement.value = wasteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
 
     // Calculate the margin value
-    const marginPercentageElement = document.getElementById('margin-percentage');
+    const marginPercentageElement = document.getElementById('margin');
     if (!marginPercentageElement) {
       console.error("Margin percentage element not found.");
       return;
     }
-    const marginPercentage = parseFloat(marginPercentageElement.value); // Get value from input
+    const marginPercentage = parseFloat(marginPercentageElement.value);
     const marginValue = (subTotalValue * marginPercentage) / 100;
   
     // Update the margin value field in the form
-    const marginValueElement = document.getElementById('quote_margin_value'); 
+    const marginValueElement = document.getElementById('quote_margin_price'); 
     if (!marginValueElement) {
       console.error("Margin value element not found.");
       return;
     }
     marginValueElement.value = marginValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
-
     // Calculate the total value
     const totalValue = subTotalValue + wasteValue + marginValue;
 
@@ -596,7 +602,7 @@ export default class extends Controller {
     totalValueElement.value = totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
 
     // Update the value per piece field in the form  
-    const valuePerPieceElement = document.getElementById('value-per-piece'); 
+    const valuePerPieceElement = document.getElementById('price-per-piece'); 
     if (!valuePerPieceElement) {
       console.error("Value per piece element not found.");
       return;
@@ -671,6 +677,16 @@ export default class extends Controller {
     const customerInfoDiv = document.getElementById('customer_info'); 
     if (customerInfoDiv) {
       customerInfoDiv.innerHTML = '';
+    }
+  }
+
+  updateManualMaterialUnit(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    const manualMaterialUnitId = selectedOption.value;
+  
+    const unitIdField = document.getElementById('quote_manual_material_unit_id');
+    if (unitIdField) {
+      unitIdField.value = manualMaterialUnitId;
     }
   }
 }

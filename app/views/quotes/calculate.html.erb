@@ -39,18 +39,18 @@
             </div>
 
             <div class="form-group">
-              <%= form.label :pieces, "Cantidad de piezas:", class: "font-weight-bold" %>
-              <%= form.number_field :pieces, class: "form-control text-right", value: 2000 %>
+              <%= form.label :product_pieces, "Cantidad de piezas:", class: "font-weight-bold" %>
+              <%= form.number_field :product_pieces, class: "form-control text-right", value: 2000 %>
             </div>
 
             <div class="form-group">
-              <%= form.label :width, "Ancho del producto:", class: "font-weight-bold" %>
-              <%= form.number_field :width, class: "form-control text-right", value: 34 %>
+              <%= form.label :product_width, "Ancho del producto:", class: "font-weight-bold" %>
+              <%= form.number_field :product_width, class: "form-control text-right", value: 34 %>
             </div>
 
             <div class="form-group">
-              <%= form.label :length, "Largo del producto:", class: "font-weight-bold" %>
-              <%= form.number_field :length, class: "form-control text-right", value: 23 %>
+              <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
+              <%= form.number_field :product_length, class: "form-control text-right", value: 23 %>
             </div>
 
             <div class="form-group">
@@ -70,9 +70,10 @@
                 <span class="input-group-text ml-1" id="material_unit_display"></span>
                 <div class="input-group-prepend">
                   <span class="input-group-text">$</span>
-                  <input type="number" step="any" class="form-control" id="material_price_display" style="width: 100px;">
+                  <input type="number" step="any" class="form-control" id="material_price" style="width: 100px;">
                 </div>
               </div>
+              <%= form.hidden_field :material_unit_id, id: 'quote_material_unit_id' %>
             </div>
 
             <div class="form-group">
@@ -80,7 +81,7 @@
               <div class="input-group">
                 <%= form.text_field :manual_material, class: "form-control text-left" %>
                 <div class="input-group-append"> 
-                  <%= form.select :manual_material_unit, 
+                  <%= form.select :manual_material_unit_id, 
                             options_from_collection_for_select(Unit.all, :id, :description, selected: @quote.manual_material_unit_id), 
                             {}, 
                             { class: "form-control" } 
@@ -91,6 +92,7 @@
                   <input type="number" step="any" class="form-control" id="manual_material_price" style="width: 100px;">
                 </div>
               </div>
+              <%= form.hidden_field :manual_material_unit_id, id: 'quote_manual_material_unit_id' %>
             </div>
 
             <div class="form-group">
@@ -113,7 +115,7 @@
             <br><br><br>
             </div>
             <div class="form-group">
-              <%= form.label :customer_organization, "Organización:" %>
+              <%= form.label :customer_company, "Organización:" %>
               <div class="d-flex align-items-center my-custom-flex"> 
                 <div class="me-2" style="width: 60%;">
                   <%= form.text_field :customer_organization, class: "form-control", id: "quote_customer_organization" %> 
@@ -148,20 +150,20 @@
                 <tr>
                   <td>Productos por pliego:</td>
                   <td>
-                    <input type="number" id="products-fit" style="text-align: right; width: 100%;" value="0"> 
+                    <input type="number" id="products-per-sheet" style="text-align: right; width: 100%;" value="0"> 
                   </td>    
                 </tr>
                 <tr>
                   <td>Pliegos necesarios:</td>
-                  <td id="material-pieces" style="text-align: right;"></td> 
+                  <td id="sheets-needed" style="text-align: right;"></td> 
                 </tr>
                 <tr>
                   <td>Precio material:</td>
-                  <td id="material-price" style="text-align: right;"></td> 
+                  <td id="material-total-price" style="text-align: right;"></td> 
                 </tr>
                 <tr>
                   <td>Metros cuadrados de material:</td>
-                  <td id="square-meters" style="text-align: right;"></td> 
+                  <td id="material-square-meters" style="text-align: right;"></td> 
                 </tr>
               </tbody>
             </table>
@@ -301,7 +303,6 @@
           <div class="col-lg-6">
             <div class="form-group">
               <div style="display: flex; justify-content: flex-end; align-items: center;">
-                
                 <%= form.text_field :subtotal, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "quote_subtotal" %>
               </div>
             </div>
@@ -314,10 +315,10 @@
           <div class="col-lg-6">
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span><%= form.label :waste_percentage, "Merma:" %></span>
+                <span><%= form.label :waste, "Merma:" %></span>
                 <div style="display: flex; align-items: center; white-space: nowrap;">
                   <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                        id="waste-percentage" name="waste_percentage" 
+                        id="waste" name="waste" 
                         value="<%= waste_config ? waste_config.amount : 0 %>"
                         data-action="change->quotes#updateWasteValue">
                   <span class="ml-1">%</span>
@@ -328,7 +329,7 @@
           <div class="col-lg-6"> 
             <div class="form-group">
               <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-                <%= form.text_field :waste_value, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
+                <%= form.text_field :waste_price, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
               </div>
             </div>
           </div>
@@ -340,10 +341,10 @@
           <div class="col-lg-6">
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span><%= form.label :margin_percentage, "Margen:" %></span>
+                <span><%= form.label :margin, "Margen:" %></span>
                 <div style="display: flex; align-items: center; white-space: nowrap;">
                   <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                        id="margin-percentage" name="margin_percentage" 
+                        id="margin" name="margin" 
                         value="<%= margin_config ? margin_config.amount : 0 %>"
                         data-action="change->quotes#updateMarginValue">
                   <span class="ml-1">%</span> 
@@ -354,7 +355,7 @@
           <div class="col-lg-6"> 
             <div class="form-group">
               <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-                <%= form.text_field :margin_value, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
+                <%= form.text_field :margin_price, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
               </div>
             </div>
           </div>
@@ -377,12 +378,12 @@
           <div class="col-lg-6">
             <div class="form-group">
               <div style="display: flex; justify-content: flex-end; align-items: center;">
-                <%= form.text_field :total_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-value" %>
+                <%= form.text_field :total_price, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-value" %>
               </div>
             </div> 
             <div class="form-group">
               <div style="display: flex; justify-content: flex-end; align-items: center;">
-                <%= form.text_field :value_per_piece, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "value-per-piece" %>
+                <%= form.text_field :price_per_piece, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "price-per-piece" %>
               </div>
             </div>
           </div>

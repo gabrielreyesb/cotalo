@@ -38,10 +38,6 @@ class QuotesController < ApplicationController
   def create
     @quote = Quote.new(quote_params)
   
-    puts "----------------------------------" 
-    puts "Quote params: #{quote_params.inspect}" 
-    puts "----------------------------------" 
-
     if @quote.save
       redirect_to @quote, notice: "Quote was successfully created." 
     else
@@ -89,38 +85,38 @@ class QuotesController < ApplicationController
 
   def quote_params
     params.require(:quote).permit(
+      :projects_name,
+      :customer_name,
+      :customer_company,
       :customer_email,
-      :product_quantity,
+      :product_pieces,
       :product_width,
       :product_length,
+      
       :material_id,
       :material_unit_id,
       :material_price,
-      :products_per_sheet,
-      :amount_of_sheets,
-      :material_total_price,
-      :material_square_meters,
-      :subtotal,
-      :waste_percentage,
-      :margin_percentage,
-      :total_quote_value,
-      :product_value_per_piece,
-      :customer_name,
-      :projects_name,
-      :customer_organization,
+      
       :manual_material,
       :manual_material_unit_id,
       :manual_material_price, 
       :manual_material_width,
       :manual_material_length,
-      :manufacturing_process_id,
-      :tooling_id,
-      :waste_value,
-      :margin_value,
-      :total_value,
-      :value_per_piece, 
-      quote_processes_attributes: [:id, :manufacturing_process_id, :_destroy],
-      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy]
+      
+      :products_per_sheet,
+      :sheets_needed,
+      :material_total_price,
+      :material_square_meters,
+      
+      :subtotal,
+      :waste,
+      :margin,
+      
+      :total_price,
+      :price_per_piece,
+      
+      :waste_price,
+      :margin_price,
     )
   end
 
