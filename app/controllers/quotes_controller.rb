@@ -7,8 +7,6 @@ class QuotesController < ApplicationController
 
   def calculate
     @quote = Quote.new
-    @quote.quote_processes.build
-    @quote.quote_toolings.build
     @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
     @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
 
@@ -33,6 +31,8 @@ class QuotesController < ApplicationController
 
   def new
     @quote = Quote.new
+    @quote.quote_processes.build
+    @quote.quote_toolings.build
   end
 
   def create
@@ -64,11 +64,20 @@ class QuotesController < ApplicationController
             organizations << organization_name if organization_name
           end
         end
-
-      respond_to do |format|
-        format.html { render json: { organizations: organizations } } 
-        format.json { render json: { organizations: organizations } }
-      end
+  
+        @quote ||= Quote.new(quote_params) 
+  
+        if organizations.any?
+          @quote.customer_organization = organizations.first 
+        else
+          # Handle the case where no organizations are found (e.g., display an error message)
+          flash[:alert] = "No se encontraron organizaciones para este cliente." 
+        end
+  
+        respond_to do |format|
+          format.html { render json: { organizations: organizations } } 
+          format.json { render json: { organizations: organizations } }
+        end
   
       rescue JSON::ParserError => e
         logger.error("Error parsing JSON response: #{e.message}")
@@ -80,14 +89,13 @@ class QuotesController < ApplicationController
     end
   end
 
-
   private
 
   def quote_params
     params.require(:quote).permit(
       :projects_name,
       :customer_name,
-      :customer_company,
+      :customer_organization,
       :customer_email,
       :product_pieces,
       :product_width,
@@ -117,6 +125,11 @@ class QuotesController < ApplicationController
       
       :waste_price,
       :margin_price,
+
+      quote_processes_attributes: [:id, :manufacturing_process_id, :_destroy],
+      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy],
+      manufacturing_process_id: [], 
+      tooling_id: [] 
     )
   end
 

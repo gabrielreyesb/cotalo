@@ -1,13 +1,14 @@
-<div class="nested-fields">
-  <div class="form-group">
-    <%= f.label :tooling_id, "Herramental:" %>
-    <div class="input-group">
-      <%= f.collection_select :tooling_id, Tooling.all, :id, :description,
-                              { include_blank: 'Select one' },
-                              { class: "form-control", 
-                                'data-action': 'change->quotes#showToolingDetails' 
-                              } %>
-    </div>
-  </div>
-  <button type="button" class="btn btn-danger" data-action="click->quotes#removeField">Eliminar</button>   
-</div>
+<tr data-new-tooling="true"> 
+  <td>
+    <%= f.hidden_field :tooling_id %>
+    <span class="tooling-description"><%= f.object.tooling.description %></span> 
+    <%= f.hidden_field :quantity, value: 1, class: "tooling-quantity-input" %> 
+    (<span class="tooling-quantity">1</span>) 
+  </td>
+  <td>
+    <%= link_to_remove_association "Eliminar", f, class: "btn btn-danger" %>
+  </td>
+  <td>
+    <span class="tooling-price-total">0</span> 
+  </td>
+</tr>

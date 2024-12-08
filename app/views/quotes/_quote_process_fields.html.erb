@@ -1,13 +1,13 @@
-<div class="nested-fields">
-  <div class="form-group">
-    <%= f.label :manufacturing_process_id, "Proceso:" %>
-    <div class="input-group">
-      <%= f.collection_select :manufacturing_process_id, ManufacturingProcess.all, :id, :description,
-                              { include_blank: 'Select one' },
-                              { class: "form-control", 
-                                'data-action': 'change->quotes#showProcessDetails' 
-                              } %>
-    </div>
-  </div>
-  <button type="button" class="btn btn-danger" data-action="click->quotes#removeField">Eliminar</button> 
-</div>
+<tr data-new-process="true">
+  <td>
+    <%= f.hidden_field :manufacturing_process_id %>
+    <span class="process-name"><%= f.object.manufacturing_process.name %></span> -
+    <span class="process-description"><%= f.object.manufacturing_process.description %></span>
+  </td>
+  <td>
+    <%= link_to_remove_association "Eliminar", f, class: "btn btn-danger" %>
+  </td>
+  <td>
+    <span class="process-price-total">0</span>
+  </td>
+</tr>

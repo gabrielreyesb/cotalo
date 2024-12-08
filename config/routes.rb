@@ -9,11 +9,11 @@ Rails.application.routes.draw do
   resources :customers
   resources :materials
   resources :vendors
-  resources :papers
 
   get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes 
 
   resources :quotes, only: [:new, :create, :show] do
+    resources :quote_processes
     collection do
       post :search_customer
     end

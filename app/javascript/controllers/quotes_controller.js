@@ -1,7 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "processes", "toolings", "productsFit", "materialPieces", "materialPrice", "squareMeters"] 
+  static targets = ["processes", "toolings", "openIcon", "closeIcon", 
+                   "productsFit", "materialPieces", "materialPrice", "squareMeters"]; 
+
+  connect() {
+    this.newProcessId = 0; 
+    this.newToolingId = 0; 
+  }
 
   calculateProducts(event) {
     event.preventDefault();
@@ -65,15 +71,49 @@ export default class extends Controller {
     const totalProducts = productsInWidth * productsInLength;
     document.getElementById('products-per-sheet').value = totalProducts;
 
-    const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
-    document.getElementById('sheets-needed').textContent = piecesNeeded;
+    const sheetsNeeded = Math.ceil(productQuantity / totalProducts); 
+    document.getElementById('sheets-needed').value = sheetsNeeded;
 
-    const quoteValue = materialPrice * piecesNeeded;
+    const quoteValue = materialPrice * sheetsNeeded;
     const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    document.getElementById('material-total-price').textContent = formattedQuoteValue; 
+    document.getElementById('material-total-price').value = quoteValue; 
 
-    const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
-    document.getElementById('material-square-meters').textContent = squareMeters;
+    const squareMeters = (materialLength * materialWidth * sheetsNeeded) / 10000;
+    document.getElementById('material-square-meters').value = squareMeters;
+  }
+
+  reCalculateProducts(event) {
+    event.preventDefault();
+  
+    try {  
+      const materialSelect = document.getElementById('quote_material_id');
+      const priceInput = document.getElementById('material_price').value;
+      const productsPerSheetInput = document.getElementById('products-per-sheet').value; 
+      const productQuantity = parseFloat(document.getElementById('quote_product_pieces').value);
+      
+      if (materialSelect && priceInput && productsPerSheetInput) {
+        const selectedOption = materialSelect.selectedOptions[0];
+        if (selectedOption) {
+          const piecesNeeded = Math.ceil(productQuantity / productsPerSheetInput); 
+          document.getElementById('sheets-needed').textContent = piecesNeeded;
+
+          const materialPrice = parseFloat(piecesNeeded * priceInput);
+          const formattedMaterialPrice = materialPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+          document.getElementById('material-total-price').textContent = formattedMaterialPrice; 
+      
+          const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
+          const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
+          const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
+          document.getElementById('material-square-meters').textContent = squareMeters;
+        } else {
+          console.error("No material option selected.");
+        }
+      } else {
+        console.error("Missing elements: material select, price input, or products-fit field.");
+      }
+    } catch (error) {
+      console.error("Error in reCalculateProducts:", error);
+    }
   }
 
   addProcess(event) {
@@ -83,32 +123,59 @@ export default class extends Controller {
     const priceInput = document.getElementById('manufacturing_process_price_display');
 
     if (selectElement) { 
-        const selectedOption = selectElement.selectedOptions[0];
+      const selectedOption = selectElement.selectedOptions[0];
 
-        if (selectedOption) {
-            const processDescription = selectedOption.text;
-            const processPrice = parseFloat(priceInput.value);
-            const processUnit = selectedOption.dataset.unit;
+      if (selectedOption) {
+        const processId = selectedOption.value; // Get the process ID
+        const processName = selectedOption.text.split(' - ')[0]; // Extract process name
+        const processDescription = selectedOption.text.split(' - ')[1]; // Extract process description
+        const processPrice = parseFloat(priceInput.value);
+        const processUnit = selectedOption.dataset.unit;
             
-            const materialPieces = parseFloat(document.getElementById('sheets-needed').textContent);
-            const squareMeters = parseFloat(document.getElementById('material-square-meters').textContent);
+        const materialPieces = parseFloat(document.getElementById('sheets-needed').value);
+        const squareMeters = parseFloat(document.getElementById('material-square-meters').value);
 
-            let calculatedPrice = 0;
-            if (processUnit === "pliego") {
-              calculatedPrice = processPrice * materialPieces;
-            } else if (processUnit === "m2") {
-              calculatedPrice = processPrice * squareMeters;
-            } else {
-              console.error("Unknown process unit:", processUnit, calculatedPrice);
-            }
-
-            this.addProcessToList(processDescription, processPrice, processUnit, calculatedPrice);
-            this.updateProcessesSubtotal();
+        let calculatedPrice = 0;
+        if (processUnit === "pliego") {
+          calculatedPrice = processPrice * materialPieces;
+        } else if (processUnit === "m2") {
+          calculatedPrice = processPrice * squareMeters;
         } else {
-            console.error("No option selected in the manufacturing process select.");
+          console.error("Unknown process unit:", processUnit, calculatedPrice);
         }
+
+        // Get the table body
+        const tableBody = this.processesTarget.querySelector('tbody');
+
+        // Create a new row for the process
+        const newRow = document.createElement('tr');
+        newRow.dataset.newProcess = "true";
+        newRow.innerHTML = `
+          <td>
+            <input type="hidden" name="quote[quote_manufacturing_processes_attributes][${this.newProcessId}][manufacturing_process_id]" value="${processId}">
+            <span class="process-name">${processName}</span> - 
+            <span class="process-description">${processDescription}</span>
+          </td>
+          <td>
+            <a href="#" data-action="click->quotes#removeProcess" class="btn btn-danger">Eliminar</a>
+          </td>
+          <td>
+            <span class="process-price-total">${calculatedPrice.toFixed(2)}</span> 
+          </td>
+        `;
+
+        // Append the new row to the table body
+        tableBody.appendChild(newRow);
+
+        // Update the new process ID counter
+        this.newProcessId++;
+
+        this.updateProcessesSubtotal(); 
+      } else {
+        console.error("No option selected in the manufacturing process select.");
+      }
     } else {
-        console.error("Select element for manufacturing process not found!");
+      console.error("Select element for manufacturing process not found!");
     }
   }
 
@@ -131,6 +198,7 @@ export default class extends Controller {
 
   removeProcess(event) {
     event.preventDefault();
+
     const row = event.target.closest('tr'); 
     if (row) {
       row.remove();
@@ -138,81 +206,18 @@ export default class extends Controller {
     }
   }
 
-  addTooling(event) {
-    event.preventDefault();
-
-    const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[tooling_id]"]'); 
-    const quantityInput = event.target.closest('.nested-fields').querySelector('input[name*="[quantity]"]'); 
-    const priceInput = event.target.closest('.nested-fields').querySelector('input[type="number"]');
-
-    if (selectElement) {
-      const selectedOption = selectElement.selectedOptions[0];
-
-      if (selectedOption && quantityInput) {
-        const toolingDescription = selectedOption.text;
-        const toolingPrice = parseFloat(priceInput.value);
-        const toolingUnit = selectedOption.dataset.unit;
-        const toolingQuantity = parseInt(quantityInput.value);
-
-        let calculatedPrice = 0;
-        if (toolingUnit === "pieza") {
-          calculatedPrice = toolingPrice * toolingQuantity;;
-        } else {
-          console.error("Unknown tooling unit:", toolingUnit, calculatedPrice);
-        }
-
-        this.addToolingToList(toolingDescription, toolingPrice, toolingUnit, calculatedPrice);
-        this.updateToolingsSubtotal();
-      } else {
-          console.error("No option selected in the tooling select.");
-      } 
-    } else {
-      console.error("Select element for tooling not found!");
-    }
-  }
-
-  updateToolingsSubtotal() {
-    let subtotal = 0;
-    const toolingRows = this.toolingsTarget.querySelectorAll('tbody tr');
-    toolingRows.forEach(row => {
-      const priceCell = row.querySelector('td:last-child');
-      if (priceCell) {
-        const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
-        subtotal += priceValue;
-      }
-    });
-  
-    const subtotalSpan = document.getElementById('toolings-subtotal');
-    if (subtotalSpan) {
-      subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    }
-  }
-
   updateProcessesSubtotal() {
-    let subtotal = 0;
-    const processRows = this.processesTarget.querySelectorAll('tbody tr');
-    processRows.forEach(row => {
-      const priceCell = row.querySelector('td:last-child');
-      if (priceCell) {
-        const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
-        subtotal += priceValue;
-      }
-    });
-  
-    const subtotalSpan = document.getElementById('processes-subtotal');
-    if (subtotalSpan) {
-      subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    }
-  }
+  let subtotal = 0;
+  const priceSpans = this.processesTarget.querySelectorAll('.process-price-total'); 
+  priceSpans.forEach(priceSpan => {
+    subtotal += parseFloat(priceSpan.textContent); 
+  });
 
-  removeTooling(event) {
-    event.preventDefault();
-    const row = event.target.closest('tr'); 
-    if (row) {
-      row.remove();
-      this.updateToolingsSubtotal();
-    }
+  const subtotalSpan = document.getElementById('processes-subtotal');
+  if (subtotalSpan) {
+    subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   }
+}
 
   showProcessDetails(event) {
     const selectedOption = event.target.selectedOptions[0];
@@ -232,120 +237,6 @@ export default class extends Controller {
     }
   }
 
-  showToolingDetails(event) {
-    const selectedOption = event.target.selectedOptions[0];
-    const toolingPrice = parseFloat(selectedOption.dataset.price);
-    const toolingUnit = selectedOption.dataset.unit;
-
-    const nestedFieldsDiv = event.target.closest('.nested-fields'); 
-    const toolingPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingPrice"]');
-    const toolingUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingUnit"]');
-  
-    if (toolingPriceDisplay) {
-      toolingPriceDisplay.textContent = `$${toolingPrice.toFixed(2)}`;
-    }
-  
-    if (toolingUnitDisplay) {
-      toolingUnitDisplay.textContent = toolingUnit;
-    }
-  }
-  
-  reCalculateProducts(event) {
-    event.preventDefault();
-  
-    const materialSelect = document.getElementById('quote_material_id');
-    const priceInput = document.getElementById('material_price_display');
-    const productsFitField = document.getElementById('products-fit'); 
-    const productQuantity = parseFloat(document.getElementById('quote_pieces').value);
-  
-    if (materialSelect && priceInput && productsFitField) {
-      const selectedOption = materialSelect.selectedOptions[0];
-      const materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
-      const materialLength = parseFloat(selectedOption.getAttribute('data-length'));
-      const materialPrice = parseFloat(priceInput.value);
-      const totalProducts = parseFloat(productsFitField.value); // Get value from input field
-  
-      if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(totalProducts)) {
-        console.error("Invalid dimensions. Please check the input values and data attributes.");
-        return;
-      }
-  
-      const piecesNeeded = Math.ceil(productQuantity / totalProducts); 
-      document.getElementById('material-pieces').textContent = piecesNeeded;
-  
-      const quoteValue = materialPrice * piecesNeeded;
-      const formattedQuoteValue = quoteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-      document.getElementById('material-price').textContent = formattedQuoteValue; 
-  
-      const squareMeters = (materialLength * materialWidth * piecesNeeded) / 10000;
-      document.getElementById('square-meters').textContent = squareMeters;
-    } else {
-      console.error("Missing elements: material select, price input, or products-fit field.");
-    }
-  }
-
-  showMaterialPrice(event) {
-    const selectedOption = event.target.selectedOptions[0];
-    const materialPrice = parseFloat(selectedOption.getAttribute('data-price'));
-    const materialUnit = selectedOption.getAttribute('data-unit');
-    const materialUnitId = selectedOption.getAttribute('data-unit-id');
-
-    const materialPriceDisplay = document.getElementById('material_price');
-    if (materialPriceDisplay) {
-      materialPriceDisplay.value = materialPrice.toFixed(2);
-    }
-
-    const materialUnitDisplay = document.getElementById('material_unit_display');
-    if (materialUnitDisplay) {
-      materialUnitDisplay.textContent = materialUnit;
-    }
-
-    const unitIdField = document.getElementById('quote_material_unit_id');
-    if (unitIdField) {
-      unitIdField.value = materialUnitId;
-    }
-  }
-
-  showManufactureProcessInfo(event) {
-    const selectedOption = event.target.selectedOptions[0];
-    const manufacturingProcessPrice = parseFloat(selectedOption.getAttribute('data-price'));
-    const manufacturingProcessUnit = selectedOption.getAttribute('data-unit');
-  
-    const manufacturingProcessPriceDisplay = document.getElementById('manufacturing_process_price_display');
-    if (manufacturingProcessPriceDisplay) {
-      manufacturingProcessPriceDisplay.value = manufacturingProcessPrice.toFixed(2);
-    }
-  
-    const manufacturingProcessUnitDisplay = document.getElementById('manufacturing_process_unit_display');
-    if (manufacturingProcessUnitDisplay) {  
-      manufacturingProcessUnitDisplay.textContent = manufacturingProcessUnit;
-    }
-  }
-
-  showToolingInfo(event) {
-    const selectElement = event.target; 
-    const priceDisplay = selectElement.parentNode.querySelector('input[type="number"]');
-    const price = selectElement.options[selectElement.selectedIndex].dataset.price;
-    const unit = selectElement.options[selectElement.selectedIndex].dataset.unit;
-  
-    if (priceDisplay) {
-      priceDisplay.value = parseFloat(price).toFixed(2);
-    } else {
-      console.error("Price display element not found for tooling.");
-    }
-    
-    // The following lines should be inside the if(priceDisplay) block
-    const toolingPriceDisplay = document.getElementById('tooling_price_display'); 
-    if (toolingPriceDisplay) {
-      toolingPriceDisplay.textContent = `$${parseFloat(price).toFixed(2)}`; // Use price here
-    }
-  
-    const toolingUnitDisplay = document.getElementById('tooling_unit_display');
-    if (toolingUnitDisplay) {
-      toolingUnitDisplay.textContent = unit; 
-    }
-  }
-
   createProcessField() {
     const newId = new Date().getTime(); 
     const regexp = new RegExp("new_quote_process", "g"); 
@@ -353,11 +244,23 @@ export default class extends Controller {
     return newProcessFields;
   }
 
-  createToolingField() {
-    const newId = new Date().getTime(); 
-    const regexp = new RegExp("new_quote_tooling", "g"); 
-    const newToolingFields = this.toolingFieldsTemplate.replace(regexp, newId);
-    return newToolingFields;
+  showManufactureProcessInfo(event) {
+    const selectElement = event.target;
+    const processId = parseInt(selectElement.value);
+
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const unitDescription = selectedOption.dataset.unit;
+    const processPrice = parseFloat(selectedOption.dataset.price);
+
+    const manufacturingProcessUnitDisplay = document.getElementById('manufacturing_process_unit_display');
+    if (manufacturingProcessUnitDisplay) {
+      manufacturingProcessUnitDisplay.textContent = unitDescription || "";
+    }
+
+    const manufacturingProcessPriceDisplay = document.getElementById('manufacturing_process_price_display');
+    if (manufacturingProcessPriceDisplay) {
+      manufacturingProcessPriceDisplay.value = processPrice ? processPrice.toFixed(2) : "";
+    }
   }
 
   addProcessToList(processDescription, processPrice, processUnit, calculatedPrice) {
@@ -389,6 +292,133 @@ export default class extends Controller {
     this.processesTarget.querySelector('tbody').appendChild(newRow); 
   }
 
+  addTooling(event) {
+    event.preventDefault();
+  
+    const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[tooling_id]"]');
+    const priceInput = document.getElementById('tooling_price_display');
+    const quantityInput = document.getElementById('quantity'); 
+  
+    if (selectElement && priceInput && quantityInput) {
+      const selectedOption = selectElement.selectedOptions[0];
+  
+      if (selectedOption) {
+        const toolingId = selectedOption.value;
+        const toolingDescription = selectedOption.text;
+        const toolingPrice = parseFloat(priceInput.value);
+        const toolingQuantity = parseInt(quantityInput.value, 10); 
+  
+        const calculatedPrice = toolingPrice * toolingQuantity;
+  
+        // Get the table body
+        const tableBody = this.toolingsTarget.querySelector('tbody'); // Assuming you have a "toolingsTarget"
+  
+        // Create a new row for the tooling
+        const newRow = document.createElement('tr');
+        newRow.dataset.newTooling = "true";
+        newRow.innerHTML = `
+          <td>
+            <input type="hidden" name="quote[quote_toolings_attributes][${this.newToolingId}][tooling_id]" value="${toolingId}">
+            <span class="tooling-description">${toolingDescription}</span>
+            <input type="hidden" name="quote[quote_toolings_attributes][${this.newToolingId}][quantity]" value="${toolingQuantity}">
+            <span class="tooling-quantity">(${toolingQuantity})</span>
+          </td>
+          <td>
+            <a href="#" data-action="click->quotes#removeTooling" class="btn btn-danger">Eliminar</a>
+          </td>
+          <td>
+            <span class="tooling-price-total">${calculatedPrice.toFixed(2)}</span>
+          </td>
+        `;
+  
+        // Append the new row to the table body
+        tableBody.appendChild(newRow);
+  
+        // Update the new tooling ID counter
+        this.newToolingId++;
+  
+        this.updateToolingsSubtotal();
+      } else {
+        console.error("No option selected in the tooling select.");
+      }
+    } else {
+      console.error("Select element or price/quantity input for tooling not found!");
+    }
+  }
+
+  updateToolingsSubtotal() {
+    let subtotal = 0;
+    const priceSpans = this.toolingsTarget.querySelectorAll('.tooling-price-total'); // Assuming you have a "toolingsTarget"
+    priceSpans.forEach(priceSpan => {
+      subtotal += parseFloat(priceSpan.textContent);
+    });
+  
+    const subtotalSpan = document.getElementById('toolings-subtotal'); 
+    if (subtotalSpan) {
+      subtotalSpan.textContent = subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+  }
+
+  removeTooling(event) {
+    event.preventDefault();
+  
+    const row = event.target.closest('tr');
+    if (row) {
+      row.remove();
+      this.updateToolingsSubtotal();
+    }
+  }
+  
+
+  showToolingDetails(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    const toolingPrice = parseFloat(selectedOption.dataset.price);
+    const toolingUnit = selectedOption.dataset.unit;
+
+    const nestedFieldsDiv = event.target.closest('.nested-fields'); 
+    const toolingPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingPrice"]');
+    const toolingUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingUnit"]');
+  
+    if (toolingPriceDisplay) {
+      toolingPriceDisplay.textContent = `$${toolingPrice.toFixed(2)}`;
+    }
+  
+    if (toolingUnitDisplay) {
+      toolingUnitDisplay.textContent = toolingUnit;
+    }
+  }
+
+  showToolingInfo(event) {
+    const selectElement = event.target; 
+    const priceDisplay = selectElement.parentNode.querySelector('input[type="number"]');
+    const price = selectElement.options[selectElement.selectedIndex].dataset.price;
+    const unit = selectElement.options[selectElement.selectedIndex].dataset.unit;
+  
+    if (priceDisplay) {
+      priceDisplay.value = parseFloat(price).toFixed(2);
+    } else {
+      console.error("Price display element not found for tooling.");
+    }
+    
+    // The following lines should be inside the if(priceDisplay) block
+    const toolingPriceDisplay = document.getElementById('tooling_price_display'); 
+    if (toolingPriceDisplay) {
+      toolingPriceDisplay.textContent = `$${parseFloat(price).toFixed(2)}`; // Use price here
+    }
+  
+    const toolingUnitDisplay = document.getElementById('tooling_unit_display');
+    if (toolingUnitDisplay) {
+      toolingUnitDisplay.textContent = unit; 
+    }
+  }
+
+  createToolingField() {
+    const newId = new Date().getTime(); 
+    const regexp = new RegExp("new_quote_tooling", "g"); 
+    const newToolingFields = this.toolingFieldsTemplate.replace(regexp, newId);
+    return newToolingFields;
+  }
+
   addToolingToList(toolingDescription, toolingPrice, toolingUnit, calculatedPrice) {
     const newRow = document.createElement('tr'); 
     const descriptionCell = document.createElement('td');
@@ -416,6 +446,28 @@ export default class extends Controller {
     newRow.appendChild(priceCell);
 
     this.toolingsTarget.querySelector('tbody').appendChild(newRow); 
+  }
+
+  showMaterialPrice(event) {
+    const selectedOption = event.target.selectedOptions[0];
+    const materialPrice = parseFloat(selectedOption.getAttribute('data-price'));
+    const materialUnit = selectedOption.getAttribute('data-unit');
+    const materialUnitId = selectedOption.getAttribute('data-unit-id');
+
+    const materialPriceDisplay = document.getElementById('material_price');
+    if (materialPriceDisplay) {
+      materialPriceDisplay.value = materialPrice.toFixed(2);
+    }
+
+    const materialUnitDisplay = document.getElementById('material_unit_display');
+    if (materialUnitDisplay) {
+      materialUnitDisplay.textContent = materialUnit;
+    }
+
+    const unitIdField = document.getElementById('quote_material_unit_id');
+    if (unitIdField) {
+      unitIdField.value = materialUnitId;
+    }
   }
 
   get processFieldsTemplate() {
@@ -568,7 +620,6 @@ export default class extends Controller {
 
     // Update the waste value field in the form
     const wasteValueElement = document.getElementById('quote_waste_price'); 
-    console.error("Segundo check");
     if (!wasteValueElement) {
       return;
     }
@@ -608,31 +659,41 @@ export default class extends Controller {
       return;
     }
 
-    const valuePerPiece = totalValue / productQuantity; 
+    // Update the
+    const productPieces = parseFloat(document.getElementById('quote_product_pieces').value);
+    const valuePerPiece = totalValue / productPieces; 
     valuePerPieceElement.value = valuePerPiece.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
   }
 
   searchCustomer(event) {
     event.preventDefault();
-
+  
     let organizationField = document.getElementById('quote_customer_organization');
     let selectElement = document.getElementById('quote_customer_organization_select'); 
-    
+  
     const searchCustomerPath = '/quotes/search_customer'; 
-
+  
     if (!selectElement) { 
       selectElement = document.createElement('select'); 
       selectElement.id = 'quote_customer_organization_select';
-      selectElement.name = 'quote[customer_organization]';
+      selectElement.name = 'quote[customer_organization]'; 
       selectElement.classList.add('form-control');
-      organizationField.replaceWith(selectElement); 
+  
+      // Instead of replacing, hide the text field and add the select element after it
+      organizationField.style.display = 'none'; 
+      organizationField.parentNode.insertBefore(selectElement, organizationField.nextSibling); 
+  
+      // Add an event listener to the dropdown
+      selectElement.addEventListener('change', (event) => {
+        organizationField.value = event.target.value; // Update the text field value
+      });
     } else { 
       selectElement.innerHTML = ''; 
     }
-
+  
     const form = event.target.form;
     const formData = new FormData(form);
-
+  
     fetch(searchCustomerPath, {
       method: 'POST',
       body: formData,
@@ -653,13 +714,15 @@ export default class extends Controller {
         defaultOption.value = '';
         defaultOption.text = 'Selecciona la organización';
         selectElement.appendChild(defaultOption);
-
+  
         data.organizations.forEach(organization => {
           const option = document.createElement('option');
           option.value = organization; 
           option.text = organization;
           selectElement.appendChild(option);
         });
+        
+        selectElement.selectedIndex = 1; 
       } else {
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
@@ -689,4 +752,10 @@ export default class extends Controller {
       unitIdField.value = manualMaterialUnitId;
     }
   }
+
+  updateHiddenField(event) {
+    const hiddenField = document.getElementById('products-per-sheet-hidden');
+    hiddenField.value = event.target.value;
+  }
+  
 }

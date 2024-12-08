@@ -5,7 +5,16 @@ class ManufacturingProcessesController < ApplicationController
     @manufacturing_processes = ManufacturingProcess.all
   end
 
-  def show
+  class ManufacturingProcessesController < ApplicationController
+    def show
+      @manufacturing_process = ManufacturingProcess.find(params[:id])
+  
+      respond_to do |format|
+        format.json { 
+          render json: @manufacturing_process.as_json(include: :unit) 
+        } 
+      end
+    end
   end
 
   def new

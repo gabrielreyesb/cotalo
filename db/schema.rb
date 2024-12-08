@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_28_235450) do
+ActiveRecord::Schema[7.1].define(version: 2024_12_07_235032) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -56,26 +56,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_28_235450) do
     t.index ["unit_id"], name: "index_materials_on_unit_id"
   end
 
-  create_table "papers", force: :cascade do |t|
-    t.string "description"
-    t.string "size"
-    t.decimal "weight"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "processes", force: :cascade do |t|
-    t.string "description"
-    t.decimal "price"
-    t.integer "unit_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["unit_id"], name: "index_processes_on_unit_id"
-  end
-
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
+    t.decimal "price", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
@@ -95,7 +79,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_28_235450) do
   create_table "quotes", force: :cascade do |t|
     t.string "projects_name", null: false
     t.string "customer_name", null: false
-    t.string "customer_company", null: false
+    t.string "customer_organization"
     t.string "customer_email"
     t.integer "product_pieces", null: false
     t.decimal "product_width", null: false
@@ -168,7 +152,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_28_235450) do
   add_foreign_key "general_configurations", "units"
   add_foreign_key "manufacturing_processes", "units"
   add_foreign_key "materials", "units"
-  add_foreign_key "processes", "units"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"
   add_foreign_key "quote_toolings", "quotes"

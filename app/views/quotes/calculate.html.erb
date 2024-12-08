@@ -30,12 +30,17 @@
           <div class="col-lg-6">
             <div class="form-group">
               <%= form.label :projects_name, "Nombre del proyecto:", class: "font-weight-bold" %>
-              <%= form.text_field :projects_name, class: "form-control", placeholder: "Nombre del proyecto" %>
+              <%= form.text_field :projects_name, class: "form-control", value: "Nombre del proyecto" %>
             </div>
 
             <div class="form-group">
               <%= form.label :customer_name, "Cliente:", class: "font-weight-bold" %>
-              <%= form.text_field :customer_name, class: "form-control", placeholder: "Nombre del cliente" %>
+              <%= form.text_field :customer_name, class: "form-control", value: "Gabriel Gonzalez" %>
+            </div>
+
+            <div class="form-group">
+              <%= form.label :customer_email, "Correo del cliente:", class: "font-weight-bold" %>
+              <%= form.email_field :customer_email, class: "form-control", value: "gabriel@handy.la" %> 
             </div>
 
             <div class="form-group">
@@ -59,8 +64,13 @@
                 <%= form.select :material_id,
                           options_for_select(
                             Material.all.map { |m|
-                            [m.description, m.id, { 'data-width' => m.width, 'data-length' => m.length, 'data-price' => m.price, 'data-unit' => m.unit.description }]
-                            },
+                            [m.description, m.id, {
+                              'data-width' => m.width,
+                              'data-length' => m.length,
+                              'data-price' => m.price,
+                              'data-unit' => m.unit.description,
+                              'data-unit-id' => m.unit.id },
+                            ]},
                             selected: @quote.material_id
                           ),
                           { include_blank: 'Select one' },
@@ -77,32 +87,41 @@
             </div>
 
             <div class="form-group">
-              <%= form.label :manual_material, "Material manual:", class: "font-weight-bold" %>
-              <div class="input-group">
-                <%= form.text_field :manual_material, class: "form-control text-left" %>
-                <div class="input-group-append"> 
-                  <%= form.select :manual_material_unit_id, 
-                            options_from_collection_for_select(Unit.all, :id, :description, selected: @quote.manual_material_unit_id), 
-                            {}, 
-                            { class: "form-control" } 
-                  %>
-                </div>
-                <div class="input-group-prepend">
-                  <span class="input-group-text">$</span>
-                  <input type="number" step="any" class="form-control" id="manual_material_price" style="width: 100px;">
+              <a data-toggle="collapse" href="#manualMaterialCollapse" role="button" aria-expanded="false" aria-controls="manualMaterialCollapse">
+                <i class="fas fa-caret-down" data-quotes-target="openIcon"></i> 
+                <i class="fas fa-caret-up" data-quotes-target="closeIcon" style="display: none;"></i>
+                Material manual (opcional)
+              </a>
+              <div class="collapse" id="manualMaterialCollapse">
+                <div class="card card-body">
+                  <%= form.label :manual_material, "Material manual:", class: "font-weight-bold" %>
+                  <div class="input-group">
+                    <%= form.text_field :manual_material, class: "form-control text-left" %>
+                    <div class="input-group-append"> 
+                      <%= form.select :manual_material_unit_id, 
+                                options_from_collection_for_select(Unit.all, :id, :description, selected: @quote.manual_material_unit_id), 
+                                {}, 
+                                { class: "form-control" } 
+                      %>
+                    </div>
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">$</span>
+                      <input type="number" step="any" class="form-control" id="manual_material_price" style="width: 100px;">
+                    </div>
+                  </div>
+                  <%= form.hidden_field :manual_material_unit_id, id: 'quote_manual_material_unit_id' %>
+
+                  <div class="form-group">
+                    <%= form.label :manual_material_width, "Ancho:", class: "font-weight-bold" %>
+                    <%= form.number_field :manual_material_width, class: "form-control text-right" %>
+                  </div>
+
+                  <div class="form-group">
+                    <%= form.label :manual_material_length, "Largo:", class: "font-weight-bold" %>
+                    <%= form.number_field :manual_material_length, class: "form-control text-right" %>
+                  </div>
                 </div>
               </div>
-              <%= form.hidden_field :manual_material_unit_id, id: 'quote_manual_material_unit_id' %>
-            </div>
-
-            <div class="form-group">
-              <%= form.label :manual_material_width, "Ancho:", class: "font-weight-bold" %>
-              <%= form.number_field :manual_material_width, class: "form-control text-right" %>
-            </div>
-
-            <div class="form-group">
-              <%= form.label :manual_material_length, "Largo:", class: "font-weight-bold" %>
-              <%= form.number_field :manual_material_length, class: "form-control text-right" %>
             </div>
 
             <button data-action="click->quotes#calculateProducts" class="btn btn-green">
@@ -115,7 +134,7 @@
             <br><br><br>
             </div>
             <div class="form-group">
-              <%= form.label :customer_company, "Organización:" %>
+              <%= form.label :customer_organization, "Organización:" %>
               <div class="d-flex align-items-center my-custom-flex"> 
                 <div class="me-2" style="width: 60%;">
                   <%= form.text_field :customer_organization, class: "form-control", id: "quote_customer_organization" %> 
@@ -150,20 +169,26 @@
                 <tr>
                   <td>Productos por pliego:</td>
                   <td>
-                    <input type="number" id="products-per-sheet" style="text-align: right; width: 100%;" value="0"> 
+                    <input type="number" name="quote[products_per_sheet]" id="products-per-sheet" style="text-align: right; width: 100%;" value="0">
                   </td>    
                 </tr>
                 <tr>
                   <td>Pliegos necesarios:</td>
-                  <td id="sheets-needed" style="text-align: right;"></td> 
+                  <td>
+                    <input type="number" name="quote[sheets_needed]" id="sheets-needed" style="text-align: right; width: 100%;" value="0">
+                  </td>    
                 </tr>
                 <tr>
                   <td>Precio material:</td>
-                  <td id="material-total-price" style="text-align: right;"></td> 
+                  <td>
+                    <input type="number" name="quote[material_total_price]" id="material-total-price" style="text-align: right; width: 100%;" value="0">
+                  </td>    
                 </tr>
                 <tr>
                   <td>Metros cuadrados de material:</td>
-                  <td id="material-square-meters" style="text-align: right;"></td> 
+                  <td>
+                    <input type="number" name="quote[material_quare_meters]" id="material-square-meters" style="text-align: right; width: 100%;" value="0">
+                  </td>    
                 </tr>
               </tbody>
             </table>
@@ -219,6 +244,9 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <%= form.fields_for :quote_processes do |process_form| %>
+                    <%= render 'quote_process_fields', f: process_form %>
+                  <% end %>
                 </tbody>
               </table>
               <div>
@@ -252,13 +280,9 @@
                     <span class="input-group-text ml-1" id="tooling_unit_display"></span>
                     <span class="input-group-text">$</span>
                     <input type="number" step="any" class="form-control" id="tooling_price_display" style="width: 100px;">
-                    <div style="width: 5px;"></div> 
                   </div>
                   <div class="input-group-append">
-                    <%= form.fields_for :quote_toolings do |quote_tooling_form| %>
-                      <div style="width: 5px;"></div> 
-                      <%= quote_tooling_form.number_field :quantity, value: 1, min: 1, class: "form-control", style: "width: 70px;" %> 
-                    <% end %>
+                    <input type="number" step="1" value="1" min="1" class="form-control" id="quantity" style="width: 70px;" placeholder="Qty">
                   </div>
                 </div>
               </div>
@@ -279,6 +303,9 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <%= form.fields_for :quote_toolings do |tooling_form| %> 
+                    <%= render 'quote_tooling_fields', f: tooling_form %> 
+                  <% end %>
                 </tbody>
               </table>
               <div>
