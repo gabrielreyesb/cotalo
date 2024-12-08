@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_07_235032) do
+ActiveRecord::Schema[7.1].define(version: 2024_12_08_185813) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -56,10 +56,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_07_235032) do
     t.index ["unit_id"], name: "index_materials_on_unit_id"
   end
 
+  create_table "papers", force: :cascade do |t|
+    t.string "description"
+    t.string "size"
+    t.decimal "weight"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
-    t.decimal "price", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
@@ -117,13 +124,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_07_235032) do
     t.index ["unit_id"], name: "index_toolings_on_unit_id"
   end
 
-  create_table "unit_of_measurements", force: :cascade do |t|
-    t.string "description", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["description"], name: "index_unit_of_measurements_on_description", unique: true
-  end
-
   create_table "units", force: :cascade do |t|
     t.string "description"
     t.datetime "created_at", null: false
@@ -157,6 +157,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_07_235032) do
   add_foreign_key "quote_toolings", "quotes"
   add_foreign_key "quote_toolings", "toolings"
   add_foreign_key "quotes", "materials"
+  add_foreign_key "quotes", "units", column: "manual_material_unit_id"
   add_foreign_key "quotes", "units", column: "material_unit_id"
   add_foreign_key "toolings", "units"
 end

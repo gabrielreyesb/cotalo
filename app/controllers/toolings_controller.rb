@@ -23,27 +23,19 @@ class ToolingsController < ApplicationController
   def create
     @tooling = Tooling.new(tooling_params)
 
-    respond_to do |format|
-      if @tooling.save
-        format.html { redirect_to tooling_url(@tooling), notice: "Tooling was successfully created." }
-        format.json { render :show, status: :created, location: @tooling }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @tooling.errors, status: :unprocessable_entity }
-      end
+    if @tooling.save
+      redirect_to toolings_path, notice: 'Herramental creado exitosamente.'
+    else
+      render :new, status: :unprocessable_entity
     end
   end
 
   # PATCH/PUT /toolings/1 or /toolings/1.json
   def update
-    respond_to do |format|
-      if @tooling.update(tooling_params)
-        format.html { redirect_to tooling_url(@tooling), notice: "Tooling was successfully updated." }
-        format.json { render :show, status: :ok, location: @tooling }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @tooling.errors, status: :unprocessable_entity }
-      end
+    if @tooling.update(tooling_params)
+      redirect_to toolings_path, notice: 'Herramental actualizado exitosamente.'
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 

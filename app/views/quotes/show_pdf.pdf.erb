@@ -1,0 +1,98 @@
+<div class="quote-pdf">
+  <div class="header">
+    <%= wicked_pdf_image_tag 'logo.png', width: '200' %>
+    <h1>Cotización #<%= @quote.id %></h1>
+    <p>Fecha: <%= @quote.created_at.strftime("%d/%m/%Y") %></p>
+  </div>
+
+  <div class="client-info">
+    <h2>Información del Cliente</h2>
+    <p><strong>Nombre:</strong> <%= @quote.customer_name %></p>
+    <p><strong>Organización:</strong> <%= @quote.customer_organization || "Sin organización" %></p>
+    <p><strong>Email:</strong> <%= @quote.customer_email %></p>
+  </div>
+
+  <div class="product-info">
+    <h2>Detalles del Producto</h2>
+    <p><strong>Cantidad:</strong> <%= @quote.product_pieces %> piezas</p>
+    <p><strong>Dimensiones:</strong> <%= @quote.product_width %>x<%= @quote.product_length %></p>
+    <p><strong>Material:</strong> <%= @quote.material&.description || @quote.manual_material %></p>
+  </div>
+
+  <% if @quote.quote_processes.any? %>
+    <div class="processes">
+      <h2>Procesos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Proceso</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @quote.quote_processes.includes(:manufacturing_process).each do |qp| %>
+            <tr>
+              <td><%= qp.manufacturing_process.name %></td>
+              <td><%= qp.manufacturing_process.description %></td>
+              <td class="text-right"><%= number_to_currency(qp.manufacturing_process.price) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <% if @quote.quote_toolings.any? %>
+    <div class="toolings">
+      <h2>Herramentales</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Herramental</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @quote.quote_toolings.includes(:tooling).each do |qt| %>
+            <tr>
+              <td><%= qt.tooling.description %></td>
+              <td class="text-center"><%= qt.quantity %></td>
+              <td class="text-right"><%= number_to_currency(qt.tooling.price * qt.quantity) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <div class="totals">
+    <table>
+      <tr>
+        <th>Subtotal:</th>
+        <td class="text-right"><%= number_to_currency(@quote.subtotal) %></td>
+      </tr>
+      <tr>
+        <th>Merma (<%= @quote.waste %>%):</th>
+        <td class="text-right"><%= number_to_currency(@quote.waste_price) %></td>
+      </tr>
+      <tr>
+        <th>Margen (<%= @quote.margin %>%):</th>
+        <td class="text-right"><%= number_to_currency(@quote.margin_price) %></td>
+      </tr>
+      <tr>
+        <th>Total:</th>
+        <td class="text-right"><%= number_to_currency(@quote.total_price) %></td>
+      </tr>
+      <tr>
+        <th>IVA (16%):</th>
+        <td class="text-right"><%= number_to_currency(@quote.total_price * 0.16) %></td>
+      </tr>
+      <tr class="grand-total">
+        <th>Total con IVA:</th>
+        <td class="text-right"><%= number_to_currency(@quote.total_price * 1.16) %></td>
+      </tr>
+    </table>
+  </div>
+</div> 

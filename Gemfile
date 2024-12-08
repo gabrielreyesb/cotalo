@@ -19,6 +19,7 @@ gem 'prawn'
 gem 'actionmailer'
 gem 'pg'
 gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]

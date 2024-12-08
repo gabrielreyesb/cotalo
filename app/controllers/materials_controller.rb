@@ -8,6 +8,10 @@ class MaterialsController < ApplicationController
 
   # GET /materials/1 or /materials/1.json
   def show
+    respond_to do |format|
+      format.html
+      format.json { render json: @material.as_json(only: [:id, :description, :width, :length, :price, :unit_id]) }
+    end
   end
 
   # GET /materials/new
@@ -36,14 +40,10 @@ class MaterialsController < ApplicationController
 
   # PATCH/PUT /materials/1 or /materials/1.json
   def update
-    respond_to do |format|
-      if @material.update(material_params)
-        format.html { redirect_to material_url(@material), notice: "Material was successfully updated." }
-        format.json { render :show, status: :ok, location: @material }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @material.errors, status: :unprocessable_entity }
-      end
+    if @material.update(material_params)
+      redirect_to materials_path, notice: 'Material actualizado exitosamente.'
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 

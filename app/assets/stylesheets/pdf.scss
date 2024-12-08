@@ -1,0 +1,45 @@
+.quote-pdf {
+  font-family: Arial, sans-serif;
+  
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f5f5f5;
+    }
+  }
+  
+  .text-right {
+    text-align: right;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .totals {
+    margin-top: 30px;
+    
+    table {
+      width: 50%;
+      margin-left: auto;
+    }
+    
+    .grand-total {
+      font-weight: bold;
+      background-color: #f5f5f5;
+    }
+  }
+} 

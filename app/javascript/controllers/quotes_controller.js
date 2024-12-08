@@ -44,24 +44,21 @@ export default class extends Controller {
       }
     }
   
-    const productQuantity = parseFloat(document.getElementById('quote_product_pieces').value);
-    const productWidth = parseFloat(document.getElementById('quote_product_width').value);
-    const productLength = parseFloat(document.getElementById('quote_product_length').value);
+    const productQuantity = parseFloat(document.getElementById('quote_product_pieces').value) || 0;
+    const productWidth = parseFloat(document.getElementById('quote_product_width').value) || 0;
+    const productLength = parseFloat(document.getElementById('quote_product_length').value) || 0;
 
-    const configMarginWidth = parseFloat(document.getElementById('config_margin_width').value); 
-    const configMarginLength = parseFloat(document.getElementById('config_margin_length').value); 
+    const configMarginWidth = parseFloat(document.getElementById('config_margin_width').value) || 0;
+    const configMarginLength = parseFloat(document.getElementById('config_margin_length').value) || 0;
 
-    const finalProductWidth = productWidth + configMarginWidth
-    const finalProductLength = productLength + configMarginLength
+    const finalProductWidth = productWidth + configMarginWidth;
+    const finalProductLength = productLength + configMarginLength;
 
-    if (isNaN(materialWidth) || isNaN(materialLength) || isNaN(finalProductWidth) || isNaN(finalProductLength)) {
+    if (finalProductWidth <= 0 || finalProductLength <= 0 || materialWidth <= 0 || materialLength <= 0) {
       alert("Dimensiones inválidas. El producto no cabe en el material.");  
-  
       const productsFitElement = document.getElementById('products-per-sheet'); 
       if (productsFitElement) {
         productsFitElement.value = 0;
-      } else {
-        console.error("products-per-sheet element not found!");
       }
       return;
     }
@@ -126,22 +123,23 @@ export default class extends Controller {
       const selectedOption = selectElement.selectedOptions[0];
 
       if (selectedOption) {
-        const processId = selectedOption.value; // Get the process ID
-        const processName = selectedOption.text.split(' - ')[0]; // Extract process name
-        const processDescription = selectedOption.text.split(' - ')[1]; // Extract process description
+        const processId = selectedOption.value;
+        const processName = selectedOption.text.split(' - ')[0];
+        const processDescription = selectedOption.text.split(' - ')[1];
         const processPrice = parseFloat(priceInput.value);
         const processUnit = selectedOption.dataset.unit;
             
-        const materialPieces = parseFloat(document.getElementById('sheets-needed').value);
-        const squareMeters = parseFloat(document.getElementById('material-square-meters').value);
+        const materialPieces = parseFloat(document.getElementById('sheets-needed').value) || 0;
+        const squareMeters = parseFloat(document.getElementById('material-square-meters').value) || 0;
 
         let calculatedPrice = 0;
         if (processUnit === "pliego") {
           calculatedPrice = processPrice * materialPieces;
-        } else if (processUnit === "m2") {
+        } else if (processUnit === "mt2" || processUnit === "m2") {
           calculatedPrice = processPrice * squareMeters;
         } else {
-          console.error("Unknown process unit:", processUnit, calculatedPrice);
+          console.error("Unknown process unit:", processUnit);
+          return;
         }
 
         // Get the table body
@@ -152,7 +150,7 @@ export default class extends Controller {
         newRow.dataset.newProcess = "true";
         newRow.innerHTML = `
           <td>
-            <input type="hidden" name="quote[quote_manufacturing_processes_attributes][${this.newProcessId}][manufacturing_process_id]" value="${processId}">
+            <input type="hidden" name="quote[quote_processes_attributes][${this.newProcessId}][manufacturing_process_id]" value="${processId}">
             <span class="process-name">${processName}</span> - 
             <span class="process-description">${processDescription}</span>
           </td>
@@ -171,11 +169,7 @@ export default class extends Controller {
         this.newProcessId++;
 
         this.updateProcessesSubtotal(); 
-      } else {
-        console.error("No option selected in the manufacturing process select.");
       }
-    } else {
-      console.error("Select element for manufacturing process not found!");
     }
   }
 
@@ -369,7 +363,6 @@ export default class extends Controller {
     }
   }
   
-
   showToolingDetails(event) {
     const selectedOption = event.target.selectedOptions[0];
     const toolingPrice = parseFloat(selectedOption.dataset.price);
@@ -570,99 +563,74 @@ export default class extends Controller {
   calculateQuote(event) {
     event.preventDefault();
 
-    // Get the material price
+    // Get the material price from the input value, not the text content
     const materialPriceElement = document.getElementById('material-total-price');
-    
-    const productQuantity = parseFloat(document.getElementById('sheets-needed').value);
-
     if (!materialPriceElement) {
       console.error("Material price element not found.");
       return;
     }
-    const materialPrice = parseFloat(materialPriceElement.textContent.replace(/[^0-9.-]+/g, ""));
+    const materialPrice = parseFloat(materialPriceElement.value) || 0;
 
     // Calculate the sum of process prices
     let processPricesSum = 0;
     if (this.processesTarget) {
       const processRows = this.processesTarget.querySelectorAll('tbody tr');
       processRows.forEach(row => {
-        const priceCell = row.querySelector('td:last-child');
+        const priceCell = row.querySelector('.process-price-total');
         if (priceCell) {
-          const priceValue = parseFloat(priceCell.textContent.replace(/[^0-9.-]+/g, ""));
+          const priceValue = parseFloat(priceCell.textContent) || 0;
           processPricesSum += priceValue;
-        } else {
-          console.error("Price cell not found in process row.");
         }
       });
-    } else {
-      console.warn("Processes target not found. Assuming no processes added.");
     }
 
     // Calculate the subtotal
     const subTotalValue = materialPrice + processPricesSum;
-  
-    // Update the subtotal field in the form
-    const subTotalValueElement = document.getElementById('quote_subtotal');
-    if (!subTotalValueElement) {
-      console.error("Subtotal value element not found.");
-      return;
+
+    // Update the subtotal field
+    const subTotalElement = document.getElementById('quote_subtotal');
+    if (subTotalElement) {
+      subTotalElement.value = subTotalValue.toFixed(2);
     }
-    subTotalValueElement.value = subTotalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
-  
-    // Calculate the waste value
-    const wastePercentageElement = document.getElementById('waste');
-    if (!wastePercentageElement) {
-      console.error("Waste percentage element not found.");
-      return;
-    }
-    const wastePercentage = parseFloat(wastePercentageElement.value);
+
+    // Calculate waste
+    const wastePercentage = parseFloat(document.getElementById('waste').value) || 0;
     const wasteValue = (subTotalValue * wastePercentage) / 100;
-
-    // Update the waste value field in the form
-    const wasteValueElement = document.getElementById('quote_waste_price'); 
-    if (!wasteValueElement) {
-      return;
+    
+    // Update waste value
+    const wasteValueElement = document.getElementById('quote_waste_price');
+    if (wasteValueElement) {
+      wasteValueElement.value = wasteValue.toFixed(2);
     }
-    wasteValueElement.value = wasteValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
 
-    // Calculate the margin value
-    const marginPercentageElement = document.getElementById('margin');
-    if (!marginPercentageElement) {
-      console.error("Margin percentage element not found.");
-      return;
-    }
-    const marginPercentage = parseFloat(marginPercentageElement.value);
+    // Calculate margin
+    const marginPercentage = parseFloat(document.getElementById('margin').value) || 0;
     const marginValue = (subTotalValue * marginPercentage) / 100;
-  
-    // Update the margin value field in the form
-    const marginValueElement = document.getElementById('quote_margin_price'); 
-    if (!marginValueElement) {
-      console.error("Margin value element not found.");
-      return;
+    
+    // Update margin value
+    const marginValueElement = document.getElementById('quote_margin_price');
+    if (marginValueElement) {
+      marginValueElement.value = marginValue.toFixed(2);
     }
-    marginValueElement.value = marginValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
-    // Calculate the total value
+
+    // Calculate total
     const totalValue = subTotalValue + wasteValue + marginValue;
-
-    // Update the total value field in the form  
-    const totalValueElement = document.getElementById('total-value'); 
-    if (!totalValueElement) {
-      console.error("Total value element not found.");
-      return;
-    }
-    totalValueElement.value = totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
-
-    // Update the value per piece field in the form  
-    const valuePerPieceElement = document.getElementById('price-per-piece'); 
-    if (!valuePerPieceElement) {
-      console.error("Value per piece element not found.");
-      return;
+    
+    // Update total value
+    const totalValueElement = document.getElementById('total-value');
+    if (totalValueElement) {
+      totalValueElement.value = totalValue.toFixed(2);
     }
 
-    // Update the
-    const productPieces = parseFloat(document.getElementById('quote_product_pieces').value);
-    const valuePerPiece = totalValue / productPieces; 
-    valuePerPieceElement.value = valuePerPiece.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+    // Calculate and update price per piece
+    const productPieces = parseFloat(document.getElementById('quote_product_pieces').value) || 0;
+    if (productPieces > 0) {
+      const pricePerPiece = totalValue / productPieces;
+      const pricePerPieceElement = document.getElementById('price-per-piece');
+      if (pricePerPieceElement) {
+        pricePerPieceElement.value = pricePerPiece.toFixed(2);
+      }
+    }
   }
 
   searchCustomer(event) {

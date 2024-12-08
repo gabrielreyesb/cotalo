@@ -64,10 +64,63 @@
           </ul>
         </div>
       </nav>
-      
+      <br>
       <div class="scrollable-content"> 
         <main role="main" class="container-fluid mt-4">
           <turbo-frame id="main-content"> 
+            <div class="card mb-4">
+              <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                  <table class="table align-items-center mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Cliente</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Precio</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">IVA</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% @recent_quotes.each do |quote| %>
+                        <tr style="cursor: pointer" 
+                            data-controller="turbo-frame" 
+                            data-turbo-frame-url-value="<%= quote_path(quote) %>"
+                            data-action="click->turbo-frame#navigate"
+                            data-turbo="true">
+                          <td>
+                            <div class="d-flex px-3 py-1">
+                              <div class="d-flex flex-column justify-content-center">
+                                <h6 class="mb-0 text-sm"><%= quote.created_at.strftime("%d/%m/%Y") %></h6>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="d-flex flex-column justify-content-center">
+                              <h6 class="mb-0 text-sm"><%= quote.customer_name %></h6>
+                              <p class="text-xs text-secondary mb-0"><%= quote.customer_organization || "Sin organización" %></p>
+                            </div>
+                          </td>
+                          <td class="align-middle text-center">
+                            <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_price, precision: 2) %></h6>
+                            <p class="text-xs text-secondary mb-0">Cotización #<%= quote.id %></p>
+                          </td>
+                          <td class="align-middle text-center">
+                            <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_price * 0.16, precision: 2) %></h6>
+                            <p class="text-xs text-secondary mb-0">16%</p>
+                          </td>
+                          <td class="align-middle text-center">
+                            <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_price * 1.16, precision: 2) %></h6>
+                            <p class="text-xs text-secondary mb-0">Total con IVA</p>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             <%= yield %>
           </turbo-frame>
         </main>

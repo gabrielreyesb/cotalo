@@ -1,6 +1,7 @@
 <div data-controller="quotes" class="container-lg"> 
   <div class="row justify-content-center"> 
     <div class="col-lg-12"> 
+    <br>
       <h1 class="text-center col-12">Cálculo de cotización</h1>
 
       <%= form_with(model: @quote, url: quotes_path, method: :post, local: true, data: { turbo_frame: '_top' }) do |form| %>
@@ -84,6 +85,8 @@
                 </div>
               </div>
               <%= form.hidden_field :material_unit_id, id: 'quote_material_unit_id' %>
+              <%= form.hidden_field :material_length, id: 'material_length' %>
+              <%= form.hidden_field :material_width, id: 'material_width' %>
             </div>
 
             <div class="form-group">
@@ -187,7 +190,7 @@
                 <tr>
                   <td>Metros cuadrados de material:</td>
                   <td>
-                    <input type="number" name="quote[material_quare_meters]" id="material-square-meters" style="text-align: right; width: 100%;" value="0">
+                    <input type="number" name="quote[material_square_meters]" id="material-square-meters" style="text-align: right; width: 100%;" value="0">
                   </td>    
                 </tr>
               </tbody>
@@ -345,7 +348,7 @@
                 <span><%= form.label :waste, "Merma:" %></span>
                 <div style="display: flex; align-items: center; white-space: nowrap;">
                   <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                        id="waste" name="waste" 
+                        id="waste" name="quote[waste]" 
                         value="<%= waste_config ? waste_config.amount : 0 %>"
                         data-action="change->quotes#updateWasteValue">
                   <span class="ml-1">%</span>
@@ -371,7 +374,7 @@
                 <span><%= form.label :margin, "Margen:" %></span>
                 <div style="display: flex; align-items: center; white-space: nowrap;">
                   <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                        id="margin" name="margin" 
+                        id="margin" name="quote[margin]" 
                         value="<%= margin_config ? margin_config.amount : 0 %>"
                         data-action="change->quotes#updateMarginValue">
                   <span class="ml-1">%</span> 

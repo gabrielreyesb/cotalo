@@ -27,14 +27,10 @@ class ManufacturingProcessesController < ApplicationController
   def create
     @manufacturing_process = ManufacturingProcess.new(manufacturing_process_params)
 
-    respond_to do |format|
-      if @manufacturing_process.save
-        format.html { redirect_to manufacturing_process_url(@manufacturing_process), notice: "Manufacturing process was successfully created." }
-        format.json { render :show, status: :created, location: @manufacturing_process }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @manufacturing_process.errors, status: :unprocessable_entity }
-      end
+    if @manufacturing_process.save
+      redirect_to manufacturing_processes_path, notice: 'Proceso creado exitosamente.'
+    else
+      render :new, status: :unprocessable_entity
     end
   end
 

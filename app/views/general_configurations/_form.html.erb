@@ -1,9 +1,8 @@
-<div class="container mt-4"> 
-  <h1 class="text-center mb-4"><%= general_configuration.new_record? ? 'Nueva Configuración' : 'Editar Configuración' %></h1> 
-
-  <turbo-frame id="main-content">
-    <div class="row">
-      <div class="col-md-10 "> 
+<turbo-frame id="main-content">
+  <div class="container mt-4"> 
+    <h1 class="text-center mb-4">Nueva configuración</h1> 
+    <div class="row justify-content-center">
+      <div class="col-md-8"> 
         <%= form_with(model: general_configuration) do |form| %>
           <% if general_configuration.errors.any? %>
             <div style="color: red">
@@ -42,5 +41,5 @@
         <% end %>
       </div>
     </div>
-  </turbo-frame>
-</div>
+  </div>
+</turbo-frame>

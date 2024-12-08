@@ -89,6 +89,29 @@ class QuotesController < ApplicationController
     end
   end
 
+  def show
+    @quote = Quote.find(params[:id])
+    
+    respond_to do |format|
+      format.html
+      format.turbo_stream { 
+        render turbo_stream: turbo_stream.replace(
+          'main-content',
+          partial: 'quotes/show',
+          locals: { quote: @quote }
+        )
+      }
+      format.pdf do
+        render pdf: "Cotizacion_#{@quote.id}",
+               template: "quotes/show_pdf",
+               layout: 'pdf',
+               page_size: 'Letter',
+               title: "Cotización ##{@quote.id}",
+               encoding: 'UTF-8'
+      end
+    end
+  end
+
   private
 
   def quote_params
@@ -104,32 +127,29 @@ class QuotesController < ApplicationController
       :material_id,
       :material_unit_id,
       :material_price,
+      :material_total_price,
+      :material_square_meters,
       
       :manual_material,
       :manual_material_unit_id,
-      :manual_material_price, 
+      :manual_material_price,
       :manual_material_width,
       :manual_material_length,
       
       :products_per_sheet,
       :sheets_needed,
-      :material_total_price,
-      :material_square_meters,
       
       :subtotal,
       :waste,
       :margin,
+      :waste_price,
+      :margin_price,
       
       :total_price,
       :price_per_piece,
       
-      :waste_price,
-      :margin_price,
-
       quote_processes_attributes: [:id, :manufacturing_process_id, :_destroy],
-      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy],
-      manufacturing_process_id: [], 
-      tooling_id: [] 
+      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy]
     )
   end
 

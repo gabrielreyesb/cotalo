@@ -1,8 +1,58 @@
-<%= render "form", material: @material %>
+<turbo-frame id="main-content">
+  <div class="container mt-4"> 
+    <h1 class="text-center mb-4"><%= @material.new_record? ? 'Editar material' : 'Editar material' %></h1> 
+    <div class="row justify-content-center">
+      <div class="col-md-6"> 
+        <%= form_with(model: @material, data: { turbo_frame: "_top" }) do |form| %>
+          <% if @material.errors.any? %>
+            <div style="color: red">
+              <h2><%= pluralize(material.errors.count, "error") %> prohibited this material from being saved:</h2>
 
-<br>
+              <ul>
+                <% @material.errors.each do |error| %>
+                  <li><%= error.full_message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
 
-<div>
-  <%= link_to "Show this material", @material %> |
-  <%= link_to "Back to materials", materials_path %>
-</div>
+          <div class="form-group">
+            <%= form.label :description, "Descripción:", style: "display: block" %> 
+            <%= form.text_field :description, class: "form-control" %> 
+          </div>
+
+          <div class="form-group">
+            <%= form.label :width, "Ancho:", style: "display: block" %>
+            <%= form.text_field :width, class: "form-control" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :length, "Largo:", style: "display: block" %>
+            <%= form.text_field :length, class: "form-control" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :price, "Precio:", style: "display: block" %>
+            <%= form.number_field :price, step: :any, class: "form-control" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :unit_id, "Unidad de medida:", style: "display: block" %> 
+            <%= form.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-control" %> 
+          </div>
+
+          <div class="form-group">
+            <%= form.label :comments, "Comentarios:", style: "display: block" %>
+            <%= form.text_field :comments, class: "form-control" %>
+          </div>
+
+          <div class="text-center mt-3"> 
+            <%= form.submit "Guardar cambios", class: "btn btn-green" %> 
+            <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
+          </div>
+
+        <% end %>
+      </div>
+    </div>
+  </div>  
+</turbo-frame>

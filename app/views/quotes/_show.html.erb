@@ -1,0 +1,105 @@
+<div class="card">
+  <div class="card-header">
+    <h3>Cotización #<%= quote.id %></h3>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Información del Cliente</h5>
+        <p><strong>Nombre:</strong> <%= quote.customer_name %></p>
+        <p><strong>Organización:</strong> <%= quote.customer_organization || "Sin organización" %></p>
+        <p><strong>Email:</strong> <%= quote.customer_email %></p>
+        <p><strong>Fecha:</strong> <%= quote.created_at.strftime("%d/%m/%Y") %></p>
+      </div>
+      <div class="col-md-6">
+        <h5>Detalles del Producto</h5>
+        <p><strong>Cantidad:</strong> <%= quote.product_pieces %> piezas</p>
+        <p><strong>Dimensiones:</strong> <%= quote.product_width %>x<%= quote.product_length %></p>
+        <p><strong>Material:</strong> <%= quote.material&.description || quote.manual_material %></p>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <h5>Procesos</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Proceso</th>
+              <th>Descripción</th>
+              <th>Precio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% quote.quote_processes.includes(:manufacturing_process).each do |qp| %>
+              <tr>
+                <td><%= qp.manufacturing_process.name %></td>
+                <td><%= qp.manufacturing_process.description %></td>
+                <td><%= number_to_currency(qp.manufacturing_process.price) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <h5>Herramentales</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Herramental</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% quote.quote_toolings.includes(:tooling).each do |qt| %>
+              <tr>
+                <td><%= qt.tooling.description %></td>
+                <td><%= qt.quantity %></td>
+                <td><%= number_to_currency(qt.tooling.price * qt.quantity) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-6 offset-md-6">
+        <table class="table">
+          <tr>
+            <th>Subtotal:</th>
+            <td class="text-end"><%= number_to_currency(quote.subtotal) %></td>
+          </tr>
+          <tr>
+            <th>Merma (<%= quote.waste %>%):</th>
+            <td class="text-end"><%= number_to_currency(quote.waste_price) %></td>
+          </tr>
+          <tr>
+            <th>Margen (<%= quote.margin %>%):</th>
+            <td class="text-end"><%= number_to_currency(quote.margin_price) %></td>
+          </tr>
+          <tr>
+            <th>Total:</th>
+            <td class="text-end"><%= number_to_currency(quote.total_price) %></td>
+          </tr>
+          <tr>
+            <th>IVA (16%):</th>
+            <td class="text-end"><%= number_to_currency(quote.total_price * 0.16) %></td>
+          </tr>
+          <tr class="table-active">
+            <th>Total con IVA:</th>
+            <td class="text-end"><%= number_to_currency(quote.total_price * 1.16) %></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer text-end">
+    <%= link_to 'Descargar PDF', quote_path(@quote, format: :pdf), class: 'btn btn-primary', target: '_blank' %>
+    <%= link_to 'Volver', root_path, class: 'btn btn-secondary' %>
+  </div>
+</div> 
