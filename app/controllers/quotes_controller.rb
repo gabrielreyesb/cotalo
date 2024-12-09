@@ -36,12 +36,27 @@ class QuotesController < ApplicationController
   end
 
   def create
-    @quote = Quote.new(quote_params)
-  
+    @quote = Quote.new(quote_params.except(:quote_processes_attributes))
+
+    # Handle quote processes separately
+    if params[:quote][:quote_processes_attributes].present?
+      params[:quote][:quote_processes_attributes].each do |_, process_attrs|
+        if process_attrs[:manufacturing_process_id].present?
+          manufacturing_process = ManufacturingProcess.find(process_attrs[:manufacturing_process_id])
+          @quote.quote_processes.build(
+            manufacturing_process_id: process_attrs[:manufacturing_process_id],
+            price: manufacturing_process.price || 0
+          )
+        end
+      end
+    end
+
     if @quote.save
-      redirect_to @quote, notice: "Quote was successfully created." 
+      redirect_to @quote, notice: "Quote was successfully created."
     else
-      render :new, status: :unprocessable_entity 
+      @quote.quote_processes.build if @quote.quote_processes.empty?
+      @quote.quote_toolings.build if @quote.quote_toolings.empty?
+      render :new, status: :unprocessable_entity
     end
   end
 

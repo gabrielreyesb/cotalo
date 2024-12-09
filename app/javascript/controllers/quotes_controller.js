@@ -147,6 +147,7 @@ export default class extends Controller {
 
         // Create a new row for the process
         const newRow = document.createElement('tr');
+        
         newRow.dataset.newProcess = "true";
         newRow.innerHTML = `
           <td>
@@ -157,9 +158,9 @@ export default class extends Controller {
           <td>
             <a href="#" data-action="click->quotes#removeProcess" class="btn btn-danger">Eliminar</a>
           </td>
-          <td>
-            <span class="process-price-total">${calculatedPrice.toFixed(2)}</span> 
-          </td>
+          <td name="quote[quote_processes_attributes][${this.newProcessId}][price]" class="process-price-total" data-price-id="${this.newProcessId}"> 
+            ${calculatedPrice.toFixed(2)} 
+          </td> 
         `;
 
         // Append the new row to the table body

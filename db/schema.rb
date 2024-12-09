@@ -30,7 +30,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_08_185813) do
 
   create_table "manufacturing_processes", force: :cascade do |t|
     t.string "description"
-    t.decimal "price"
+    t.decimal "price", null: false
     t.integer "unit_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -56,17 +56,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_08_185813) do
     t.index ["unit_id"], name: "index_materials_on_unit_id"
   end
 
-  create_table "papers", force: :cascade do |t|
-    t.string "description"
-    t.string "size"
-    t.decimal "weight"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
+    t.decimal "price", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
@@ -122,6 +115,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_08_185813) do
     t.datetime "updated_at", null: false
     t.text "comments"
     t.index ["unit_id"], name: "index_toolings_on_unit_id"
+  end
+
+  create_table "unit_of_measurements", force: :cascade do |t|
+    t.string "description", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["description"], name: "index_unit_of_measurements_on_description", unique: true
   end
 
   create_table "units", force: :cascade do |t|
