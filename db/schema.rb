@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_09_183310) do
+ActiveRecord::Schema[7.1].define(version: 2024_12_09_203648) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -113,7 +113,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_09_183310) do
     t.string "manual_material_width"
     t.string "manual_material_length"
     t.integer "manufacturing_process_id"
-    t.decimal "waste_price", null: false
+    t.decimal "waste_price", default: "0.0"
     t.decimal "margin_price", null: false
   end
 
