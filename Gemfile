@@ -14,7 +14,6 @@ gem "redis", ">= 4.0.1"
 gem "bootsnap", require: false
 gem "sassc", "~> 2.4"
 gem 'devise'
-gem 'prawn'
 gem 'pg'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
