@@ -2,6 +2,7 @@ class Quote < ApplicationRecord
     validates :customer_email, presence: true
     validates :product_quantity, presence: true, numericality: { greater_than: 0 }
     validates :waste_price, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+    validates :margin_price, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
     has_many :quote_processes, dependent: :destroy
     has_many :quote_toolings, dependent: :destroy
@@ -15,11 +16,12 @@ class Quote < ApplicationRecord
     belongs_to :unit, optional: true
     belongs_to :manual_material_unit, class_name: 'Unit', optional: true
 
-    before_save :set_default_waste_price
+    before_save :set_default_prices
 
     private
 
-    def set_default_waste_price
+    def set_default_prices
         self.waste_price ||= 0
+        self.margin_price ||= 0
     end
 end
