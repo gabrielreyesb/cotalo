@@ -19,6 +19,14 @@ class Quote < ApplicationRecord
 
     before_save :set_default_values
 
+    def tax_amount
+        (total_quote_value || 0) * 0.16
+    end
+
+    def total_with_tax
+        (total_quote_value || 0) * 1.16
+    end
+
     private
 
     def set_default_values
