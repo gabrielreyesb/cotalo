@@ -110,7 +110,7 @@
                             <p class="text-xs text-secondary mb-0">16%</p>
                           </td>
                           <td class="align-middle text-center">
-                            <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 1.16, precision: 2) %></h6>
+                            <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_with_tax, precision: 2) %></h6>
                             <p class="text-xs text-secondary mb-0">Total con IVA</p>
                           </td>
                         </tr>
