@@ -11,12 +11,10 @@ gem "turbo-rails"
 gem "stimulus-rails"
 gem "jbuilder"
 gem "redis", ">= 4.0.1"
-gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 gem "sassc", "~> 2.4"
 gem 'devise'
 gem 'prawn'
-gem 'actionmailer'
 gem 'pg'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'

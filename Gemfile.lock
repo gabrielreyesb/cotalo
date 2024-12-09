@@ -309,7 +309,6 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  actionmailer
   bootsnap
   capybara
   debug
@@ -327,7 +326,6 @@ DEPENDENCIES
   sqlite3 (~> 1.4)
   stimulus-rails
   turbo-rails
-  tzinfo-data
   web-console
   wicked_pdf
   wkhtmltopdf-binary
