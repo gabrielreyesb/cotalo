@@ -1,6 +1,7 @@
 class Quote < ApplicationRecord
     validates :customer_email, presence: true
     validates :product_quantity, presence: true, numericality: { greater_than: 0 }
+    validates :waste_price, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
     has_many :quote_processes, dependent: :destroy
     has_many :quote_toolings, dependent: :destroy
@@ -13,4 +14,12 @@ class Quote < ApplicationRecord
     belongs_to :material, optional: true
     belongs_to :unit, optional: true
     belongs_to :manual_material_unit, class_name: 'Unit', optional: true
+
+    before_save :set_default_waste_price
+
+    private
+
+    def set_default_waste_price
+        self.waste_price ||= 0
+    end
 end
