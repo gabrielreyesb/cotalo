@@ -10,7 +10,9 @@ export default class extends Controller {
   }
 
   calculateProducts(event) {
+    console.log("Calculate Products clicked");
     event.preventDefault();
+    console.log("Default prevented");
     
     const materialSelect = document.getElementById('quote_material_id');
     const priceInput = document.getElementById('material_price');

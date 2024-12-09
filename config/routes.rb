@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes 
+
   resources :general_configurations
 
   devise_for :users
@@ -9,8 +11,6 @@ Rails.application.routes.draw do
   resources :customers
   resources :materials
   resources :vendors
-
-  get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes 
 
   resources :quotes, only: [:new, :create, :show] do
     resources :quote_processes
