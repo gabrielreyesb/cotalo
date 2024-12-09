@@ -15,7 +15,6 @@ gem "bootsnap", require: false
 gem "sassc", "~> 2.4"
 gem 'devise'
 gem 'wicked_pdf'
-gem 'wkhtmltopdf-binary'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
