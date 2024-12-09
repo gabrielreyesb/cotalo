@@ -135,7 +135,7 @@ class QuotesController < ApplicationController
       :customer_name,
       :customer_organization,
       :customer_email,
-      :product_pieces,
+      :product_quantity,
       :product_width,
       :product_length,
       
@@ -152,18 +152,18 @@ class QuotesController < ApplicationController
       :manual_material_length,
       
       :products_per_sheet,
-      :sheets_needed,
+      :amount_of_sheets,
       
       :subtotal,
-      :waste,
-      :margin,
+      :waste_price,
+      :margin_price,
       :waste_price,
       :margin_price,
       
-      :total_price,
-      :price_per_piece,
+      :total_quote_value,
+      :product_value_per_piece,
       
-      quote_processes_attributes: [:id, :manufacturing_process_id, :_destroy],
+      quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
       quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy]
     )
   end

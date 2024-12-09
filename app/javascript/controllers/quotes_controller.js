@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["processes", "toolings", "openIcon", "closeIcon", 
-                   "productsFit", "materialPieces", "materialPrice", "squareMeters"]; 
+                   "productsFit", "materialPieces", "materialPrice", "squareMeters", "totalQuoteValue"]; 
 
   connect() {
     this.newProcessId = 0; 
@@ -44,7 +44,7 @@ export default class extends Controller {
       }
     }
   
-    const productQuantity = parseFloat(document.getElementById('quote_product_pieces').value) || 0;
+    const productQuantity = parseFloat(document.getElementById('quote_product_quantity').value) || 0;
     const productWidth = parseFloat(document.getElementById('quote_product_width').value) || 0;
     const productLength = parseFloat(document.getElementById('quote_product_length').value) || 0;
 
@@ -86,7 +86,7 @@ export default class extends Controller {
       const materialSelect = document.getElementById('quote_material_id');
       const priceInput = document.getElementById('material_price').value;
       const productsPerSheetInput = document.getElementById('products-per-sheet').value; 
-      const productQuantity = parseFloat(document.getElementById('quote_product_pieces').value);
+      const productQuantity = parseFloat(document.getElementById('quote_product_quantity').value);
       
       if (materialSelect && priceInput && productsPerSheetInput) {
         const selectedOption = materialSelect.selectedOptions[0];
@@ -618,13 +618,13 @@ export default class extends Controller {
     const totalValue = subTotalValue + wasteValue + marginValue;
     
     // Update total value
-    const totalValueElement = document.getElementById('total-value');
+    const totalValueElement = document.getElementById('total-quote-value');
     if (totalValueElement) {
       totalValueElement.value = totalValue.toFixed(2);
     }
 
     // Calculate and update price per piece
-    const productPieces = parseFloat(document.getElementById('quote_product_pieces').value) || 0;
+    const productPieces = parseFloat(document.getElementById('quote_product_quantity').value) || 0;
     if (productPieces > 0) {
       const pricePerPiece = totalValue / productPieces;
       const pricePerPieceElement = document.getElementById('price-per-piece');

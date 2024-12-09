@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
 
     def set_quote_info
         @latest_quote = Quote.last
-        @quotes_total = Quote.sum(:total_price)
+        @quotes_total = Quote.sum(:total_quote_value)
         @quotes_count = Quote.count
         @recent_quotes = Quote.order(created_at: :desc).limit(10)
     end

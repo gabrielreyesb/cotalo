@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_09_114129) do
+ActiveRecord::Schema[7.1].define(version: 2024_12_09_183310) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -56,12 +56,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_09_114129) do
     t.index ["unit_id"], name: "index_materials_on_unit_id"
   end
 
+  create_table "papers", force: :cascade do |t|
+    t.string "description"
+    t.string "size"
+    t.decimal "weight"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
-    t.decimal "price", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "price"
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
     t.index ["quote_id"], name: "index_quote_processes_on_quote_id"
   end
@@ -77,34 +85,36 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_09_114129) do
   end
 
   create_table "quotes", force: :cascade do |t|
-    t.string "projects_name", null: false
-    t.string "customer_name", null: false
+    t.integer "pieces"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "customer_name"
+    t.string "projects_name"
     t.string "customer_organization"
     t.string "customer_email"
-    t.integer "product_pieces", null: false
-    t.decimal "product_width", null: false
-    t.decimal "product_length", null: false
+    t.integer "product_quantity"
+    t.decimal "product_width"
+    t.decimal "product_length"
     t.integer "material_id"
     t.integer "material_unit_id"
     t.decimal "material_price"
+    t.integer "products_per_sheet"
+    t.integer "amount_of_sheets"
+    t.decimal "material_total_price"
+    t.decimal "material_square_meters"
+    t.decimal "subtotal"
+    t.decimal "waste_percentage"
+    t.decimal "margin_percentage"
+    t.decimal "total_quote_value"
+    t.decimal "product_value_per_piece"
     t.string "manual_material"
-    t.decimal "manual_material_width"
-    t.decimal "manual_material_length"
-    t.integer "products_per_sheet", null: false
-    t.integer "sheets_needed", null: false
-    t.decimal "material_total_price", null: false
-    t.decimal "material_square_meters", null: false
-    t.decimal "subtotal", null: false
-    t.decimal "waste", null: false
-    t.decimal "margin", null: false
-    t.decimal "total_price", null: false
-    t.decimal "price_per_piece", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.integer "manual_material_unit_id"
     t.decimal "manual_material_price"
+    t.string "manual_material_width"
+    t.string "manual_material_length"
+    t.integer "manufacturing_process_id"
     t.decimal "waste_price", null: false
     t.decimal "margin_price", null: false
-    t.integer "manual_material_unit_id"
   end
 
   create_table "toolings", force: :cascade do |t|
@@ -115,13 +125,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_09_114129) do
     t.datetime "updated_at", null: false
     t.text "comments"
     t.index ["unit_id"], name: "index_toolings_on_unit_id"
-  end
-
-  create_table "unit_of_measurements", force: :cascade do |t|
-    t.string "description", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["description"], name: "index_unit_of_measurements_on_description", unique: true
   end
 
   create_table "units", force: :cascade do |t|

@@ -13,7 +13,7 @@
       </div>
       <div class="col-md-6">
         <h5>Detalles del Producto</h5>
-        <p><strong>Cantidad:</strong> <%= quote.product_pieces %> piezas</p>
+        <p><strong>Cantidad:</strong> <%= quote.product_quantity %> piezas</p>
         <p><strong>Dimensiones:</strong> <%= quote.product_width %>x<%= quote.product_length %></p>
         <p><strong>Material:</strong> <%= quote.material&.description || quote.manual_material %></p>
       </div>
@@ -75,24 +75,24 @@
             <td class="text-end"><%= number_to_currency(quote.subtotal) %></td>
           </tr>
           <tr>
-            <th>Merma (<%= quote.waste %>%):</th>
+            <th>Merma (<%= quote.waste_percentage %>%):</th>
             <td class="text-end"><%= number_to_currency(quote.waste_price) %></td>
           </tr>
           <tr>
-            <th>Margen (<%= quote.margin %>%):</th>
+            <th>Margen (<%= quote.margin_percentage %>%):</th>
             <td class="text-end"><%= number_to_currency(quote.margin_price) %></td>
           </tr>
           <tr>
             <th>Total:</th>
-            <td class="text-end"><%= number_to_currency(quote.total_price) %></td>
+            <td class="text-end"><%= number_to_currency(quote.total_quote_value) %></td>
           </tr>
           <tr>
             <th>IVA (16%):</th>
-            <td class="text-end"><%= number_to_currency(quote.total_price * 0.16) %></td>
+            <td class="text-end"><%= number_to_currency(quote.total_quote_value * 0.16) %></td>
           </tr>
           <tr class="table-active">
             <th>Total con IVA:</th>
-            <td class="text-end"><%= number_to_currency(quote.total_price * 1.16) %></td>
+            <td class="text-end"><%= number_to_currency(quote.total_quote_value * 1.16) %></td>
           </tr>
         </table>
       </div>

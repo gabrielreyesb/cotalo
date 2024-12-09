@@ -287,7 +287,12 @@
       <div class="col-6">
         <div class="form-group">
           <div style="display: flex; justify-content: flex-end; align-items: center;">
-            <%= form.text_field :total_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-value" %>
+            <%= form.text_field :total_quote_value, 
+                step: :any, 
+                class: "form-control font-weight-bold", 
+                style: "width: 150px; text-align: right;", 
+                id: "total-quote-value",
+                data: { quotes_target: "totalQuoteValue" } %>
           </div>
         </div> 
         <div class="form-group">

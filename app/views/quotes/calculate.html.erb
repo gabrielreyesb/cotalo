@@ -45,8 +45,8 @@
             </div>
 
             <div class="form-group">
-              <%= form.label :product_pieces, "Cantidad de piezas:", class: "font-weight-bold" %>
-              <%= form.number_field :product_pieces, class: "form-control text-right", value: 2000 %>
+              <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
+              <%= form.number_field :product_quantity, class: "form-control text-right", value: 2000 %>
             </div>
 
             <div class="form-group">
@@ -184,7 +184,7 @@
                 <tr>
                   <td>Precio material:</td>
                   <td>
-                    <input type="number" name="quote[material_total_price]" id="material-total-price" style="text-align: right; width: 100%;" value="0">
+                    <input type="number" name="quote[material_total_quote_value]" id="material-total-price" style="text-align: right; width: 100%;" value="0">
                   </td>    
                 </tr>
                 <tr>
@@ -396,7 +396,7 @@
           <div class="col-lg-6">
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span><%= form.label :final_quote_value, "Precio total de la cotización:", class: "font-weight-bold" %></span>
+                <span><%= form.label :total_quote_value, "Precio total de la cotización:", class: "font-weight-bold" %></span>
               </div>
             </div>
             <div class="form-group">
@@ -408,7 +408,7 @@
           <div class="col-lg-6">
             <div class="form-group">
               <div style="display: flex; justify-content: flex-end; align-items: center;">
-                <%= form.text_field :total_price, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-value" %>
+                <%= form.text_field :total_quote_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-quote-value" %>
               </div>
             </div> 
             <div class="form-group">
