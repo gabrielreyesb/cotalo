@@ -1,450 +1,462 @@
-<div data-controller="quotes" class="container-lg">
-  <div class="row justify-content-center">
-    <div class="col-lg-12">
-      <br>
-      <h1 class="text-center col-12">Cálculo de cotización</h1>
-      
-      <div>
-        <button type="button" data-action="click->quotes#calculateProducts" class="btn btn-green">
-          Calcular productos
-        </button>
-      </div>
-    </div>
+<div class="container">
+  <h1>Nueva Cotización</h1>
+  
+  <%# Debug information %>
+  <div style="display: none;">
+    <p>Controller: <%= controller_name %></p>
+    <p>Action: <%= action_name %></p>
+    <p>Quote: <%= @quote.inspect %></p>
+    <p>Margin Width: <%= @configuration_margin_width %></p>
+    <p>Margin Length: <%= @configuration_margin_length %></p>
   </div>
 
   <%= form_with(model: @quote, url: quotes_path, method: :post, local: true, data: { turbo_frame: '_top' }) do |form| %>
-    <div>
-      <%= hidden_field_tag 'config_margin_width', configuration_margin_width %> 
-      <%= hidden_field_tag 'config_margin_length', configuration_margin_length %> 
-    </div>
-
-    <%# Manejo de errores %>
-    <% if @quote.errors.any? %>
-      <div style="color: red">
-        <h2><%= pluralize(@quote.errors.count, "error") %> prohibited this quote from being saved:</h2>
-        <ul>
-          <% @quote.errors.each do |error| %>
-            <li><%= error.full_message %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <hr style="border: 1px solid black;">
-    <br>
-  
-    <%# Datos de Proyecto %>      
-    <div class="row ml-3">
-      <div class="col-lg-6">
-        <div class="form-group">
-          <%= form.label :projects_name, "Nombre del proyecto:", class: "font-weight-bold" %>
-          <%= form.text_field :projects_name, class: "form-control", value: "Nombre del proyecto" %>
-        </div>
-
-        <div class="form-group">
-          <%= form.label :customer_name, "Cliente:", class: "font-weight-bold" %>
-          <%= form.text_field :customer_name, class: "form-control", value: "Gabriel Gonzalez" %>
-        </div>
-
-        <div class="form-group">
-          <%= form.label :customer_email, "Correo del cliente:", class: "font-weight-bold" %>
-          <%= form.email_field :customer_email, class: "form-control", value: "gabriel@handy.la" %> 
-        </div>
-
-        <div class="form-group">
-          <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
-          <%= form.number_field :product_quantity, class: "form-control text-right", value: 2000 %>
-        </div>
-
-        <div class="form-group">
-          <%= form.label :product_width, "Ancho del producto:", class: "font-weight-bold" %>
-          <%= form.number_field :product_width, class: "form-control text-right", value: 34 %>
-        </div>
-
-        <div class="form-group">
-          <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
-          <%= form.number_field :product_length, class: "form-control text-right", value: 23 %>
-        </div>
-
-        <div class="form-group">
-          <%= form.label :material_id, "Material principal:", class: "font-weight-bold" %>
-          <div class="input-group">
-            <%= form.select :material_id,
-                      options_for_select(
-                        Material.all.map { |m|
-                        [m.description, m.id, {
-                          'data-width' => m.width,
-                          'data-length' => m.length,
-                          'data-price' => m.price,
-                          'data-unit' => m.unit.description,
-                          'data-unit-id' => m.unit.id },
-                        ]},
-                        selected: @quote.material_id
-                      ),
-                      { include_blank: 'Select one' },
-                      { class: "form-control",
-                        'data-action': 'change->quotes#showMaterialPrice' 
-            } %>
-            <span class="input-group-text ml-1" id="material_unit_display"></span>
-            <div class="input-group-prepend">
-              <span class="input-group-text">$</span>
-              <input type="number" step="any" class="form-control" id="material_price" style="width: 100px;">
-            </div>
-          </div>
-          <%= form.hidden_field :material_unit_id, id: 'quote_material_unit_id' %>
-          <%= form.hidden_field :material_length, id: 'material_length' %>
-          <%= form.hidden_field :material_width, id: 'material_width' %>
-        </div>
-
-        <div class="form-group">
-          <a data-toggle="collapse" href="#manualMaterialCollapse" role="button" aria-expanded="false" aria-controls="manualMaterialCollapse">
-            <i class="fas fa-caret-down" data-quotes-target="openIcon"></i> 
-            <i class="fas fa-caret-up" data-quotes-target="closeIcon" style="display: none;"></i>
-            Material manual (opcional)
-          </a>
-          <div class="collapse" id="manualMaterialCollapse">
-            <div class="card card-body">
-              <%= form.label :manual_material, "Material manual:", class: "font-weight-bold" %>
-              <div class="input-group">
-                <%= form.text_field :manual_material, class: "form-control text-left" %>
-                <div class="input-group-append"> 
-                  <%= form.select :manual_material_unit_id, 
-                            options_from_collection_for_select(Unit.all, :id, :description, selected: @quote.manual_material_unit_id), 
-                            {}, 
-                            { class: "form-control" } 
-                  %>
-                </div>
-                <div class="input-group-prepend">
-                  <span class="input-group-text">$</span>
-                  <input type="number" step="any" class="form-control" id="manual_material_price" style="width: 100px;">
-                </div>
-              </div>
-              <%= form.hidden_field :manual_material_unit_id, id: 'quote_manual_material_unit_id' %>
-
-              <div class="form-group">
-                <%= form.label :manual_material_width, "Ancho:", class: "font-weight-bold" %>
-                <%= form.number_field :manual_material_width, class: "form-control text-right" %>
-              </div>
-
-              <div class="form-group">
-                <%= form.label :manual_material_length, "Largo:", class: "font-weight-bold" %>
-                <%= form.number_field :manual_material_length, class: "form-control text-right" %>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" data-action="click->quotes#calculateProducts" class="btn btn-green">
-          Calcular productos
-        </button>
+    <div data-controller="quotes">
+      <div>
+        <%= hidden_field_tag 'config_margin_width', configuration_margin_width %> 
+        <%= hidden_field_tag 'config_margin_length', configuration_margin_length %> 
       </div>
 
-      <div class="col-lg-6">
-        <div class="form-group">
-        <br><br><br>
+      <%# Manejo de errores %>
+      <% if @quote.errors.any? %>
+        <div style="color: red">
+          <h2><%= pluralize(@quote.errors.count, "error") %> prohibited this quote from being saved:</h2>
+          <ul>
+            <% @quote.errors.each do |error| %>
+              <li><%= error.full_message %></li>
+            <% end %>
+          </ul>
         </div>
-        <div class="form-group">
-          <%= form.label :customer_organization, "Organización:" %>
-          <div class="d-flex align-items-center my-custom-flex"> 
-            <div class="me-2" style="width: 60%;">
-              <%= form.text_field :customer_organization, class: "form-control", id: "quote_customer_organization" %> 
+      <% end %>
+
+      <hr style="border: 1px solid black;">
+      <br>
+    
+      <%# Datos de Proyecto %>      
+      <div class="row ml-3">
+        <div class="col-lg-6">
+          <div class="form-group">
+            <%= form.label :projects_name, "Nombre del proyecto:", class: "font-weight-bold" %>
+            <%= form.text_field :projects_name, class: "form-control", value: "Nombre del proyecto" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :customer_name, "Cliente:", class: "font-weight-bold" %>
+            <%= form.text_field :customer_name, class: "form-control", value: "Gabriel Gonzalez" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :customer_email, "Correo del cliente:", class: "font-weight-bold" %>
+            <%= form.email_field :customer_email, class: "form-control", value: "gabriel@handy.la" %> 
+          </div>
+
+          <div class="form-group">
+            <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
+            <%= form.number_field :product_quantity, class: "form-control text-right", value: 2000 %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :product_width, "Ancho del producto:", class: "font-weight-bold" %>
+            <%= form.number_field :product_width, class: "form-control text-right", value: 34 %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
+            <%= form.number_field :product_length, class: "form-control text-right", value: 23 %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :material_id, "Material principal:", class: "font-weight-bold" %>
+            <div class="input-group">
+              <%= form.select :material_id,
+                        options_for_select(
+                          Material.all.map { |m|
+                          [m.description, m.id, {
+                            'data-width' => m.width,
+                            'data-length' => m.length,
+                            'data-price' => m.price,
+                            'data-unit' => m.unit.description,
+                            'data-unit-id' => m.unit.id },
+                          ]},
+                          selected: @quote.material_id
+                        ),
+                        { include_blank: 'Select one' },
+                        { 
+                          class: "form-control",
+                          data: { 
+                            controller: "quotes",
+                            action: "change->quotes#showMaterialPrice"
+                          }
+                        } %>
+              <span class="input-group-text ml-1" id="material_unit_display"></span>
+              <div class="input-group-prepend">
+                <span class="input-group-text">$</span>
+                <input type="number" step="any" class="form-control" id="material_price" style="width: 100px;">
+              </div>
             </div>
-            <button type="button" 
-                    class="btn btn-green align-self-end"
-                    data-action="click->quotes#searchCustomer"
-                    data-disable-with="Buscando..." >  
-              Buscar en Pipedrive
+            <%= form.hidden_field :material_unit_id, id: 'quote_material_unit_id' %>
+            <%= form.hidden_field :material_length, id: 'material_length' %>
+            <%= form.hidden_field :material_width, id: 'material_width' %>
+          </div>
+
+          <div class="form-group">
+            <a data-toggle="collapse" href="#manualMaterialCollapse" role="button" aria-expanded="false" aria-controls="manualMaterialCollapse">
+              <i class="fas fa-caret-down" data-quotes-target="openIcon"></i> 
+              <i class="fas fa-caret-up" data-quotes-target="closeIcon" style="display: none;"></i>
+              Material manual (opcional)
+            </a>
+            <div class="collapse" id="manualMaterialCollapse">
+              <div class="card card-body">
+                <%= form.label :manual_material, "Material manual:", class: "font-weight-bold" %>
+                <div class="input-group">
+                  <%= form.text_field :manual_material, class: "form-control text-left" %>
+                  <div class="input-group-append"> 
+                    <%= form.select :manual_material_unit_id, 
+                              options_from_collection_for_select(Unit.all, :id, :description, selected: @quote.manual_material_unit_id), 
+                              {}, 
+                              { class: "form-control" } 
+                    %>
+                  </div>
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">$</span>
+                    <input type="number" step="any" class="form-control" id="manual_material_price" style="width: 100px;">
+                  </div>
+                </div>
+                <%= form.hidden_field :manual_material_unit_id, id: 'quote_manual_material_unit_id' %>
+
+                <div class="form-group">
+                  <%= form.label :manual_material_width, "Ancho:", class: "font-weight-bold" %>
+                  <%= form.number_field :manual_material_width, class: "form-control text-right" %>
+                </div>
+
+                <div class="form-group">
+                  <%= form.label :manual_material_length, "Largo:", class: "font-weight-bold" %>
+                  <%= form.number_field :manual_material_length, class: "form-control text-right" %>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" 
+                  data-controller="quotes"
+                  data-action="quotes#calculateProducts" 
+                  class="btn btn-green">
+            Calcular productos
+          </button>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="form-group">
+          <br><br><br>
+          </div>
+          <div class="form-group">
+            <%= form.label :customer_organization, "Organización:" %>
+            <div class="d-flex align-items-center my-custom-flex"> 
+              <div class="me-2" style="width: 60%;">
+                <%= form.text_field :customer_organization, class: "form-control", id: "quote_customer_organization" %> 
+              </div>
+              <button type="button" 
+                      class="btn btn-green align-self-end"
+                      data-action="click->quotes#searchCustomer"
+                      data-disable-with="Buscando..." >  
+                Buscar en Pipedrive
+              </button>
+            </div>
+          </div>
+
+          <style>
+            .my-custom-flex > div {
+              margin-right: 5px !important;
+            }
+            .my-custom-flex > div:last-child { 
+              margin-right: 0 !important; 
+            }
+          </style>
+          
+          <br><br><br>
+          <table class="table table-bordered"> 
+            <thead class="thead-light"> 
+              <tr>
+                <th>Concepto</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Productos por pliego:</td>
+                <td>
+                  <input type="number" name="quote[products_per_sheet]" id="products-per-sheet" style="text-align: right; width: 100%;" value="0">
+                </td>    
+              </tr>
+              <tr>
+                <td>Pliegos necesarios:</td>
+                <td>
+                  <input type="number" name="quote[sheets_needed]" id="sheets-needed" style="text-align: right; width: 100%;" value="0">
+                </td>    
+              </tr>
+              <tr>
+                <td>Precio material:</td>
+                <td>
+                  <input type="number" name="quote[material_total_quote_value]" id="material-total-price" style="text-align: right; width: 100%;" value="0">
+                </td>    
+              </tr>
+              <tr>
+                <td>Metros cuadrados de material:</td>
+                <td>
+                  <input type="number" name="quote[material_square_meters]" id="material-square-meters" style="text-align: right; width: 100%;" value="0">
+                </td>    
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="d-flex justify-content-end">
+            <button data-action="click->quotes#reCalculateProducts" class="btn btn-green">
+              Recalcular
             </button>
           </div>
         </div>
+      </div>
+    
+      <hr style="border: 1px solid black;">
 
-        <style>
-          .my-custom-flex > div {
-            margin-right: 5px !important;
-          }
-          .my-custom-flex > div:last-child { 
-            margin-right: 0 !important; 
-          }
-        </style>
-        
-        <br><br><br>
-        <table class="table table-bordered"> 
-          <thead class="thead-light"> 
-            <tr>
-              <th>Concepto</th>
-              <th>Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Productos por pliego:</td>
-              <td>
-                <input type="number" name="quote[products_per_sheet]" id="products-per-sheet" style="text-align: right; width: 100%;" value="0">
-              </td>    
-            </tr>
-            <tr>
-              <td>Pliegos necesarios:</td>
-              <td>
-                <input type="number" name="quote[sheets_needed]" id="sheets-needed" style="text-align: right; width: 100%;" value="0">
-              </td>    
-            </tr>
-            <tr>
-              <td>Precio material:</td>
-              <td>
-                <input type="number" name="quote[material_total_quote_value]" id="material-total-price" style="text-align: right; width: 100%;" value="0">
-              </td>    
-            </tr>
-            <tr>
-              <td>Metros cuadrados de material:</td>
-              <td>
-                <input type="number" name="quote[material_square_meters]" id="material-square-meters" style="text-align: right; width: 100%;" value="0">
-              </td>    
-            </tr>
-          </tbody>
-        </table>
-        
-        <div class="d-flex justify-content-end">
-          <button data-action="click->quotes#reCalculateProducts" class="btn btn-green">
-            Recalcular
-          </button>
+      <%# Processes Section %>
+      <div class="nested-fields">
+        <div class="row ml-3">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <%= form.label :manufacturing_process_id, "Procesos:", class: "font-weight-bold" %>
+              <div class="input-group">
+                <%= form.select :manufacturing_process_id,
+                          options_for_select(
+                            ManufacturingProcess.all.map { |mp|
+                              ["#{mp.name} - #{mp.description}", mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
+                            }
+                          ),
+                          { include_blank: 'Select one' },
+                          { class: "form-control",
+                            data: { action: 'change->quotes#showManufactureProcessInfo' }
+                          }
+                %>
+                <div class="input-group-prepend">
+                  <span class="input-group-text ml-1" id="manufacturing_process_unit_display"></span>
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="any" class="form-control" id="manufacturing_process_price_display" style="width: 100px;">
+                </div>
+              </div>
+            </div>
+
+            <button type="button" 
+                    data-action="click->quotes#addProcess" 
+                    class="btn btn-green">
+              Agregar Proceso
+            </button>
+          </div>
+
+          <div class="col-lg-6">
+            <br>
+            <table data-quotes-target="processes" class="table table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th>Proceso</th>
+                  <th>Acciones</th>
+                  <th>Precio Total</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+            <div>
+              <strong>Subtotal procesos: </strong>
+              <span id="processes-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  
-    <hr style="border: 1px solid black;">
 
-    <%# Datos de procesos %>
-    <div class="nested-fields"> 
+      <hr style="border: 1px solid black;">
+
+      <%# Herramentales %>
+      <div class="nested-fields">
+        <div class="row ml-3">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <%= form.label :tooling_id, "Herramentales:", class: "font-weight-bold" %>
+              <div class="input-group">
+                <%= form.select :tooling_id,
+                          options_for_select(
+                            Tooling.all.map { |t|
+                            ["#{t.description}", t.id, { 'data-price' => t.price, 'data-unit' => t.unit.description }]
+                            },
+                          ),
+                          { include_blank: 'Select one' },
+                          { class: "form-control",
+                            'data-action': 'change->quotes#showToolingInfo'
+                } %>
+                <div class="input-group-prepend">
+                  <span class="input-group-text ml-1" id="tooling_unit_display"></span>
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="any" class="form-control" id="tooling_price_display" style="width: 100px;">
+                </div>
+                <div class="input-group-append">
+                  <input type="number" step="1" value="1" min="1" class="form-control" id="quantity" style="width: 70px;" placeholder="Qty">
+                </div>
+              </div>
+            </div>
+
+            <button type="button"
+                    data-action="click->quotes#addTooling" 
+                    class="btn btn-green">
+              Agregar Herramental
+            </button>
+          </div>
+
+          <div class="col-lg-6">
+            <br>
+            <table data-quotes-target="toolings" class="table table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th>Herramental</th>
+                  <th>Acciones</th>
+                  <th>Precio Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%= form.fields_for :quote_toolings do |tooling_form| %> 
+                  <%= render 'quote_tooling_fields', f: tooling_form %> 
+                <% end %>
+              </tbody>
+            </table>
+            <div>
+              <strong>Subtotal herramentales: </strong>
+              <span id="toolings-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border: 1px solid black;">
+
+      <%# Subtotal %>
       <div class="row ml-3">
         <div class="col-lg-6">
           <div class="form-group">
-            <%= form.label :manufacturing_process_id, "Procesos:", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.select :manufacturing_process_id,
-                        options_for_select(
-                          ManufacturingProcess.all.map { |mp|
-                          ["#{mp.name} - #{mp.description}", mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
-                          },
-                        ),
-                        { include_blank: 'Select one' },
-                        { class: "form-control",
-                          'data-action': 'change->quotes#showManufactureProcessInfo'
-              } %>
-              <span class="input-group-text ml-1" id="manufacturing_process_unit_display"></span>
-              <div class="input-group-prepend">
-                <span class="input-group-text">$</span>
-                <input type="number" step="any" class="form-control" id="manufacturing_process_price_display" style="width: 100px;">
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span><%= form.label :pieces, "Subtotal:", class: "font-weight-bold" %></span>
             </div>
           </div>
-
-          <button data-action="quotes#addProcess" class="btn btn-green">
-            Agregar Proceso
-          </button> 
         </div>
-                                  
         <div class="col-lg-6">
-          <br>
-          <table data-quotes-target="processes" class="table table-bordered"> 
-            <thead class="thead-light"> 
-              <tr>
-                <th>Proceso</th>
-                <th>Acciones</th>
-                <th>Precio Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%= form.fields_for :quote_processes do |process_form| %>
-                <%= render 'quote_process_fields', f: process_form %>
-              <% end %>
-            </tbody>
-          </table>
-          <div>
-            <strong>Subtotal procesos: </strong>
-            <span id="processes-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
+          <div class="form-group">
+            <div style="display: flex; justify-content: flex-end; align-items: center;">
+              <%= form.text_field :subtotal, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "quote_subtotal" %>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  
-    <hr style="border: 1px solid black;">
 
-    <%# Herramentales %>
-    <div class="nested-fields">
+      <%# Merma %>
+      <div class="row ml-3">
+        <% waste_config = GeneralConfiguration.find_by(description: "Merma") %>
+        <div class="col-lg-6">
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span><%= form.label :waste, "Merma:" %></span>
+              <div style="display: flex; align-items: center; white-space: nowrap;">
+                <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
+                      id="waste" name="quote[waste]" 
+                      value="<%= waste_config ? waste_config.amount : 0 %>"
+                      data-action="change->quotes#updateWasteValue">
+                <span class="ml-1">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6"> 
+          <div class="form-group">
+            <div style="display: flex; justify-content: flex-end; align-items: center;"> 
+              <%= form.text_field :waste_price, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# Margen %>
+      <div class="row ml-3">
+        <% margin_config = GeneralConfiguration.find_by(description: "Margen") %>
+        <div class="col-lg-6">
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span><%= form.label :margin, "Margen:" %></span>
+              <div style="display: flex; align-items: center; white-space: nowrap;">
+                <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
+                      id="margin" name="quote[margin]" 
+                      value="<%= margin_config ? margin_config.amount : 0 %>"
+                      data-action="change->quotes#updateMarginValue">
+                <span class="ml-1">%</span> 
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6"> 
+          <div class="form-group">
+            <div style="display: flex; justify-content: flex-end; align-items: center;"> 
+              <%= form.text_field :margin_price, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# Total %>
       <div class="row ml-3">
         <div class="col-lg-6">
           <div class="form-group">
-            <%= form.label :tooling_id, "Herramentales:", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.select :tooling_id,
-                        options_for_select(
-                          Tooling.all.map { |t|
-                          ["#{t.description}", t.id, { 'data-price' => t.price, 'data-unit' => t.unit.description }]
-                          },
-                        ),
-                        { include_blank: 'Select one' },
-                        { class: "form-control",
-                          'data-action': 'change->quotes#showToolingInfo'
-              } %>
-              <div class="input-group-prepend">
-                <span class="input-group-text ml-1" id="tooling_unit_display"></span>
-                <span class="input-group-text">$</span>
-                <input type="number" step="any" class="form-control" id="tooling_price_display" style="width: 100px;">
-              </div>
-              <div class="input-group-append">
-                <input type="number" step="1" value="1" min="1" class="form-control" id="quantity" style="width: 70px;" placeholder="Qty">
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span><%= form.label :total_quote_value, "Precio total de la cotización:", class: "font-weight-bold" %></span>
             </div>
           </div>
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span><%= form.label :quote_per_piece_value, "Precio por pieza:", class: "font-weight-bold" %></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="form-group">
+            <div style="display: flex; justify-content: flex-end; align-items: center;">
+              <%= form.text_field :total_quote_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-quote-value" %>
+            </div>
+          </div> 
+          <div class="form-group">
+            <div style="display: flex; justify-content: flex-end; align-items: center;">
+              <%= form.text_field :price_per_piece, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "price-per-piece" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <hr style="border: 1px solid black;">
 
-          <button data-action="quotes#addTooling" class="btn btn-green">
-            Agregar Herramental
+      <%# Calculation and Save buttons %>
+      <div class="row ml-3">
+        <div class="col-lg-6">
+          <button type="button" 
+                  data-action="click->quotes#calculateQuote" 
+                  class="btn btn-green"> 
+            Calcular cotización
           </button>
         </div>
+      </div>
 
-        <div class="col-lg-6">
-          <br>
-          <table data-quotes-target="toolings" class="table table-bordered">
-            <thead class="thead-light">
-              <tr>
-                <th>Herramental</th>
-                <th>Acciones</th>
-                <th>Precio Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%= form.fields_for :quote_toolings do |tooling_form| %> 
-                <%= render 'quote_tooling_fields', f: tooling_form %> 
-              <% end %>
-            </tbody>
-          </table>
-          <div>
-            <strong>Subtotal herramentales: </strong>
-            <span id="toolings-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
-          </div>
+      <hr style="border: 1px solid black;">
+
+      <%# Guardar cotización %>
+      <div class="row ml-3">
+        <div class="col-lg-12">
+          <%= form.submit "Guardar cotización", class: "btn btn-green float-right", 
+                     data: { disable_with: "Guardando..." } %>
         </div>
       </div>
+      <br><br>
     </div>
-
-    <hr style="border: 1px solid black;">
-
-    <%# Subtotal %>
-    <div class="row ml-3">
-      <div class="col-lg-6">
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><%= form.label :pieces, "Subtotal:", class: "font-weight-bold" %></span>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="form-group">
-          <div style="display: flex; justify-content: flex-end; align-items: center;">
-            <%= form.text_field :subtotal, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "quote_subtotal" %>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <%# Merma %>
-    <div class="row ml-3">
-      <% waste_config = GeneralConfiguration.find_by(description: "Merma") %>
-      <div class="col-lg-6">
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><%= form.label :waste, "Merma:" %></span>
-            <div style="display: flex; align-items: center; white-space: nowrap;">
-              <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                    id="waste" name="quote[waste]" 
-                    value="<%= waste_config ? waste_config.amount : 0 %>"
-                    data-action="change->quotes#updateWasteValue">
-              <span class="ml-1">%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6"> 
-        <div class="form-group">
-          <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-            <%= form.text_field :waste_price, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <%# Margen %>
-    <div class="row ml-3">
-      <% margin_config = GeneralConfiguration.find_by(description: "Margen") %>
-      <div class="col-lg-6">
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><%= form.label :margin, "Margen:" %></span>
-            <div style="display: flex; align-items: center; white-space: nowrap;">
-              <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                    id="margin" name="quote[margin]" 
-                    value="<%= margin_config ? margin_config.amount : 0 %>"
-                    data-action="change->quotes#updateMarginValue">
-              <span class="ml-1">%</span> 
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6"> 
-        <div class="form-group">
-          <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-            <%= form.text_field :margin_price, step: :any, class: "form-control", style: "width: 150px; text-align: right;" %>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <%# Total %>
-    <div class="row ml-3">
-      <div class="col-lg-6">
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><%= form.label :total_quote_value, "Precio total de la cotización:", class: "font-weight-bold" %></span>
-          </div>
-        </div>
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><%= form.label :quote_per_piece_value, "Precio por pieza:", class: "font-weight-bold" %></span>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="form-group">
-          <div style="display: flex; justify-content: flex-end; align-items: center;">
-            <%= form.text_field :total_quote_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-quote-value" %>
-          </div>
-        </div> 
-        <div class="form-group">
-          <div style="display: flex; justify-content: flex-end; align-items: center;">
-            <%= form.text_field :price_per_piece, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "price-per-piece" %>
-          </div>
-        </div>
-      </div>
-    </div>
-  
-    <%# Calcula total %>
-    <div class="row ml-3">
-      <div class="col-lg-6">
-        <button data-action="click->quotes#calculateQuote" class="btn btn-green"> 
-          Calcular cotización
-        </button>
-      </div>
-    </div>
-  
-    <hr style="border: 1px solid black;">
-
-    <%# Guardar cotización %>
-    <div class="row ml-3">
-      <div class="col-lg-12">
-        <%= form.submit "Guardar cotización", class: "btn btn-green float-right", 
-                   data: { disable_with: "Guardando..." } %>
-      </div>
-    </div>
-    <br><br>
-
   <% end %>
 </div>

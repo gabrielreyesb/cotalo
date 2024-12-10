@@ -6,7 +6,8 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log("TurboFrame controller connected", this.urlValue)
+    // Remove or comment out the console.log
+    // console.log("TurboFrame controller connected", this.urlValue)
   }
 
   navigate() {

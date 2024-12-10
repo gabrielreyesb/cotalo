@@ -10,9 +10,7 @@ export default class extends Controller {
   }
 
   calculateProducts(event) {
-    console.log("Calculate Products clicked");
     event.preventDefault();
-    console.log("Default prevented");
     
     const materialSelect = document.getElementById('quote_material_id');
     const priceInput = document.getElementById('material_price');
@@ -118,18 +116,18 @@ export default class extends Controller {
   addProcess(event) {
     event.preventDefault();
 
-    const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[manufacturing_process_id]"]'); 
+    const selectElement = document.getElementById('quote_manufacturing_process_id');
     const priceInput = document.getElementById('manufacturing_process_price_display');
 
     if (selectElement) { 
       const selectedOption = selectElement.selectedOptions[0];
 
-      if (selectedOption) {
+      if (selectedOption) {        
         const processId = selectedOption.value;
         const processName = selectedOption.text.split(' - ')[0];
         const processDescription = selectedOption.text.split(' - ')[1];
         const processPrice = parseFloat(priceInput.value);
-        const processUnit = selectedOption.dataset.unit;
+        const processUnit = selectedOption.getAttribute('data-unit');
             
         const materialPieces = parseFloat(document.getElementById('sheets-needed').value) || 0;
         const squareMeters = parseFloat(document.getElementById('material-square-meters').value) || 0;
@@ -153,14 +151,13 @@ export default class extends Controller {
         newRow.dataset.newProcess = "true";
         newRow.innerHTML = `
           <td>
-            <input type="hidden" name="quote[quote_processes_attributes][${this.newProcessId}][manufacturing_process_id]" value="${processId}">
             <span class="process-name">${processName}</span> - 
             <span class="process-description">${processDescription}</span>
           </td>
           <td>
-            <a href="#" data-action="click->quotes#removeProcess" class="btn btn-danger">Eliminar</a>
+            <button type="button" data-action="click->quotes#removeProcess" class="btn btn-danger">Eliminar</button>
           </td>
-          <td name="quote[quote_processes_attributes][${this.newProcessId}][price]" class="process-price-total" data-price-id="${this.newProcessId}"> 
+          <td class="process-price-total text-right" data-price-id="${this.newProcessId}"> 
             ${calculatedPrice.toFixed(2)} 
           </td> 
         `;
@@ -172,6 +169,12 @@ export default class extends Controller {
         this.newProcessId++;
 
         this.updateProcessesSubtotal(); 
+
+        // Clear selection
+        selectElement.value = '';
+        if (priceInput) priceInput.value = '';
+        const unitDisplay = document.getElementById('manufacturing_process_unit_display');
+        if (unitDisplay) unitDisplay.textContent = '';
       }
     }
   }
@@ -241,23 +244,21 @@ export default class extends Controller {
     return newProcessFields;
   }
 
-  showManufactureProcessInfo(event) {
-    const selectElement = event.target;
-    const processId = parseInt(selectElement.value);
+  showManufactureProcessInfo(event) {    
+    const selectedOption = event.target.selectedOptions[0];
+    if (!selectedOption) return;
 
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    const unitDescription = selectedOption.dataset.unit;
-    const processPrice = parseFloat(selectedOption.dataset.price);
+    // Get data attributes
+    const price = selectedOption.getAttribute('data-price');
+    const unit = selectedOption.getAttribute('data-unit');
+    const unitId = selectedOption.getAttribute('data-unit-id');
 
-    const manufacturingProcessUnitDisplay = document.getElementById('manufacturing_process_unit_display');
-    if (manufacturingProcessUnitDisplay) {
-      manufacturingProcessUnitDisplay.textContent = unitDescription || "";
-    }
+    // Update display elements
+    const priceInput = document.getElementById('manufacturing_process_price_display');
+    const unitDisplay = document.getElementById('manufacturing_process_unit_display');
 
-    const manufacturingProcessPriceDisplay = document.getElementById('manufacturing_process_price_display');
-    if (manufacturingProcessPriceDisplay) {
-      manufacturingProcessPriceDisplay.value = processPrice ? processPrice.toFixed(2) : "";
-    }
+    if (priceInput) priceInput.value = price || '';
+    if (unitDisplay) unitDisplay.textContent = unit || '';
   }
 
   addProcessToList(processDescription, processPrice, processUnit, calculatedPrice) {
@@ -446,24 +447,25 @@ export default class extends Controller {
 
   showMaterialPrice(event) {
     const selectedOption = event.target.selectedOptions[0];
-    const materialPrice = parseFloat(selectedOption.getAttribute('data-price'));
-    const materialUnit = selectedOption.getAttribute('data-unit');
-    const materialUnitId = selectedOption.getAttribute('data-unit-id');
-
-    const materialPriceDisplay = document.getElementById('material_price');
-    if (materialPriceDisplay) {
-      materialPriceDisplay.value = materialPrice.toFixed(2);
+    
+    if (!selectedOption) {
+      console.log("No option selected");
+      return;
     }
 
-    const materialUnitDisplay = document.getElementById('material_unit_display');
-    if (materialUnitDisplay) {
-      materialUnitDisplay.textContent = materialUnit;
-    }
+    // Get elements
+    const priceInput = document.getElementById('material_price');
+    const unitDisplay = document.getElementById('material_unit_display');
+    const unitIdInput = document.getElementById('quote_material_unit_id');
+    const materialWidthInput = document.getElementById('material_width');
+    const materialLengthInput = document.getElementById('material_length');
 
-    const unitIdField = document.getElementById('quote_material_unit_id');
-    if (unitIdField) {
-      unitIdField.value = materialUnitId;
-    }
+    // Update values
+    if (priceInput) priceInput.value = selectedOption.getAttribute('data-price') || '';
+    if (unitDisplay) unitDisplay.textContent = selectedOption.getAttribute('data-unit') || '';
+    if (unitIdInput) unitIdInput.value = selectedOption.getAttribute('data-unit-id') || '';
+    if (materialWidthInput) materialWidthInput.value = selectedOption.getAttribute('data-width') || '';
+    if (materialLengthInput) materialLengthInput.value = selectedOption.getAttribute('data-length') || '';
   }
 
   get processFieldsTemplate() {
@@ -722,6 +724,7 @@ export default class extends Controller {
     if (unitIdField) {
       unitIdField.value = manualMaterialUnitId;
     }
+
   }
 
   updateHiddenField(event) {

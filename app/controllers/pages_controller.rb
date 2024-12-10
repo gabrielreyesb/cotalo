@@ -5,7 +5,10 @@ class PagesController < ApplicationController
     end
     
     def home
-      @resource_name = :user
+      Rails.logger.info "====== Loading Home Page ======"
+      @recent_quotes = Quote.order(created_at: :desc).limit(5)
+      Rails.logger.info "Quotes found: #{@recent_quotes.count}"
+      Rails.logger.info "Quotes: #{@recent_quotes.inspect}"
     end
 
     def send_quote
