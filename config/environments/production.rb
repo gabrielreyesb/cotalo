@@ -18,4 +18,8 @@ Rails.application.configure do
   config.i18n.fallbacks = true
   config.active_support.report_deprecations = false
   config.active_record.dump_schema_after_migration = false
+  config.public_file_server.enabled = true
+  config.assets.digest = true
+  config.action_dispatch.x_sendfile_header = nil
+  config.serve_static_files = false
 end
