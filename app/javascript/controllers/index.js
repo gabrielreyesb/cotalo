@@ -1,7 +1,7 @@
-// Import and register all your controllers from the importmap under controllers/*
+import { application } from "@hotwired/stimulus"
+import { registerControllers } from "@hotwired/stimulus-loading"
 
-import { application } from "./application"
+// Register all controllers in the controllers directory
+registerControllers(application, import.meta.globEager("./**/*_controller.js"))
 
-// Eager load all controllers defined in the import map under controllers/**/*_controller
-import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
-eagerLoadControllersFrom("controllers", application)
+export { application }
