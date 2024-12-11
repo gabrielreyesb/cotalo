@@ -1,6 +1,7 @@
-// Import and register all your controllers from the importmap via controllers/**/*_controller
+// Import and register all your controllers from the importmap under controllers/*
+
 import { application } from "./application"
+
+// Eager load all controllers defined in the import map under controllers/**/*_controller
 import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
-import TurboFrameController from "./turbo_frame_controller"
 eagerLoadControllersFrom("controllers", application)
-application.register("turbo-frame", TurboFrameController)
