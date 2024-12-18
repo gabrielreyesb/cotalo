@@ -16,6 +16,7 @@
       background-color: #f5fffa;
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-
 </head>
 
 <body>
@@ -33,12 +34,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <%= link_to '<i class="fas fa-cogs"></i> Cotizar'.html_safe, calculate_quotes_path, class: "nav-link" %> 
+              <%= link_to 'Cotizar', calculate_quotes_path, class: "nav-link" %> 
             </li>
             <li class="nav-item divider"></li>
             <li class="nav-item dropdown"> 
               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-book"></i> Catálogos 
+                Catálogos 
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown"> 
                 <a class="dropdown-item" href="<%= materials_path %>" data-turbo-frame="main-content">Materiales</a> 

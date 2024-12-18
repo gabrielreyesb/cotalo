@@ -14,7 +14,8 @@ gem "redis", ">= 4.0.1"
 gem "bootsnap", require: false
 gem "sassc", "~> 2.4"
 gem 'devise'
-gem 'wicked_pdf'
+gem 'prawn'
+gem 'prawn-table'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]

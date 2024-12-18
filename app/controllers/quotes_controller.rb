@@ -109,20 +109,12 @@ class QuotesController < ApplicationController
     
     respond_to do |format|
       format.html
-      format.turbo_stream { 
-        render turbo_stream: turbo_stream.replace(
-          'main-content',
-          partial: 'quotes/show',
-          locals: { quote: @quote }
-        )
-      }
       format.pdf do
-        render pdf: "Cotizacion_#{@quote.id}",
-               template: "quotes/show_pdf",
-               layout: 'pdf',
-               page_size: 'Letter',
-               title: "Cotización ##{@quote.id}",
-               encoding: 'UTF-8'
+        pdf = QuotePdfGenerator.new(@quote).generate
+        send_data pdf.render,
+                  filename: "cotizacion_#{@quote.id}.pdf",
+                  type: 'application/pdf',
+                  disposition: 'inline'
       end
     end
   end

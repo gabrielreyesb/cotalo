@@ -9,3 +9,7 @@ Rails.application.config.assets.paths << Rails.root.join("app/javascript/control
 
 # Precompile additional assets.
 Rails.application.config.assets.precompile += %w( controllers/*.js )
+
+Rails.application.config.assets.configure do |env|
+  env.export_concurrent = false
+end
