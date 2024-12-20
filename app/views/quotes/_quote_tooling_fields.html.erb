@@ -1,14 +1,14 @@
-<tr data-new-tooling="true"> 
+<tr data-new-tooling="true">
   <td>
     <%= f.hidden_field :tooling_id %>
-    <span class="tooling-description"><%= f.object.tooling.description %></span> 
-    <%= f.hidden_field :quantity, value: 1, class: "tooling-quantity-input" %> 
-    (<span class="tooling-quantity">1</span>) 
+    <span class="tooling-description"><%= f.object.tooling.description %></span>
+    <%= f.hidden_field :quantity, value: 1, class: "tooling-quantity-input" %>
+    (<span class="tooling-quantity">1</span>)
   </td>
   <td>
-    <%= link_to_remove_association "Eliminar", f, class: "btn btn-danger" %>
+    <button type="button" data-action="click->quotes#removeTooling" class="btn btn-danger">Eliminar</button>
   </td>
   <td>
-    <span class="tooling-price-total">0</span> 
+    <span class="tooling-price-total">0</span>
   </td>
 </tr>

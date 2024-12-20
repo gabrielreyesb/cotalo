@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes 
+  get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes
+  resources :quotes
 
   resources :general_configurations
 

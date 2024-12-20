@@ -9,6 +9,8 @@ class QuotesController < ApplicationController
     @quote = Quote.new
     @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
     @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
+    @waste_config = GeneralConfiguration.find_by(description: 'merma')
+    @margin_config = GeneralConfiguration.find_by(description: 'margen')
 
     respond_to do |format|
       format.html { 
@@ -16,7 +18,9 @@ class QuotesController < ApplicationController
                locals: { 
                  quote: @quote, 
                  configuration_margin_width: @configuration_margin_width,
-                 configuration_margin_length: @configuration_margin_length 
+                 configuration_margin_length: @configuration_margin_length,
+                 waste_config: @waste_config,
+                 margin_config: @margin_config
                } 
       }
       format.turbo_stream {
@@ -36,71 +40,65 @@ class QuotesController < ApplicationController
   end
 
   def create
-    @quote = Quote.new(quote_params.except(:quote_processes_attributes))
-
-    # Handle quote processes separately
-    if params[:quote][:quote_processes_attributes].present?
-      params[:quote][:quote_processes_attributes].each do |_, process_attrs|
-        if process_attrs[:manufacturing_process_id].present?
-          manufacturing_process = ManufacturingProcess.find(process_attrs[:manufacturing_process_id])
-          @quote.quote_processes.build(
-            manufacturing_process_id: process_attrs[:manufacturing_process_id],
-            price: manufacturing_process.price || 0
-          )
-        end
-      end
-    end
+    @quote = Quote.new(quote_params)
+    @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
+    @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
 
     if @quote.save
-      redirect_to @quote, notice: "Quote was successfully created."
+      redirect_to root_path, notice: "Cotización creada exitosamente."
     else
-      @quote.quote_processes.build if @quote.quote_processes.empty?
-      @quote.quote_toolings.build if @quote.quote_toolings.empty?
-      render :new, status: :unprocessable_entity
+      Rails.logger.debug "Quote errors: #{@quote.errors.full_messages}"
+      render :calculate, status: :unprocessable_entity
     end
   end
 
   def search_customer
-    customer_name = params[:quote][:customer_name]
-    api_token = Rails.application.credentials.pipedrive[:api_key]
-  
-    url = URI("https://api.pipedrive.com/v1/persons/search?term=#{CGI.escape(customer_name)}&api_token=#{api_token}")
-  
-    response = Net::HTTP.get_response(url)
-  
-    if response.code == '200'
-      begin
+    begin
+      customer_name = params[:quote][:customer_name]
+      
+      unless ENV['PIPEDRIVE_API_KEY']
+        render json: { error: "Pipedrive API key not configured." }, 
+               status: :internal_server_error
+        return
+      end
+
+      api_token = ENV['PIPEDRIVE_API_KEY']
+      url = URI("https://api.pipedrive.com/v1/persons/search?term=#{CGI.escape(customer_name)}&api_token=#{api_token}")
+      
+      response = Net::HTTP.get_response(url)
+      
+      if response.code == '200'
         data = JSON.parse(response.body)
-  
-        organizations = []
+        results = []
+
         if data['data'] && data['data']['items']
           data['data']['items'].each do |item|
-            organization_name = item.dig('item', 'organization', 'name')
-            organizations << organization_name if organization_name
+            person = item['item']
+            
+            email = if person['email']
+                     person['email'].is_a?(Array) ? person['email'].first['value'] : person['email']
+                   elsif person['emails']
+                     person['emails'].is_a?(Array) ? person['emails'].first : person['emails']
+                   end
+
+            results << {
+              name: person['name'],
+              email: email,
+              organization: person.dig('organization', 'name'),
+              organization_id: person.dig('organization', 'value'),
+              person_id: person['id']
+            }
           end
         end
-  
-        @quote ||= Quote.new(quote_params) 
-  
-        if organizations.any?
-          @quote.customer_organization = organizations.first 
-        else
-          # Handle the case where no organizations are found (e.g., display an error message)
-          flash[:alert] = "No se encontraron organizaciones para este cliente." 
-        end
-  
-        respond_to do |format|
-          format.html { render json: { organizations: organizations } } 
-          format.json { render json: { organizations: organizations } }
-        end
-  
-      rescue JSON::ParserError => e
-        logger.error("Error parsing JSON response: #{e.message}")
-        render json: { error: "Error parsing JSON response." }, status: :unprocessable_entity 
+
+        render json: { results: results }
+      else
+        render json: { error: "Pipedrive API error" }, status: :unprocessable_entity
       end
-    else
-      logger.error("Pipedrive API error: #{response.code} - #{response.body}")
-      render json: { error: "API Error: #{response.code} - #{response.body}" }, status: :unprocessable_entity 
+      
+    rescue StandardError => e
+      Rails.logger.error "Error in search_customer: #{e.class} - #{e.message}"
+      render json: { error: "Internal server error", message: e.message }, status: :internal_server_entity
     end
   end
 
@@ -158,6 +156,14 @@ class QuotesController < ApplicationController
       quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
       quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy]
     )
+  end
+
+  def configuration_margin_width
+    @configuration_margin_width ||= GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
+  end
+
+  def configuration_margin_length
+    @configuration_margin_length ||= GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
   end
 
 end

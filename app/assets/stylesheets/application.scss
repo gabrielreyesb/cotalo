@@ -135,3 +135,12 @@ body {
   width: 100%;
   align-items: initial;
 }
+
+.container-wide {
+  width: 120%;
+  max-width: 1440px;  /* or any other max-width you prefer */
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 15px;
+  padding-left: 15px;
+}

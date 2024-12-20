@@ -1,5 +1,5 @@
-<div class="container">
-  <h1>Nueva Cotización</h1>
+<div class="container-wide">
+  <h1 style="text-align: center;">Nueva Cotización</h1>
   
   <%# Debug information %>
   <div style="display: none;">
@@ -10,11 +10,15 @@
     <p>Margin Length: <%= @configuration_margin_length %></p>
   </div>
 
-  <%= form_with(model: @quote, url: quotes_path, method: :post, local: true, data: { turbo_frame: '_top' }) do |form| %>
+  <%# Debug info to verify values %>
+  <% Rails.logger.debug "Waste config: #{@waste_config.inspect}" %>
+  <% Rails.logger.debug "Margin config: #{@margin_config.inspect}" %>
+
+  <%= form_with(model: @quote, url: quotes_path, method: :post, local: true, data: { turbo_frame: '_top', controller: "nested-form" }) do |form| %>
     <div data-controller="quotes">
       <div>
-        <%= hidden_field_tag 'config_margin_width', configuration_margin_width %> 
-        <%= hidden_field_tag 'config_margin_length', configuration_margin_length %> 
+        <%= hidden_field_tag 'config_margin_width', @configuration_margin_width %> 
+        <%= hidden_field_tag 'config_margin_length', @configuration_margin_length %> 
       </div>
 
       <%# Manejo de errores %>
@@ -47,7 +51,7 @@
 
           <div class="form-group">
             <%= form.label :customer_email, "Correo del cliente:", class: "font-weight-bold" %>
-            <%= form.email_field :customer_email, class: "form-control", value: "gabriel@handy.la" %> 
+            <%= form.email_field :customer_email, class: "form-control" %> 
           </div>
 
           <div class="form-group">
@@ -91,7 +95,7 @@
               <span class="input-group-text ml-1" id="material_unit_display"></span>
               <div class="input-group-prepend">
                 <span class="input-group-text">$</span>
-                <input type="number" step="any" class="form-control" id="material_price" style="width: 100px;">
+                <input type="number" step="any" class="form-control text-right" id="material_price" style="width: 100px;">
               </div>
             </div>
             <%= form.hidden_field :material_unit_id, id: 'quote_material_unit_id' %>
@@ -150,17 +154,18 @@
           <br><br><br>
           </div>
           <div class="form-group">
-            <%= form.label :customer_organization, "Organización:" %>
-            <div class="d-flex align-items-center my-custom-flex"> 
-              <div class="me-2" style="width: 60%;">
-                <%= form.text_field :customer_organization, class: "form-control", id: "quote_customer_organization" %> 
+            <%= form.label :customer_organization, "Organización:", class: "font-weight-bold" %>
+            <div class="input-group">
+              <%= form.text_field :customer_organization, 
+                  class: "form-control flex-grow-1", 
+                  value: "" %>
+              <div class="input-group-append">
+                <button type="button" 
+                        class="btn btn-green" 
+                        data-action="click->quotes#searchCustomer">
+                  Buscar en Pipedrive
+                </button>
               </div>
-              <button type="button" 
-                      class="btn btn-green align-self-end"
-                      data-action="click->quotes#searchCustomer"
-                      data-disable-with="Buscando..." >  
-                Buscar en Pipedrive
-              </button>
             </div>
           </div>
 
@@ -185,25 +190,43 @@
               <tr>
                 <td>Productos por pliego:</td>
                 <td>
-                  <input type="number" name="quote[products_per_sheet]" id="products-per-sheet" style="text-align: right; width: 100%;" value="0">
+                  <input type="number" 
+                         name="quote[products_per_sheet]" 
+                         id="products-per-sheet" 
+                         style="text-align: right; width: 100%;" 
+                         value="0">
                 </td>    
               </tr>
               <tr>
                 <td>Pliegos necesarios:</td>
                 <td>
-                  <input type="number" name="quote[sheets_needed]" id="sheets-needed" style="text-align: right; width: 100%;" value="0">
+                  <input type="number" 
+                         name="quote[sheets_needed]" 
+                         id="sheets-needed" 
+                         style="text-align: right; width: 100%;" 
+                         value="0">
                 </td>    
               </tr>
               <tr>
                 <td>Precio material:</td>
                 <td>
-                  <input type="number" name="quote[material_total_quote_value]" id="material-total-price" style="text-align: right; width: 100%;" value="0">
+                  <input type="number" 
+                         name="quote[material_total_quote_value]" 
+                         id="material-total-price" 
+                         step="0.01"
+                         style="text-align: right; width: 100%;" 
+                         value="0.00">
                 </td>    
               </tr>
               <tr>
                 <td>Metros cuadrados de material:</td>
                 <td>
-                  <input type="number" name="quote[material_square_meters]" id="material-square-meters" style="text-align: right; width: 100%;" value="0">
+                  <input type="number" 
+                         name="quote[material_square_meters]" 
+                         id="material-square-meters" 
+                         step="0.01"
+                         style="text-align: right; width: 100%;" 
+                         value="0.00">
                 </td>    
               </tr>
             </tbody>
@@ -240,7 +263,11 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text ml-1" id="manufacturing_process_unit_display"></span>
                   <span class="input-group-text">$</span>
-                  <input type="number" step="any" class="form-control" id="manufacturing_process_price_display" style="width: 100px;">
+                  <input type="number" 
+                         step="any" 
+                         class="form-control text-right" 
+                         id="manufacturing_process_price_display" 
+                         style="width: 100px;">
                 </div>
               </div>
             </div>
@@ -257,9 +284,9 @@
             <table data-quotes-target="processes" class="table table-bordered">
               <thead class="thead-light">
                 <tr>
-                  <th>Proceso</th>
-                  <th>Acciones</th>
-                  <th>Precio Total</th>
+                  <th style="width: 50%">Proceso</th>
+                  <th style="width: 20%">Acciones</th>
+                  <th style="width: 30%">Precio Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -295,10 +322,21 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text ml-1" id="tooling_unit_display"></span>
                   <span class="input-group-text">$</span>
-                  <input type="number" step="any" class="form-control" id="tooling_price_display" style="width: 100px;">
-                </div>
-                <div class="input-group-append">
-                  <input type="number" step="1" value="1" min="1" class="form-control" id="quantity" style="width: 70px;" placeholder="Qty">
+                  <input type="number" 
+                         step="any" 
+                         class="form-control text-right" 
+                         id="tooling_price_display" 
+                         style="width: 100px;">
+                  <div class="input-group-append">
+                    <input type="number" 
+                           step="1" 
+                           value="1" 
+                           min="1" 
+                           class="form-control text-right" 
+                           id="quantity" 
+                           style="width: 70px;" 
+                           placeholder="Qty">
+                  </div>
                 </div>
               </div>
             </div>
@@ -315,9 +353,9 @@
             <table data-quotes-target="toolings" class="table table-bordered">
               <thead class="thead-light">
                 <tr>
-                  <th>Herramental</th>
-                  <th>Acciones</th>
-                  <th>Precio Total</th>
+                  <th style="width: 50%">Herramental</th>
+                  <th style="width: 20%">Acciones</th>
+                  <th style="width: 30%">Precio Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -356,16 +394,17 @@
 
       <%# Merma %>
       <div class="row ml-3">
-        <% waste_config = GeneralConfiguration.find_by(description: "Merma") %>
         <div class="col-lg-6">
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span><%= form.label :waste, "Merma:" %></span>
               <div style="display: flex; align-items: center; white-space: nowrap;">
-                <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                      id="waste" name="quote[waste]" 
-                      value="<%= waste_config ? waste_config.amount : 0 %>"
-                      data-action="change->quotes#updateWasteValue">
+                <input type="number" 
+                       id="waste" 
+                       name="quote[waste]"
+                       value="<%= @waste_config&.amount %>"
+                       class="form-control text-right"
+                       readonly>
                 <span class="ml-1">%</span>
               </div>
             </div>
@@ -382,17 +421,18 @@
 
       <%# Margen %>
       <div class="row ml-3">
-        <% margin_config = GeneralConfiguration.find_by(description: "Margen") %>
         <div class="col-lg-6">
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span><%= form.label :margin, "Margen:" %></span>
               <div style="display: flex; align-items: center; white-space: nowrap;">
-                <input type="number" step="any" class="form-control" style="width: 100px; text-align: right;" 
-                      id="margin" name="quote[margin]" 
-                      value="<%= margin_config ? margin_config.amount : 0 %>"
-                      data-action="change->quotes#updateMarginValue">
-                <span class="ml-1">%</span> 
+                <input type="number" 
+                       id="margin" 
+                       name="quote[margin]"
+                       value="<%= @margin_config&.amount %>"
+                       class="form-control text-right"
+                       readonly>
+                <span class="ml-1">%</span>
               </div>
             </div>
           </div>
