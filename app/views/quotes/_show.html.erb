@@ -19,53 +19,55 @@
       </div>
     </div>
 
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <h5>Procesos</h5>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Proceso</th>
-              <th>Descripción</th>
-              <th>Precio</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% quote.quote_processes.includes(:manufacturing_process).each do |qp| %>
+    <% if quote.quote_processes.any? %>
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <table class="table">
+            <thead>
               <tr>
-                <td><%= qp.manufacturing_process.name %></td>
-                <td><%= qp.manufacturing_process.description %></td>
-                <td><%= number_to_currency(qp.manufacturing_process.price) %></td>
+                <th>Proceso</th>
+                <th>Descripción</th>
+                <th>Precio</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% quote.quote_processes.includes(:manufacturing_process).each do |qp| %>
+                <tr>
+                  <td><%= qp.manufacturing_process.name %></td>
+                  <td><%= qp.manufacturing_process.description %></td>
+                  <td><%= number_to_currency(qp.price) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    <% end %>
 
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <h5>Herramentales</h5>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Herramental</th>
-              <th>Cantidad</th>
-              <th>Precio</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% quote.quote_toolings.includes(:tooling).each do |qt| %>
+    <% if quote.quote_toolings.any? %>
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <table class="table">
+            <thead>
               <tr>
-                <td><%= qt.tooling.description %></td>
-                <td><%= qt.quantity %></td>
-                <td><%= number_to_currency(qt.tooling.price * qt.quantity) %></td>
+                <th>Herramental</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% quote.quote_toolings.includes(:tooling).each do |qt| %>
+                <tr>
+                  <td><%= qt.tooling.description %></td>
+                  <td><%= qt.quantity %></td>
+                  <td><%= number_to_currency(qt.tooling.price * qt.quantity) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    <% end %>
 
     <div class="row mt-4">
       <div class="col-md-6 offset-md-6">
@@ -97,9 +99,21 @@
         </table>
       </div>
     </div>
+
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <h5>Comentarios</h5>
+        <div class="p-3 bg-light rounded">
+          <%= quote.comments.present? ? quote.comments : "Sin comentarios" %>
+        </div>
+      </div>
+    </div>
+    
   </div>
   <div class="card-footer text-end">
     <%= link_to 'Descargar PDF', quote_path(@quote, format: :pdf), class: 'btn btn-primary', target: '_blank' %>
-    <%= link_to 'Volver', root_path, class: 'btn btn-secondary' %>
+    <%= link_to 'Volver', home_path, 
+                class: 'btn btn-secondary',
+                data: { turbo_frame: "main-content" } %>
   </div>
 </div> 

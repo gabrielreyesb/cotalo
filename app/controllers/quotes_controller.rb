@@ -117,6 +117,10 @@ class QuotesController < ApplicationController
     end
   end
 
+  def index
+    @quotes = Quote.order(created_at: :desc)
+  end
+
   private
 
   def quote_params
@@ -152,9 +156,10 @@ class QuotesController < ApplicationController
       
       :total_quote_value,
       :product_value_per_piece,
+      :comments,
       
       quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
-      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy]
+      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy],
     )
   end
 

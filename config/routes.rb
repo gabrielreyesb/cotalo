@@ -23,6 +23,7 @@ Rails.application.routes.draw do
     end
   end
   
+  get '/home', to: 'pages#home', as: :home
   root 'pages#home'
 
   post 'send_quote/:id', to: 'pages#send_quote', as: :send_quote 

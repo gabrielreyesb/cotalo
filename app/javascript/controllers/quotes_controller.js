@@ -151,15 +151,12 @@ export default class extends Controller {
           return;
         }
 
-        // Get the table body
-        const tableBody = this.processesTarget.querySelector('tbody');
-
-        // Create a new row for the process
         const newRow = document.createElement('tr');
-        
         newRow.dataset.newProcess = "true";
         newRow.innerHTML = `
           <td>
+            <input type="hidden" name="quote[quote_processes_attributes][${this.newProcessId}][manufacturing_process_id]" value="${processId}">
+            <input type="hidden" name="quote[quote_processes_attributes][${this.newProcessId}][price]" value="${calculatedPrice}">
             <span class="process-name">${processName}</span> - 
             <span class="process-description">${processDescription}</span>
           </td>
@@ -172,7 +169,7 @@ export default class extends Controller {
         `;
 
         // Append the new row to the table body
-        tableBody.appendChild(newRow);
+        this.processesTarget.querySelector('tbody').appendChild(newRow);
 
         // Update the new process ID counter
         this.newProcessId++;
@@ -308,8 +305,8 @@ export default class extends Controller {
         newRow.innerHTML = `
           <td>
             <input type="hidden" name="quote[quote_toolings_attributes][${this.newToolingId}][tooling_id]" value="${toolingId}">
-            <span class="tooling-description">${toolingDescription}</span>
             <input type="hidden" name="quote[quote_toolings_attributes][${this.newToolingId}][quantity]" value="${toolingQuantity}">
+            <span class="tooling-description">${toolingDescription}</span>
             <span class="tooling-quantity">(${toolingQuantity})</span>
           </td>
           <td class="text-center">
@@ -562,10 +559,10 @@ export default class extends Controller {
     // Get base values
     const materialPrice = parseFloat(document.getElementById('material-total-price').value) || 0;
     const processesSubtotal = parseFloat(document.getElementById('processes-subtotal').textContent.replace(/[^0-9.-]+/g, "")) || 0;
-    const toolingsSubtotal = parseFloat(document.getElementById('toolings-subtotal').textContent.replace(/[^0-9.-]+/g, "")) || 0;
+    //const toolingsSubtotal = parseFloat(document.getElementById('toolings-subtotal').textContent.replace(/[^0-9.-]+/g, "")) || 0;
 
     // Calculate subtotal
-    const subtotal = materialPrice + processesSubtotal + toolingsSubtotal;
+    const subtotal = materialPrice + processesSubtotal;
     document.getElementById('quote_subtotal').value = subtotal.toFixed(2);
 
     // Get waste and margin percentages directly from the input fields
