@@ -682,4 +682,44 @@ export default class extends Controller {
     hiddenField.value = event.target.value;
   }
   
+  toggleManualMaterial(event) {
+    event.preventDefault();
+    
+    const openIcon = this.openIconTarget;
+    const closeIcon = this.closeIconTarget;
+    const collapse = document.getElementById('manualMaterialCollapse');
+
+    // Toggle the collapse
+    if (collapse.classList.contains('show')) {
+      // Clear manual material fields when closing
+      const manualMaterialInput = document.getElementById('quote_manual_material');
+      const manualMaterialUnitSelect = document.getElementById('quote_manual_material_unit_id');
+      const manualMaterialPrice = document.getElementById('manual_material_price');
+      const manualMaterialWidth = document.getElementById('quote_manual_material_width');
+      const manualMaterialLength = document.getElementById('quote_manual_material_length');
+      
+      if (manualMaterialInput) manualMaterialInput.value = '';
+      if (manualMaterialUnitSelect) manualMaterialUnitSelect.value = '';
+      if (manualMaterialPrice) manualMaterialPrice.value = '';
+      if (manualMaterialWidth) manualMaterialWidth.value = '';
+      if (manualMaterialLength) manualMaterialLength.value = '';
+
+      collapse.classList.remove('show');
+      openIcon.style.display = 'inline';
+      closeIcon.style.display = 'none';
+    } else {
+      // Reset material selection when opening manual material
+      const materialSelect = document.getElementById('quote_material_id');
+      const materialPrice = document.getElementById('material_price');
+      const materialUnitDisplay = document.getElementById('material_unit_display');
+      
+      if (materialSelect) materialSelect.value = '';
+      if (materialPrice) materialPrice.value = '';
+      if (materialUnitDisplay) materialUnitDisplay.textContent = '';
+
+      collapse.classList.add('show');
+      openIcon.style.display = 'none';
+      closeIcon.style.display = 'inline';
+    }
+  }
 }
