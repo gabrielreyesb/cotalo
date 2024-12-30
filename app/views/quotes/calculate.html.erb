@@ -108,7 +108,8 @@
                data-action="click->quotes#toggleManualMaterial" 
                role="button" 
                aria-expanded="false" 
-               aria-controls="manualMaterialCollapse">
+               aria-controls="manualMaterialCollapse"
+               style="text-decoration: none;">
               <i class="fas fa-caret-down" data-quotes-target="openIcon"></i> 
               <i class="fas fa-caret-up" data-quotes-target="closeIcon" style="display: none;"></i>
               Material manual (opcional)
@@ -185,59 +186,57 @@
           </style>
           
           <br><br><br><br><br>
-          <div class="form-group">
-            <table class="table table-bordered"> 
-              <thead class="thead-light"> 
+          <div class="card">
+            <div class="card-body">
+              <table class="table">
                 <tr>
                   <th>Concepto</th>
                   <th>Valor</th>
                 </tr>
-              </thead>
-              <tbody>
                 <tr>
                   <td>Productos por pliego:</td>
                   <td>
                     <input type="number" 
-                          name="quote[products_per_sheet]" 
-                          id="products-per-sheet" 
-                          style="text-align: right; width: 100%;" 
-                          value="0">
-                  </td>    
+                           class="form-control text-right" 
+                           id="products-per-sheet" 
+                           value="0"
+                           data-action="change->quotes#reCalculateProducts">
+                  </td>
                 </tr>
                 <tr>
                   <td>Pliegos necesarios:</td>
                   <td>
                     <input type="number" 
-                          name="quote[sheets_needed]" 
-                          id="sheets-needed" 
-                          style="text-align: right; width: 100%;" 
-                          value="0">
-                  </td>    
+                           class="form-control text-right" 
+                           id="sheets-needed" 
+                           value="0" 
+                           readonly>
+                  </td>
                 </tr>
                 <tr>
                   <td>Precio material:</td>
                   <td>
                     <input type="number" 
-                          name="quote[material_total_quote_value]" 
-                          id="material-total-price" 
-                          step="0.01"
-                          style="text-align: right; width: 100%;" 
-                          value="0.00">
-                  </td>    
+                           class="form-control text-right" 
+                           id="material-total-price" 
+                           value="0.00" 
+                           step="0.01" 
+                           readonly>
+                  </td>
                 </tr>
                 <tr>
                   <td>Metros cuadrados de material:</td>
                   <td>
                     <input type="number" 
-                          name="quote[material_square_meters]" 
-                          id="material-square-meters" 
-                          step="0.01"
-                          style="text-align: right; width: 100%;" 
-                          value="0.00">
-                  </td>    
+                           class="form-control text-right" 
+                           id="material-square-meters" 
+                           value="0.00" 
+                           step="0.01" 
+                           readonly>
+                  </td>
                 </tr>
-              </tbody>
-            </table>
+              </table>
+            </div>
           </div>
           <br><br><br><br>
           <div class="d-flex justify-content-end">
@@ -322,7 +321,12 @@
         <div class="col-lg-6">
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;">
-              <%= form.text_field :subtotal, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "quote_subtotal" %>
+              <%= form.text_field :subtotal, 
+                                step: :any, 
+                                class: "form-control", 
+                                style: "width: 150px; text-align: right;", 
+                                id: "quote_subtotal",
+                                readonly: true %>
             </div>
           </div>
         </div>
@@ -401,12 +405,22 @@
         <div class="col-lg-6">
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;">
-              <%= form.text_field :total_quote_value, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "total-quote-value" %>
+              <%= form.text_field :total_quote_value, 
+                                step: :any, 
+                                class: "form-control", 
+                                style: "width: 150px; text-align: right;", 
+                                id: "total-quote-value",
+                                readonly: true %>
             </div>
           </div> 
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;">
-              <%= form.text_field :price_per_piece, step: :any, class: "form-control font-weight-bold", style: "width: 150px; text-align: right;", id: "price-per-piece" %>
+              <%= form.text_field :price_per_piece, 
+                                step: :any, 
+                                class: "form-control", 
+                                style: "width: 150px; text-align: right;", 
+                                id: "price-per-piece",
+                                readonly: true %>
             </div>
           </div>
         </div>
