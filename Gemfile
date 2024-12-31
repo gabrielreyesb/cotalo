@@ -17,6 +17,10 @@ gem 'devise'
 gem 'prawn'
 gem 'prawn-table'
 
+# Add these gems
+gem 'sass-rails'
+gem 'sassc-rails'
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem 'dotenv-rails'
