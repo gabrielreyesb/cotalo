@@ -18,8 +18,11 @@ Rails.application.configure do
   config.i18n.fallbacks = true
   config.active_support.report_deprecations = false
   config.active_record.dump_schema_after_migration = false
-  config.public_file_server.enabled = true
+  config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
   config.assets.digest = true
   config.action_dispatch.x_sendfile_header = nil
   config.serve_static_files = false
+  config.asset_host = ENV['ASSET_HOST'] if ENV['ASSET_HOST']
+  config.assets.css_compressor = :sass
+  config.assets.paths << Rails.root.join('node_modules')
 end

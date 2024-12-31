@@ -2,5 +2,8 @@
   "dependencies": {
     "bootstrap": "4.6",
     "cleave.js": "^1.6.0"
+  },
+  "scripts": {
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets"
   }
 }
