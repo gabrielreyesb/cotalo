@@ -21,6 +21,9 @@ gem 'prawn-table'
 gem 'sass-rails'
 gem 'sassc-rails'
 
+# For JavaScript compression
+gem 'terser'
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem 'dotenv-rails'
