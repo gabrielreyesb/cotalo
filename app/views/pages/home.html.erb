@@ -1,6 +1,46 @@
 <%= turbo_frame_tag "main-content" do %>
-  <div class="container">
+  <div class="container-fluid px-4">
+    <%# Search/Filter Card %>
     <div class="card mb-4">
+      <div class="card-body">
+        <%= form_tag root_path, method: :get do %>
+          <div class="row mb-3">
+            <div class="col-sm-6">
+              <label>Fecha desde:</label>
+              <%= date_field_tag :start_date, params[:start_date], 
+                  class: "form-control",
+                  placeholder: "dd/mm/yyyy" %>
+            </div>
+            
+            <div class="col-sm-6">
+              <label>Fecha hasta:</label>
+              <%= date_field_tag :end_date, params[:end_date], 
+                  class: "form-control",
+                  placeholder: "dd/mm/yyyy" %>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-12">
+              <label>Cliente:</label>
+              <%= text_field_tag :customer_name, params[:customer_name], 
+                  class: "form-control",
+                  placeholder: "Buscar por nombre de cliente" %>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <%= submit_tag "Filtrar", class: "btn btn-green" %>
+              <%= link_to "Limpiar", root_path, class: "btn btn-secondary" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Quotes Table %>
+    <div class="card">
       <div class="card-body px-0 pt-0 pb-2">
         <div class="table-responsive p-0">
           <table class="table align-items-center mb-0">
@@ -14,7 +54,7 @@
               </tr>
             </thead>
             <tbody>
-              <% @recent_quotes.each do |quote| %>
+              <% @quotes.each do |quote| %>
                 <tr style="cursor: pointer" 
                     data-controller="row-click" 
                     data-action="click->row-click#click" 

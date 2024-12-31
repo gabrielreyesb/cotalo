@@ -1,0 +1,53 @@
+<%# Pricing Summary %>
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12 col-lg-6 offset-lg-6">
+        <table class="table table-sm">
+          <tr>
+            <th>Subtotal:</th>
+            <td class="text-end">
+              <%= form.text_field :subtotal, class: "form-control text-end", readonly: true %>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              Merma:
+              <div class="input-group input-group-sm">
+                <input type="number" id="waste" name="quote[waste]"
+                       value="<%= @waste_config&.amount %>"
+                       class="form-control text-end"
+                       data-action="change->quotes#calculateQuote">
+                <span class="input-group-text">%</span>
+              </div>
+            </th>
+            <td class="text-end">
+              <%= form.text_field :waste_price, class: "form-control text-end", readonly: true %>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              Margen:
+              <div class="input-group input-group-sm">
+                <input type="number" id="margin" name="quote[margin]"
+                       value="<%= @margin_config&.amount %>"
+                       class="form-control text-end"
+                       data-action="change->quotes#calculateQuote">
+                <span class="input-group-text">%</span>
+              </div>
+            </th>
+            <td class="text-end">
+              <%= form.text_field :margin_price, class: "form-control text-end", readonly: true %>
+            </td>
+          </tr>
+          <tr class="table-active">
+            <th>Total:</th>
+            <td class="text-end">
+              <%= form.text_field :total_quote_value, class: "form-control text-end", readonly: true %>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> 

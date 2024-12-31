@@ -1,0 +1,132 @@
+// Layout styles
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #f5fffa;
+}
+
+// Navbar styles
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background-color: #f5fffa;
+  z-index: 1030;
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+// Content wrapper
+.content-wrapper {
+  padding-top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+// Content container
+.content-container {
+  padding: 1rem;
+  max-width: 100%;
+}
+
+// Card styles
+.card {
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,.125);
+  margin-bottom: 1rem;
+}
+
+// Table styles
+.table-responsive {
+  margin-bottom: 0;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+  border-top: 0;
+}
+
+// Turbo frame
+turbo-frame {
+  display: block;
+}
+
+// Filter form styles
+.filter-form {
+  padding: 1.25rem;
+  
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: visible;
+  }
+  
+  .form-control {
+    height: calc(1.5em + 0.75rem + 2px);
+    width: 100%;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-form {
+    padding: 1rem;
+    
+    .form-control {
+      font-size: 16px; // Prevent zoom on iOS
+    }
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+// Filter buttons
+.filter-buttons {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.filter-btn {
+  flex: 1;
+  background-color: #75A443;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.clean-btn {
+  flex: 1;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  text-align: center;
+  text-decoration: none;
+  
+  &:hover {
+    color: white;
+    text-decoration: none;
+  }
+} 

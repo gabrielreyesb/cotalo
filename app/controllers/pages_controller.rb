@@ -6,9 +6,24 @@ class PagesController < ApplicationController
     
     def home
       Rails.logger.info "====== Loading Home Page ======"
-      @recent_quotes = Quote.order(created_at: :desc).limit(5)
-      Rails.logger.info "Quotes found: #{@recent_quotes.count}"
-      Rails.logger.info "Quotes: #{@recent_quotes.inspect}"
+      @quotes = Quote.all.order(created_at: :desc)
+
+      # Apply date filters if present
+      if params[:start_date].present?
+        @quotes = @quotes.where("created_at >= ?", params[:start_date].to_date.beginning_of_day)
+      end
+
+      if params[:end_date].present?
+        @quotes = @quotes.where("created_at <= ?", params[:end_date].to_date.end_of_day)
+      end
+
+      # Apply customer name filter if present
+      if params[:customer_name].present?
+        @quotes = @quotes.where("LOWER(customer_name) LIKE ?", "%#{params[:customer_name].downcase}%")
+      end
+
+      Rails.logger.info "Quotes found: #{@quotes.count}"
+      Rails.logger.info "Quotes: #{@quotes.inspect}"
     end
 
     def send_quote
