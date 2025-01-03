@@ -1,18 +1,5 @@
 <div class="container-wide">
   <h1 style="text-align: center;">Nueva Cotización</h1>
-  
-  <%# Debug information %>
-  <div style="display: none;">
-    <p>Controller: <%= controller_name %></p>
-    <p>Action: <%= action_name %></p>
-    <p>Quote: <%= @quote.inspect %></p>
-    <p>Margin Width: <%= @configuration_margin_width %></p>
-    <p>Margin Length: <%= @configuration_margin_length %></p>
-  </div>
-
-  <%# Debug info to verify values %>
-  <% Rails.logger.debug "Waste config: #{@waste_config.inspect}" %>
-  <% Rails.logger.debug "Margin config: #{@margin_config.inspect}" %>
 
   <%= form_with(model: @quote, 
                 url: quotes_path, 
@@ -23,6 +10,7 @@
                   controller: "nested-form quotes",
                   action: "submit->quotes#handleSubmit" 
                 }) do |form| %>
+    
     <div data-controller="quotes">
       <div>
         <%= hidden_field_tag 'config_margin_width', @configuration_margin_width %> 
@@ -64,33 +52,35 @@
 
           <div class="form-group">
             <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
-            <%= form.text_field :product_quantity, 
+            <%= form.number_field :product_quantity, 
                                class: "form-control text-right", 
-                               value: "2,000.00",
-                               name: "quote[product_quantity]",
-                               data: { 
-                                 action: "input->quotes#updateQuantity"
-                               } %>
+                               value: 2000,
+                               min: 1,
+                               required: true,
+                               id: "quote_product_quantity",
+                               data: { quotes_target: "quantity" } %>
           </div>
 
           <div class="form-group">
             <%= form.label :product_width, "Ancho del producto:", class: "font-weight-bold" %>
-            <%= form.text_field :product_width, 
+            <%= form.number_field :product_width, 
                                class: "form-control text-right", 
-                               value: "34.00",
-                               data: { 
-                                 action: "input->quotes#updateDimension"
-                               } %>
+                               value: 34,
+                               min: 1,
+                               required: true,
+                               id: "quote_product_width",
+                               data: { quotes_target: "width" } %>
           </div>
 
           <div class="form-group">
             <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
-            <%= form.text_field :product_length, 
+            <%= form.number_field :product_length, 
                                class: "form-control text-right", 
-                               value: "23.00",
-                               data: { 
-                                 action: "input->quotes#updateDimension"
-                               } %>
+                               value: 23,
+                               min: 1,
+                               required: true,
+                               id: "quote_product_length",
+                               data: { quotes_target: "length" } %>
           </div>
 
           <div class="form-group">
@@ -171,7 +161,6 @@
           </div>
 
           <button type="button" 
-                  data-controller="quotes"
                   data-action="quotes#calculateProducts" 
                   class="btn btn-green">
             Calcular productos
@@ -218,42 +207,49 @@
                   <th>Valor</th>
                 </tr>
                 <tr>
-                  <td>Productos por pliego:</td>
+                  <td>Productos por unidad de material:</td>
                   <td>
-                    <input type="text" 
+                    <input type="number" 
                            class="form-control text-right" 
                            id="products-per-sheet" 
                            value="0"
+                           min="1"
                            data-quotes-target="productsPerSheet">
                   </td>
                 </tr>
                 <tr>
-                  <td>Pliegos necesarios:</td>
+                  <td>Unidades de material necesarias:</td>
                   <td>
-                    <input type="text" 
+                    <input type="number" 
                            class="form-control text-right" 
                            id="sheets-needed" 
                            value="0" 
+                           min="1"
+                           data-quotes-target="sheetsNeeded"
                            readonly>
                   </td>
                 </tr>
                 <tr>
                   <td>Precio material:</td>
                   <td>
-                    <input type="text" 
+                    <input type="number" 
                            class="form-control text-right" 
                            id="material-total-price" 
                            value="0.00" 
+                           min="0"
+                           data-quotes-target="materialTotalPrice"
                            readonly>
                   </td>
                 </tr>
                 <tr>
                   <td>Metros cuadrados de material:</td>
                   <td>
-                    <input type="text" 
+                    <input type="number" 
                            class="form-control text-right" 
                            id="material-square-meters" 
                            value="0.00" 
+                           min="0"
+                           data-quotes-target="materialSquareMeters"  
                            readonly>
                   </td>
                 </tr>

@@ -2,227 +2,62 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["processes", "toolings", "openIcon", "closeIcon", 
-                   "productsFit", "materialPieces", "materialPrice", "squareMeters", "totalQuoteValue", "productsPerSheet"]; 
+                   "productsPerSheet", "sheetsNeeded", 
+                   "materialTotalPrice", "materialSquareMeters"]; 
 
   connect() {
     this.newProcessId = 0; 
     this.newToolingId = 0; 
-    
-    // Initialize mask for product quantity
-    const quantityInput = document.getElementById('quote_product_quantity');
-    if (quantityInput) {
-      this.quantityMask = IMask(quantityInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-
-      if (quantityInput.value) {
-        this.quantityMask.value = quantityInput.value.toString();
-      }
-    }
-
-    // Initialize masks for dimensions
-    const widthInput = document.getElementById('quote_product_width');
-    const lengthInput = document.getElementById('quote_product_length');
-
-    if (widthInput) {
-      this.widthMask = IMask(widthInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-
-      if (widthInput.value) {
-        this.widthMask.value = widthInput.value.toString();
-      }
-    }
-
-    if (lengthInput) {
-      this.lengthMask = IMask(lengthInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-
-      if (lengthInput.value) {
-        this.lengthMask.value = lengthInput.value.toString();
-      }
-    }
-
-    // Initialize the products per sheet input
-    if (this.hasProductsPerSheetTarget) {
-      this.productsPerSheetTarget.addEventListener('input', this.formatProductsPerSheet.bind(this));
-    }
-
-    // Initialize mask for sheets needed
-    const sheetsNeededInput = document.getElementById('sheets-needed');
-    if (sheetsNeededInput) {
-      this.sheetsNeededMask = IMask(sheetsNeededInput, {
-        mask: Number,
-        scale: 0,
-        thousandsSeparator: ',',
-        normalizeZeros: true
-      });
-    }
-
-    // Initialize mask for material total price
-    const materialTotalPriceInput = document.getElementById('material-total-price');
-    if (materialTotalPriceInput) {
-      this.materialTotalPriceMask = IMask(materialTotalPriceInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Initialize mask for square meters
-    const squareMetersInput = document.getElementById('material-square-meters');
-    if (squareMetersInput) {
-      this.squareMetersMask = IMask(squareMetersInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Initialize mask for quote subtotal
-    const subtotalInput = document.getElementById('quote_subtotal');
-    if (subtotalInput) {
-      this.subtotalMask = IMask(subtotalInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Initialize mask for waste price
-    const wastePriceInput = document.getElementById('quote_waste_price');
-    if (wastePriceInput) {
-      this.wastePriceMask = IMask(wastePriceInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Initialize mask for margin price
-    const marginPriceInput = document.getElementById('quote_margin_price');
-    if (marginPriceInput) {
-      this.marginPriceMask = IMask(marginPriceInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Initialize mask for total quote value
-    const totalQuoteInput = document.getElementById('total-quote-value');
-    if (totalQuoteInput) {
-      this.totalQuoteMask = IMask(totalQuoteInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Initialize mask for price per piece
-    const pricePerPieceInput = document.getElementById('price-per-piece');
-    if (pricePerPieceInput) {
-      this.pricePerPieceMask = IMask(pricePerPieceInput, {
-        mask: Number,
-        scale: 2,
-        thousandsSeparator: ',',
-        padFractionalZeros: true,
-        normalizeZeros: true,
-        radix: '.',
-        mapToRadix: ['.']
-      });
-    }
-
-    // Add form submission handler
-    const form = document.querySelector('form');
-    if (form) {
-      form.addEventListener('submit', this.handleSubmit.bind(this));
-    }
   }
 
   calculateProducts(event) {
     event.preventDefault();
     
     const materialSelect = document.getElementById('quote_material_id');
-    const priceInput = document.getElementById('material_price');
-
-    const manualMaterial = document.getElementById('quote_manual_material').value;
-    const manualMaterialPrice = parseFloat(document.getElementById('manual_material_price').value);
-    const manualMaterialWidth = parseFloat(document.getElementById('quote_manual_material_width').value); 
-    const manualMaterialLength = parseFloat(document.getElementById('quote_manual_material_length').value);   
+    const manualMaterialInput = document.getElementById('quote_manual_material');
+    const manualMaterialWidth = document.getElementById('quote_manual_material_width');
+    const manualMaterialLength = document.getElementById('quote_manual_material_length');
+    const manualMaterialPrice = document.getElementById('manual_material_price');
+    
+    // Check if either material is selected or manual material is properly filled
+    const hasSelectedMaterial = materialSelect && materialSelect.value;
+    const hasManualMaterial = manualMaterialInput && 
+                             manualMaterialInput.value && 
+                             manualMaterialWidth && 
+                             manualMaterialWidth.value && 
+                             manualMaterialLength && 
+                             manualMaterialLength.value &&
+                             manualMaterialPrice &&
+                             manualMaterialPrice.value;
+    
+    if (!hasSelectedMaterial && !hasManualMaterial) {
+        alert("Por favor seleccione un material o complete la información del material manual");
+        
+        // Reset all calculation fields
+        this.productsPerSheetTarget.value = 0;
+        this.sheetsNeededTarget.value = 0;
+        this.materialTotalPriceTarget.value = 0;
+        this.materialSquareMetersTarget.value = 0;
+        return;
+    }
     
     let materialWidth, materialLength, materialPrice;
 
-    if (manualMaterial !== "") {
-      materialWidth = manualMaterialWidth;
-      materialLength = manualMaterialLength;
-      materialPrice = manualMaterialPrice;
-    } else {
-      if (materialSelect) {
+    if (hasSelectedMaterial) {
         const selectedOption = materialSelect.selectedOptions[0];
-  
-        if (selectedOption) {
-          materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
-          materialLength = parseFloat(selectedOption.getAttribute('data-length'));
-          materialPrice = parseFloat(priceInput.value);
-        } else {
-          console.error("No material selected!");
-          return;
-        }
-      } else {
-        console.error("Material select element not found!");
-        return;
-      }
+        materialWidth = parseFloat(selectedOption.getAttribute('data-width'));
+        materialLength = parseFloat(selectedOption.getAttribute('data-length'));
+        materialPrice = parseFloat(document.getElementById('material_price').value);
+    } else {
+        materialWidth = parseFloat(manualMaterialWidth.value);
+        materialLength = parseFloat(manualMaterialLength.value);
+        materialPrice = parseFloat(manualMaterialPrice.value);
     }
-  
-    // Get the actual numeric values using the helper methods
-    const productQuantity = this.getQuantityValue();
-    const productsPerSheet = this.getProductsPerSheetValue();
-    const productWidth = this.getDimensionValue('quote_product_width');
-    const productLength = this.getDimensionValue('quote_product_length');
+
+    // Get values directly from number inputs
+    const productQuantity = parseInt(document.getElementById('quote_product_quantity').value) || 0;
+    const productWidth = parseFloat(document.getElementById('quote_product_width').value) || 0;
+    const productLength = parseFloat(document.getElementById('quote_product_length').value) || 0;
 
     const configMarginWidth = parseFloat(document.getElementById('config_margin_width').value) || 0;
     const configMarginLength = parseFloat(document.getElementById('config_margin_length').value) || 0;
@@ -230,17 +65,15 @@ export default class extends Controller {
     const finalProductWidth = productWidth + configMarginWidth;
     const finalProductLength = productLength + configMarginLength;
 
-    // Check if product is too big for material
     if (finalProductWidth > materialWidth || finalProductLength > materialLength) {
       alert(`El producto es demasiado grande para el material seleccionado.
       \nTamaño del producto (con márgenes): ${finalProductWidth} x ${finalProductLength}
       \nTamaño del material: ${materialWidth} x ${materialLength}`);
       
-      // Reset calculation fields
-      document.getElementById('products-per-sheet').value = 0;
-      document.getElementById('sheets-needed').value = 0;
-      document.getElementById('material-total-price').value = 0;
-      document.getElementById('material-square-meters').value = 0;
+      this.productsPerSheetTarget.value = 0;
+      this.sheetsNeededTarget.value = 0;
+      this.materialTotalPriceTarget.value = 0;
+      this.materialSquareMetersTarget.value = 0;
       return;
     }
 
@@ -253,30 +86,22 @@ export default class extends Controller {
       return;
     }
 
-    document.getElementById('products-per-sheet').value = totalProducts;
+    this.productsPerSheetTarget.value = totalProducts;
 
     const sheetsNeeded = Math.ceil(productQuantity / totalProducts); 
-    document.getElementById('sheets-needed').value = sheetsNeeded;
+    this.sheetsNeededTarget.value = sheetsNeeded;
 
     const quoteValue = materialPrice * sheetsNeeded;
-    if (this.materialTotalPriceMask) {
-      this.materialTotalPriceMask.value = quoteValue.toFixed(2);
-    }
+    this.materialTotalPriceTarget.value = quoteValue.toFixed(2);
 
     const squareMeters = (materialLength * materialWidth * sheetsNeeded) / 10000;
-    if (this.squareMetersMask) {
-      this.squareMetersMask.value = squareMeters.toFixed(2);
-    }
-
-    if (this.sheetsNeededMask) {
-      this.sheetsNeededMask.value = sheetsNeeded.toString();
-    }
+    this.materialSquareMetersTarget.value = squareMeters.toFixed(2);
   }
 
   reCalculateProducts(event) {
     event.preventDefault();
     
-    const productQuantity = this.getQuantityValue();
+    const productQuantity = parseInt(document.getElementById('quote_product_quantity').value) || 0;
     const productsPerSheet = this.getProductsPerSheetValue();
     
     // Prevent division by zero
@@ -303,19 +128,15 @@ export default class extends Controller {
     const materialLength = parseFloat(document.getElementById('material_length').value) || 0;
     
     // Calculate and update material total price
-    if (materialTotalPriceInput && this.materialTotalPriceMask) {
+    if (materialTotalPriceInput) {
       const totalPrice = materialPrice * sheetsNeeded;
-      this.materialTotalPriceMask.value = totalPrice.toFixed(2);
+      materialTotalPriceInput.value = totalPrice.toFixed(2);
     }
     
     // Calculate and update square meters
-    if (materialSquareMetersInput && this.squareMetersMask) {
+    if (materialSquareMetersInput) {
       const squareMeters = (materialWidth * materialLength * sheetsNeeded) / 10000;
-      this.squareMetersMask.value = squareMeters.toFixed(2);
-    }
-
-    if (sheetsNeededInput && this.sheetsNeededMask) {
-      this.sheetsNeededMask.value = sheetsNeeded.toString();
+      materialSquareMetersInput.value = squareMeters.toFixed(2);
     }
   }
 
@@ -758,50 +579,34 @@ export default class extends Controller {
   calculateQuote(event) {
     event.preventDefault();
 
-    // Get base values with proper parsing of formatted numbers
-    const materialPrice = parseFloat(document.getElementById('material-total-price').value.replace(/,/g, '')) || 0;
+    // Get base values directly
+    const materialPrice = parseFloat(document.getElementById('material-total-price').value) || 0;
     const processesSubtotal = parseFloat(document.getElementById('processes-subtotal').textContent.replace(/,/g, '')) || 0;
 
     // Calculate subtotal
     const subtotal = materialPrice + processesSubtotal;
+    
+    // Update subtotal field first
+    document.getElementById('quote_subtotal').value = subtotal.toFixed(2);
 
-    // Get waste and margin percentages
+    // Get waste and margin percentages - make sure we're getting from the right fields
     const wastePercentage = parseFloat(document.getElementById('waste').value) || 0;
     const marginPercentage = parseFloat(document.getElementById('margin').value) || 0;
 
-    // Calculate waste amount
-    const wasteAmount = subtotal * (wastePercentage / 100);
-
-    // Calculate margin amount
-    const marginAmount = subtotal * (marginPercentage / 100);
-
-    // Calculate total
+    // Calculate amounts
+    const wasteAmount = (subtotal * wastePercentage) / 100;
+    const marginAmount = (subtotal * marginPercentage) / 100;
     const totalValue = subtotal + wasteAmount + marginAmount;
 
-    // Calculate price per piece using the masked quantity value
-    const productQuantity = this.getQuantityValue(); // Use our helper method
+    // Calculate price per piece
+    const productQuantity = parseInt(document.getElementById('quote_product_quantity').value) || 0;
     const pricePerPiece = productQuantity > 0 ? totalValue / productQuantity : 0;
 
-    // Update all masked fields
-    if (this.subtotalMask) {
-      this.subtotalMask.value = subtotal.toFixed(2);
-    }
-
-    if (this.wastePriceMask) {
-      this.wastePriceMask.value = wasteAmount.toFixed(2);
-    }
-
-    if (this.marginPriceMask) {
-      this.marginPriceMask.value = marginAmount.toFixed(2);
-    }
-
-    if (this.totalQuoteMask) {
-      this.totalQuoteMask.value = totalValue.toFixed(2);
-    }
-
-    if (this.pricePerPieceMask) {
-      this.pricePerPieceMask.value = pricePerPiece.toFixed(2);
-    }
+    // Update fields with formatted numbers
+    document.getElementById('quote_waste_price').value = wasteAmount.toFixed(2);
+    document.getElementById('quote_margin_price').value = marginAmount.toFixed(2);
+    document.getElementById('total-quote-value').value = totalValue.toFixed(2);
+    document.getElementById('price-per-piece').value = pricePerPiece.toFixed(2);
   }
 
   searchCustomer(event) {
@@ -935,34 +740,6 @@ export default class extends Controller {
       collapse.classList.add('show');
       openIcon.style.display = 'none';
       closeIcon.style.display = 'inline';
-    }
-  }
-
-  // Add this method to handle the masked value
-  updateQuantity(event) {
-    if (this.quantityMask) {
-      const unmaskedValue = this.quantityMask.unmaskedValue;
-      event.target.setAttribute('data-real-value', unmaskedValue);
-    }
-  }
-
-  // When you need the actual value in calculations
-  getQuantityValue() {
-    const quantityInput = document.getElementById('quote_product_quantity');
-    if (quantityInput) {
-      return parseFloat(quantityInput.getAttribute('data-real-value')) || parseFloat(quantityInput.value.replace(/,/g, '')) || 0;
-    }
-    return 0;
-  }
-
-  // Add method to handle dimension updates
-  updateDimension(event) {
-    const input = event.target;
-    const mask = input.id === 'quote_product_width' ? this.widthMask : this.lengthMask;
-    
-    if (mask) {
-      const unmaskedValue = mask.unmaskedValue;
-      input.setAttribute('data-real-value', unmaskedValue);
     }
   }
 
