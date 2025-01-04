@@ -1,11 +1,13 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  description: MyString
-  price: 9.99
+  name: "Test Process"
+  description: "Test Process Description"
+  price: 10.00
   unit: one
 
 two:
-  description: MyString
-  price: 9.99
-  unit: two
+  name: "Another Process"
+  description: "Another Process Description"
+  price: 20.00
+  unit: one

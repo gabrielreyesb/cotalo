@@ -1,5 +1,5 @@
 <div class="container-wide">
-  <h1 style="text-align: center;">Nueva Cotización</h1>
+  <h1 style="text-align: center;">Nueva cotización</h1>
 
   <%= form_with(model: @quote, 
                 url: quotes_path, 
@@ -452,6 +452,7 @@
         </div>
       </div>
     
+      <%# Calcula cotización %>
       <div class="row ml-3">
         <div class="col-lg-6">
           <button type="button" 
@@ -484,30 +485,36 @@
 
       <hr style="border: 1px solid black;">
 
-      <%# Herramentales %>
+      <%# Extras %>
       <div class="nested-fields">
+        <%# Add this for debugging %>
+        <div class="d-none">
+          Current newExtraId: <span data-quotes-target="extraIdDebug"></span>
+        </div>
+        
         <div class="row ml-3">
           <div class="col-lg-6">
             <div class="form-group">
-              <%= form.label :tooling_id, "Herramentales:", class: "font-weight-bold" %>
+              <%= form.label :extra_id, "Extras:", class: "font-weight-bold" %>
               <div class="input-group">
-                <%= form.select :tooling_id,
+                <%= form.select :extra_id,
                           options_for_select(
-                            Tooling.all.map { |t|
-                            ["#{t.description}", t.id, { 'data-price' => t.price, 'data-unit' => t.unit.description }]
-                            },
+                            Extra.all.map { |e|
+                              ["#{e.description}", e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
+                            }
                           ),
                           { include_blank: 'Select one' },
                           { class: "form-control",
-                            'data-action': 'change->quotes#showToolingInfo'
-                } %>
+                            'data-action': 'change->quotes#showExtraInfo'
+                          }
+                %>
                 <div class="input-group-prepend">
-                  <span class="input-group-text ml-1" id="tooling_unit_display"></span>
+                  <span class="input-group-text ml-1" id="extra_unit_display"></span>
                   <span class="input-group-text">$</span>
                   <input type="number" 
                          step="any" 
                          class="form-control text-right" 
-                         id="tooling_price_display" 
+                         id="extra_price_display" 
                          style="width: 100px;">
                   <div class="input-group-append">
                     <input type="number" 
@@ -524,31 +531,31 @@
             </div>
 
             <button type="button"
-                    data-action="click->quotes#addTooling" 
+                    data-action="click->quotes#addExtra" 
                     class="btn btn-green">
-              Agregar Herramental
+              Agregar Extra
             </button>
           </div>
 
           <div class="col-lg-6">
             <br>
-            <table data-quotes-target="toolings" class="table table-bordered">
+            <table data-quotes-target="extras" class="table table-bordered">
               <thead class="thead-light">
                 <tr>
-                  <th style="width: 50%">Herramental</th>
+                  <th style="width: 50%">Extras</th>
                   <th style="width: 20%">Acciones</th>
                   <th style="width: 30%">Precio</th>
                 </tr>
               </thead>
               <tbody>
-                <%= form.fields_for :quote_toolings do |tooling_form| %> 
-                  <%= render 'quote_tooling_fields', f: tooling_form %> 
+                <%= form.fields_for :quote_extras do |extra_form| %> 
+                  <%= render 'quote_extra_fields', f: extra_form %> 
                 <% end %>
               </tbody>
             </table>
             <div>
-              <strong>Subtotal herramentales: </strong>
-              <span id="toolings-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
+              <strong>Subtotal extras: </strong>
+              <span id="extras-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
             </div>
           </div>
         </div>

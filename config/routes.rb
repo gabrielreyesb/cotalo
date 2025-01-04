@@ -6,7 +6,7 @@ Rails.application.routes.draw do
 
   devise_for :users
   
-  resources :toolings
+  resources :extras
   resources :manufacturing_processes
   resources :units
   resources :customers

@@ -1,0 +1,19 @@
+<div id="<%= dom_id extra %>">
+  <p>
+    <strong>Description:</strong>
+    <%= extra.description %>
+  </p>
+
+  <p>
+    <strong>Price:</strong>
+    <%= extra.price %>
+  </p>
+
+  <p>
+    <strong>Unit:</strong>
+    <% if extra.unit %>
+      <%= extra.unit.description %>
+    <% end %>
+  </p>
+
+</div> 

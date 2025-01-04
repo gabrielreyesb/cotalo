@@ -1,0 +1,32 @@
+<%= form_with(model: extra) do |form| %>
+  <% if extra.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(extra.errors.count, "error") %> prohibited this extra from being saved:</h2>
+      <ul>
+        <% extra.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :description, "Descripción" %>
+    <%= form.text_field :description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :price, "Precio" %>
+    <%= form.number_field :price, class: "form-control", step: :any %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :unit_id, "Unidad" %>
+    <%= form.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-control" %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Guardar", class: "btn btn-green" %>
+    <%= link_to 'Cancelar', extras_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

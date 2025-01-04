@@ -1,13 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["processes", "toolings", "openIcon", "closeIcon", 
+  static targets = ["processes", "extras", "openIcon", "closeIcon", 
                    "productsPerSheet", "sheetsNeeded", 
                    "materialTotalPrice", "materialSquareMeters"]; 
 
   connect() {
     this.newProcessId = 0; 
-    this.newToolingId = 0; 
+    this.newExtraId = 0; 
   }
 
   calculateProducts(event) {
@@ -292,70 +292,61 @@ export default class extends Controller {
     this.processesTarget.querySelector('tbody').appendChild(newRow); 
   }
 
-  addTooling(event) {
+  addExtra(event) {
     event.preventDefault();
   
-    const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[tooling_id]"]');
-    const priceInput = document.getElementById('tooling_price_display');
+    const selectElement = event.target.closest('.nested-fields').querySelector('select[name*="[extra_id]"]');
+    const priceInput = document.getElementById('extra_price_display');
     const quantityInput = document.getElementById('quantity'); 
   
     if (selectElement && priceInput && quantityInput) {
       const selectedOption = selectElement.selectedOptions[0];
   
       if (selectedOption) {
-        const toolingId = selectedOption.value;
-        const toolingDescription = selectedOption.text;
-        const toolingPrice = parseFloat(priceInput.value);
-        const toolingQuantity = parseInt(quantityInput.value, 10); 
-  
-        const calculatedPrice = toolingPrice * toolingQuantity;
-  
-        // Format the price with thousands separator and 2 decimals
-        const formattedPrice = calculatedPrice.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
+        const extraId = selectedOption.value;
+        const extraDescription = selectedOption.text;
+        const extraPrice = parseFloat(priceInput.value);
+        const extraQuantity = parseInt(quantityInput.value, 10); 
 
-        // Create a new row for the tooling
+        // Create a new row for the extra
         const newRow = document.createElement('tr');
-        newRow.dataset.newTooling = "true";
+        newRow.dataset.newExtra = "true";
         newRow.innerHTML = `
           <td>
-            <input type="hidden" name="quote[quote_toolings_attributes][${this.newToolingId}][tooling_id]" value="${toolingId}">
-            <input type="hidden" name="quote[quote_toolings_attributes][${this.newToolingId}][quantity]" value="${toolingQuantity}">
-            <span class="tooling-description">${toolingDescription}</span>
-            <span class="tooling-quantity">(${toolingQuantity})</span>
+            <input type="hidden" name="quote[quote_extras_attributes][${this.newExtraId}][extra_id]" value="${extraId}">
+            <input type="hidden" name="quote[quote_extras_attributes][${this.newExtraId}][quantity]" value="${extraQuantity}">
+            <input type="hidden" name="quote[quote_extras_attributes][${this.newExtraId}][_destroy]" value="false">
+            <span class="extra-description">${extraDescription}</span>
+            (<span class="extra-quantity">${extraQuantity}</span>)
           </td>
           <td class="text-center">
-            <a href="#" data-action="click->quotes#removeTooling" class="btn btn-danger">Eliminar</a>
+            <button type="button" data-action="click->quotes#removeExtra" class="btn btn-danger">Eliminar</button>
           </td>
           <td class="text-right">
-            <span class="tooling-price-total">${formattedPrice}</span>
+            <span class="extra-price-total">${(extraPrice * extraQuantity).toFixed(2)}</span>
           </td>
         `;
-  
-        // Append the new row to the table body
-        this.toolingsTarget.querySelector('tbody').appendChild(newRow);
-  
-        // Update the new tooling ID counter
-        this.newToolingId++;
-  
-        this.updateToolingsSubtotal();
 
-        // Clear selection
+        const tbody = this.extrasTarget.querySelector('tbody');
+        tbody.appendChild(newRow);
+        
+        this.newExtraId++;
+        this.updateExtrasSubtotal();
+
+        // Reset inputs
         selectElement.value = '';
-        if (priceInput) priceInput.value = '';
-        if (quantityInput) quantityInput.value = '1';
-        const unitDisplay = document.getElementById('tooling_unit_display');
+        priceInput.value = '';
+        quantityInput.value = '1';
+        const unitDisplay = document.getElementById('extra_unit_display');
         if (unitDisplay) unitDisplay.textContent = '';
       }
     }
   }
 
-  updateToolingsSubtotal() {
-    const subtotalElement = document.getElementById('toolings-subtotal');
-    if (subtotalElement && this.toolingsTarget) {
-      const prices = Array.from(this.toolingsTarget.querySelectorAll('.tooling-price-total'))
+  updateExtrasSubtotal() {
+    const subtotalElement = document.getElementById('extras-subtotal');
+    if (subtotalElement && this.extrasTarget) {
+      const prices = Array.from(this.extrasTarget.querySelectorAll('.extra-price-total'))
         .map(span => parseFloat(span.textContent.replace(/,/g, '')) || 0);
       
       const total = prices.reduce((sum, price) => sum + price, 0);
@@ -368,35 +359,35 @@ export default class extends Controller {
     }
   }
 
-  removeTooling(event) {
+  removeExtra(event) {
     event.preventDefault();
   
     const row = event.target.closest('tr');
     if (row) {
       row.remove();
-      this.updateToolingsSubtotal();
+      this.updateExtrasSubtotal();
     }
   }
   
-  showToolingDetails(event) {
+  showExtraDetails(event) {
     const selectedOption = event.target.selectedOptions[0];
-    const toolingPrice = parseFloat(selectedOption.dataset.price);
-    const toolingUnit = selectedOption.dataset.unit;
+    const extraPrice = parseFloat(selectedOption.dataset.price);
+    const extraUnit = selectedOption.dataset.unit;
 
     const nestedFieldsDiv = event.target.closest('.nested-fields'); 
-    const toolingPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingPrice"]');
-    const toolingUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="toolingUnit"]');
+    const extraPriceDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="extraPrice"]');
+    const extraUnitDisplay = nestedFieldsDiv.querySelector('[data-quotes-target="extraUnit"]');
   
-    if (toolingPriceDisplay) {
-      toolingPriceDisplay.textContent = `$${toolingPrice.toFixed(2)}`;
+    if (extraPriceDisplay) {
+      extraPriceDisplay.textContent = `$${extraPrice.toFixed(2)}`;
     }
   
-    if (toolingUnitDisplay) {
-      toolingUnitDisplay.textContent = toolingUnit;
+    if (extraUnitDisplay) {
+      extraUnitDisplay.textContent = extraUnit;
     }
   }
 
-  showToolingInfo(event) {
+  showExtraInfo(event) {
     const selectElement = event.target; 
     const priceDisplay = selectElement.parentNode.querySelector('input[type="number"]');
     const price = selectElement.options[selectElement.selectedIndex].dataset.price;
@@ -405,44 +396,44 @@ export default class extends Controller {
     if (priceDisplay) {
       priceDisplay.value = parseFloat(price).toFixed(2);
     } else {
-      console.error("Price display element not found for tooling.");
+      console.error("Price display element not found for extra.");
     }
     
     // The following lines should be inside the if(priceDisplay) block
-    const toolingPriceDisplay = document.getElementById('tooling_price_display'); 
-    if (toolingPriceDisplay) {
-      toolingPriceDisplay.textContent = `$${parseFloat(price).toFixed(2)}`; // Use price here
+    const extraPriceDisplay = document.getElementById('extra_price_display'); 
+    if (extraPriceDisplay) {
+      extraPriceDisplay.textContent = `$${parseFloat(price).toFixed(2)}`; // Use price here
     }
   
-    const toolingUnitDisplay = document.getElementById('tooling_unit_display');
-    if (toolingUnitDisplay) {
-      toolingUnitDisplay.textContent = unit; 
+    const extraUnitDisplay = document.getElementById('extra_unit_display');
+    if (extraUnitDisplay) {
+      extraUnitDisplay.textContent = unit; 
     }
   }
 
-  createToolingField() {
+  createExtraField() {
     const newId = new Date().getTime(); 
-    const regexp = new RegExp("new_quote_tooling", "g"); 
-    const newToolingFields = this.toolingFieldsTemplate.replace(regexp, newId);
-    return newToolingFields;
+    const regexp = new RegExp("new_quote_extra", "g"); 
+    const newExtraFields = this.extraFieldsTemplate.replace(regexp, newId);
+    return newExtraFields;
   }
 
-  addToolingToList(toolingDescription, toolingPrice, toolingUnit, calculatedPrice) {
+  addExtraToList(extraDescription, extraPrice, extraUnit, calculatedPrice) {
     const newRow = document.createElement('tr'); 
     const descriptionCell = document.createElement('td');
     
-    descriptionCell.textContent = toolingDescription;
+    descriptionCell.textContent = extraDescription;
     newRow.appendChild(descriptionCell);
 
     const removeCell = document.createElement('td');
     const removeButton = document.createElement('button');
     removeButton.textContent = 'Eliminar';
     removeButton.classList.add('btn', 'btn-danger');
-    removeButton.setAttribute('data-action', 'click->quotes#removeTooling');
+    removeButton.setAttribute('data-action', 'click->quotes#removeExtra');
     removeButton.addEventListener('click', (event) => {
       event.preventDefault(); 
       newRow.remove();
-      this.updateToolingsSubtotal();
+      this.updateExtrasSubtotal();
     });
     removeCell.appendChild(removeButton);
     removeCell.classList.add('text-center');
@@ -453,7 +444,7 @@ export default class extends Controller {
     priceCell.style.textAlign = 'right';
     newRow.appendChild(priceCell);
 
-    this.toolingsTarget.querySelector('tbody').appendChild(newRow); 
+    this.extrasTarget.querySelector('tbody').appendChild(newRow); 
   }
 
   showMaterialPrice(event) {
@@ -774,6 +765,26 @@ export default class extends Controller {
 
   // Add this new method
   handleSubmit(event) {
+    // Add email validation
+    const emailInput = document.getElementById('quote_customer_email');
+    if (!emailInput || !emailInput.value.trim()) {
+        event.preventDefault();
+        alert("Por favor ingrese el correo electrónico del cliente antes de guardar la cotización");
+        return false;
+    }
+
+    // Add validation for calculated values
+    const productsPerSheet = parseFloat(document.getElementById('products-per-sheet').value) || 0;
+    const sheetsNeeded = parseFloat(document.getElementById('sheets-needed').value) || 0;
+    const materialTotalPrice = parseFloat(document.getElementById('material-total-price').value) || 0;
+    const totalQuoteValue = parseFloat(document.getElementById('total-quote-value').value) || 0;
+
+    if (productsPerSheet === 0 || sheetsNeeded === 0 || materialTotalPrice === 0 || totalQuoteValue === 0) {
+        event.preventDefault();
+        alert("Por favor calcule los productos y la cotización antes de guardar");
+        return false;
+    }
+
     // Get all the inputs that need to be cleaned
     const quantityInput = document.getElementById('quote_product_quantity');
     const totalQuoteInput = document.getElementById('total-quote-value');
@@ -782,22 +793,21 @@ export default class extends Controller {
 
     // Clean up the values by removing commas
     if (quantityInput) {
-      quantityInput.value = quantityInput.value.replace(/,/g, '');
+        quantityInput.value = quantityInput.value.replace(/,/g, '');
     }
 
     if (totalQuoteInput) {
-      totalQuoteInput.value = totalQuoteInput.value.replace(/,/g, '');
+        totalQuoteInput.value = totalQuoteInput.value.replace(/,/g, '');
     }
 
     if (wastePriceInput) {
-      wastePriceInput.value = wastePriceInput.value.replace(/,/g, '');
+        wastePriceInput.value = wastePriceInput.value.replace(/,/g, '');
     }
 
     if (marginPriceInput) {
-      marginPriceInput.value = marginPriceInput.value.replace(/,/g, '');
+        marginPriceInput.value = marginPriceInput.value.replace(/,/g, '');
     }
 
-    // Let the form submit normally
     return true;
   }
 }

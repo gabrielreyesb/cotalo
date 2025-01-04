@@ -41,10 +41,18 @@ class QuotesController < ApplicationController
 
   def create
     @quote = Quote.new(quote_params)
-    @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
-    @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
+    
+    # Add these values before saving
+    @quote.amount_of_sheets = @quote.calculate_sheets_needed
+    @quote.products_per_sheet = @quote.calculate_products_per_sheet
+    @quote.material_square_meters = @quote.calculate_material_square_meters
+
+    # Add debugging
+    Rails.logger.debug "Quote params: #{quote_params.inspect}"
+    Rails.logger.debug "Quote extras params: #{quote_params[:quote_extras_attributes]&.inspect}"
 
     if @quote.save
+      Rails.logger.debug "Saved quote extras: #{@quote.quote_extras.inspect}"
       redirect_to root_path, notice: "Cotización creada exitosamente."
     else
       Rails.logger.debug "Quote errors: #{@quote.errors.full_messages}"
@@ -103,7 +111,8 @@ class QuotesController < ApplicationController
   end
 
   def show
-    @quote = Quote.find(params[:id])
+    @quote = Quote.includes(:quote_processes, :manufacturing_processes, 
+                           quote_extras: :extra).find(params[:id])
     
     respond_to do |format|
       format.html
@@ -125,41 +134,19 @@ class QuotesController < ApplicationController
 
   def quote_params
     params.require(:quote).permit(
-      :projects_name,
-      :customer_name,
-      :customer_organization,
-      :customer_email,
-      :product_quantity,
-      :product_width,
-      :product_length,
-      
-      :material_id,
-      :material_unit_id,
-      :material_price,
-      :material_total_price,
-      :material_square_meters,
-      
-      :manual_material,
+      :customer_name, :customer_email, :customer_organization,
+      :product_quantity, :product_width, :product_length,
+      :material_id, :unit_id,
+      :manual_material, :manual_material_width, :manual_material_length, :manual_material_price,
       :manual_material_unit_id,
-      :manual_material_price,
-      :manual_material_width,
-      :manual_material_length,
-      
-      :products_per_sheet,
-      :amount_of_sheets,
-      
-      :subtotal,
-      :waste_price,
-      :margin_price,
-      :waste_price,
-      :margin_price,
-      
-      :total_quote_value,
-      :product_value_per_piece,
+      :waste_percentage, :margin_percentage,
+      :products_per_sheet, :amount_of_sheets,
+      :subtotal, :waste_price, :margin_price,
+      :total_quote_value, :product_value_per_piece,
       :comments,
-      
+      :material_square_meters,
       quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
-      quote_toolings_attributes: [:id, :tooling_id, :quantity, :_destroy],
+      quote_extras_attributes: [:id, :extra_id, :quantity, :_destroy]
     )
   end
 

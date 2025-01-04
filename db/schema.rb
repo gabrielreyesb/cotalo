@@ -10,13 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_30_222130) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_03_170000) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
     t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "extras", force: :cascade do |t|
+    t.string "description"
+    t.decimal "price", precision: 10, scale: 2
+    t.integer "unit_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "comments"
+    t.index ["unit_id"], name: "index_extras_on_unit_id"
   end
 
   create_table "general_configurations", force: :cascade do |t|
@@ -64,6 +74,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_30_222130) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "quote_extras", force: :cascade do |t|
+    t.integer "quote_id", null: false
+    t.integer "extra_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "quantity"
+    t.index ["extra_id"], name: "index_quote_extras_on_extra_id"
+    t.index ["quote_id"], name: "index_quote_extras_on_quote_id"
+  end
+
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
@@ -72,16 +92,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_30_222130) do
     t.decimal "price"
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
     t.index ["quote_id"], name: "index_quote_processes_on_quote_id"
-  end
-
-  create_table "quote_toolings", force: :cascade do |t|
-    t.integer "quote_id", null: false
-    t.integer "tooling_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "quantity"
-    t.index ["quote_id"], name: "index_quote_toolings_on_quote_id"
-    t.index ["tooling_id"], name: "index_quote_toolings_on_tooling_id"
   end
 
   create_table "quotes", force: :cascade do |t|
@@ -119,16 +129,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_30_222130) do
     t.string "product_name"
   end
 
-  create_table "toolings", force: :cascade do |t|
-    t.string "description"
-    t.decimal "price", precision: 10, scale: 2
-    t.integer "unit_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.text "comments"
-    t.index ["unit_id"], name: "index_toolings_on_unit_id"
-  end
-
   create_table "units", force: :cascade do |t|
     t.string "description"
     t.datetime "created_at", null: false
@@ -154,15 +154,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_30_222130) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "extras", "units"
   add_foreign_key "general_configurations", "units"
   add_foreign_key "manufacturing_processes", "units"
   add_foreign_key "materials", "units"
+  add_foreign_key "quote_extras", "extras"
+  add_foreign_key "quote_extras", "quotes"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"
-  add_foreign_key "quote_toolings", "quotes"
-  add_foreign_key "quote_toolings", "toolings"
   add_foreign_key "quotes", "materials"
   add_foreign_key "quotes", "units", column: "manual_material_unit_id"
   add_foreign_key "quotes", "units", column: "material_unit_id"
-  add_foreign_key "toolings", "units"
 end

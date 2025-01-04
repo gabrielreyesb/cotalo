@@ -1,17 +1,1 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
-  description: MyString
-  weight: 9.99
-  width: 9.99
-  height: 9.99
-  lenght: 9.99
-  comments: MyString
-
-two:
-  description: MyString
-  weight: 9.99
-  width: 9.99
-  height: 9.99
-  lenght: 9.99
-  comments: MyString
+# Reset to original or delete modifications

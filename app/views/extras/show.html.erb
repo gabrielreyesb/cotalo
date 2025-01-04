@@ -1,0 +1,27 @@
+<%= turbo_frame_tag "main-content" do %>
+  <div class="container">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Extra</h5>
+        
+        <p>
+          <strong>Descripción:</strong>
+          <%= @extra.description %>
+        </p>
+
+        <p>
+          <strong>Precio:</strong>
+          <%= number_to_currency(@extra.price) %>
+        </p>
+
+        <p>
+          <strong>Unidad:</strong>
+          <%= @extra.unit.description %>
+        </p>
+
+        <%= link_to 'Editar', edit_extra_path(@extra), class: "btn btn-primary" %>
+        <%= link_to 'Volver', extras_path, class: "btn btn-secondary" %>
+      </div>
+    </div>
+  </div>
+<% end %>

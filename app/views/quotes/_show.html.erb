@@ -19,15 +19,79 @@
       </div>
     </div>
 
+    <%# Material Information section %>
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <table class="table">
+          <thead style="background-color: #76a835; color: white">
+            <tr>
+              <th>Material</th>
+              <th>Hojas Necesarias</th>
+              <th class="text-end">Precio por Hoja</th>
+              <th class="text-end">Precio Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <%= quote.material&.description || quote.manual_material %>
+                <% if quote.material %>
+                  <br>
+                  <small class="text-muted">
+                    (<%= quote.material.width %>x<%= quote.material.length %> cms)
+                  </small>
+                <% end %>
+              </td>
+              <td><%= quote.amount_of_sheets || 0 %></td>
+              <td class="text-end">
+                <%= number_to_currency(quote.material&.price || quote.manual_material_price || 0) %>
+              </td>
+              <td class="text-end">
+                <% material_price = quote.material&.price || quote.manual_material_price || 0 %>
+                <% sheets = quote.amount_of_sheets || 0 %>
+                <%= number_to_currency(material_price * sheets) %>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">
+                <small class="text-muted">
+                  Productos por hoja: <%= quote.products_per_sheet || 0 %>
+                </small>
+              </td>
+              <th class="text-end">Total Material:</th>
+              <td class="text-end">
+                <% material_price = quote.material&.price || quote.manual_material_price || 0 %>
+                <% sheets = quote.amount_of_sheets || 0 %>
+                <%= number_to_currency(material_price * sheets) %>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <%# Material Necesario section %>
+    <div class="row">
+      <div class="col-md-12">
+        <p>
+          <strong>Material necesario:</strong>
+          <%= quote.material_square_meters %> m²
+        </p>
+      </div>
+    </div>
+
+    <%# Manufacturing Processes section %>
     <% if quote.quote_processes.any? %>
       <div class="row mt-4">
         <div class="col-md-12">
           <table class="table">
-            <thead>
+            <thead style="background-color: #76a835; color: white">
               <tr>
                 <th>Proceso</th>
                 <th>Descripción</th>
-                <th>Precio</th>
+                <th class="text-end">Precio</th>
               </tr>
             </thead>
             <tbody>
@@ -35,35 +99,18 @@
                 <tr>
                   <td><%= qp.manufacturing_process.name %></td>
                   <td><%= qp.manufacturing_process.description %></td>
-                  <td><%= number_to_currency(qp.price) %></td>
+                  <td class="text-end"><%= number_to_currency(qp.price) %></td>
                 </tr>
               <% end %>
             </tbody>
-          </table>
-        </div>
-      </div>
-    <% end %>
-
-    <% if quote.quote_toolings.any? %>
-      <div class="row mt-4">
-        <div class="col-md-12">
-          <table class="table">
-            <thead>
+            <tfoot>
               <tr>
-                <th>Herramental</th>
-                <th>Cantidad</th>
-                <th>Precio</th>
+                <th colspan="2" class="text-end">Total Procesos:</th>
+                <td class="text-end">
+                  <%= number_to_currency(quote.quote_processes.sum(&:price)) %>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              <% quote.quote_toolings.includes(:tooling).each do |qt| %>
-                <tr>
-                  <td><%= qt.tooling.description %></td>
-                  <td><%= qt.quantity %></td>
-                  <td><%= number_to_currency(qt.tooling.price * qt.quantity) %></td>
-                </tr>
-              <% end %>
-            </tbody>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -99,6 +146,45 @@
         </table>
       </div>
     </div>
+
+    <hr> <%# Add a divider %>
+
+    <%# Extras section %>
+    <% if quote.quote_extras.any? %>
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <h5>Extras (No incluidos en el total)</h5>
+          <table class="table">
+            <thead style="background-color: #76a835; color: white">
+              <tr>
+                <th>Extra</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-end">Precio Unitario</th>
+                <th class="text-end">Precio Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% quote.quote_extras.includes(:extra).each do |qe| %>
+                <tr>
+                  <td><%= qe.extra.description %></td>
+                  <td class="text-center"><%= qe.quantity %></td>
+                  <td class="text-end"><%= number_to_currency(qe.extra.price) %></td>
+                  <td class="text-end"><%= number_to_currency(qe.extra.price * qe.quantity) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3" class="text-end">Total Extras:</th>
+                <td class="text-end">
+                  <%= number_to_currency(quote.quote_extras.sum { |qe| qe.extra.price * qe.quantity }) %>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    <% end %>
 
     <div class="row mt-4">
       <div class="col-md-12">
