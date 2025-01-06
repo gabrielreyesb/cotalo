@@ -2,7 +2,7 @@ class GeneralConfigurationsController < ApplicationController
   before_action :set_general_configuration, only: %i[ show edit update destroy ]
 
   def index
-    @general_configurations = GeneralConfiguration.all
+    @general_configurations = GeneralConfiguration.order(Arel.sql("LOWER(description) ASC"))
   end
 
   def show
@@ -30,14 +30,10 @@ class GeneralConfigurationsController < ApplicationController
   end
 
   def update
-    respond_to do |format|
-      if @general_configuration.update(general_configuration_params)
-        format.html { redirect_to general_configuration_url(@general_configuration), notice: "General configuration was successfully updated." }
-        format.json { render :show, status: :ok, location: @general_configuration }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @general_configuration.errors, status: :unprocessable_entity }
-      end
+    if @general_configuration.update(general_configuration_params)
+      redirect_to general_configurations_path, notice: "Configuración actualizada exitosamente."
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 

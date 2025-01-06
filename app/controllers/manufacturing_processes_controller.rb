@@ -2,7 +2,7 @@ class ManufacturingProcessesController < ApplicationController
   before_action :set_manufacturing_process, only: %i[ show edit update destroy ]
 
   def index
-    @manufacturing_processes = ManufacturingProcess.all
+    @manufacturing_processes = ManufacturingProcess.order(:name)
   end
 
   class ManufacturingProcessesController < ApplicationController
@@ -18,7 +18,11 @@ class ManufacturingProcessesController < ApplicationController
   end
 
   def new
-    @manufacturing_process = ManufacturingProcess.new
+    @manufacturing_process = if params[:manufacturing_process]
+      ManufacturingProcess.new(params[:manufacturing_process].permit!)
+    else
+      ManufacturingProcess.new
+    end
   end
 
   def edit
@@ -35,14 +39,10 @@ class ManufacturingProcessesController < ApplicationController
   end
 
   def update
-    respond_to do |format|
-      if @manufacturing_process.update(manufacturing_process_params)
-        format.html { redirect_to manufacturing_process_url(@manufacturing_process), notice: "Manufacturing process was successfully updated." }
-        format.json { render :show, status: :ok, location: @manufacturing_process }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @manufacturing_process.errors, status: :unprocessable_entity }
-      end
+    if @manufacturing_process.update(manufacturing_process_params)
+      redirect_to manufacturing_processes_path, notice: "Proceso actualizado exitosamente."
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -53,6 +53,15 @@ class ManufacturingProcessesController < ApplicationController
       format.html { redirect_to manufacturing_processes_url, notice: "Manufacturing process was successfully destroyed." }
       format.json { head :no_content }
     end
+  end
+
+  def copy
+    original_process = ManufacturingProcess.find(params[:id])
+    copied_params = original_process.attributes.except('id', 'created_at', 'updated_at')
+    copied_params['name'] = "Copia de #{original_process.name}"
+    
+    redirect_to new_manufacturing_process_path(manufacturing_process: copied_params), 
+                notice: 'Complete los detalles del nuevo proceso'
   end
 
   private

@@ -16,7 +16,7 @@
               <th>Precio</th>
               <th>Unidad</th>
               <th>Comentarios</th>
-              <th colspan="3">Acciones</th> 
+              <th colspan="4">Acciones</th> 
             </tr>
           </thead>
 
@@ -35,7 +35,16 @@
                 <td><%= process.comments %></td> 
                 <td><%= link_to 'Ver', process, class: 'btn btn-sm btn-outline-success' %></td> 
                 <td><%= link_to 'Editar', edit_manufacturing_process_path(process), class: 'btn btn-sm btn-outline-primary' %></td> 
-                <td><%= link_to 'Eliminar', process, method: :delete, data: { confirm: '¿Estás seguro?' }, class: 'btn btn-sm btn-outline-danger' %></td> 
+                <td><%= button_to 'Copiar', 
+                    copy_manufacturing_process_path(process), 
+                    method: :post, 
+                    class: 'btn btn-sm btn-outline-info',
+                    form: { data: { turbo_frame: '_top' } } %></td> 
+                <td><%= button_to 'Eliminar', 
+                    process, 
+                    method: :delete, 
+                    class: 'btn btn-sm btn-outline-danger',
+                    form: { data: { turbo_confirm: '¿Estás seguro?' } } %></td> 
               </tr>
             <% end %>
           </tbody>

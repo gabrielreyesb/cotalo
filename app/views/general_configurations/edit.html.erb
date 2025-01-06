@@ -1,10 +1,9 @@
-<h1>Editing general configuration</h1>
-
-<%= render "form", general_configuration: @general_configuration %>
-
-<br>
-
-<div>
-  <%= link_to "Show this general configuration", @general_configuration %> |
-  <%= link_to "Back to general configurations", general_configurations_path %>
-</div>
+<%= turbo_frame_tag "main-content" do %>
+  <div class="container mt-4">
+    <h1 class="text-center mb-4">Editar configuración</h1>
+    
+    <%= form_with(model: @general_configuration, data: { turbo_frame: '_top' }) do |f| %>
+      <%= render 'form', form: f %>
+    <% end %>
+  </div>
+<% end %>

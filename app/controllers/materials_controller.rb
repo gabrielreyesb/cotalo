@@ -3,7 +3,7 @@ class MaterialsController < ApplicationController
 
   # GET /materials or /materials.json
   def index
-    @materials = Material.all
+    @materials = Material.order(:description)
   end
 
   # GET /materials/1 or /materials/1.json
@@ -50,11 +50,7 @@ class MaterialsController < ApplicationController
   # DELETE /materials/1 or /materials/1.json
   def destroy
     @material.destroy!
-
-    respond_to do |format|
-      format.html { redirect_to materials_url, notice: "Material was successfully destroyed." }
-      format.json { head :no_content }
-    end
+    redirect_to materials_path, notice: "Material eliminado exitosamente."
   end
 
   private

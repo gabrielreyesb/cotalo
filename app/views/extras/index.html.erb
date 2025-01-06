@@ -24,7 +24,18 @@
                 <td><%= extra.comments %></td>
                 <td><%= link_to 'Ver', extra, class: 'btn btn-sm btn-outline-success' %></td>
                 <td><%= link_to 'Editar', edit_extra_path(extra), class: 'btn btn-sm btn-outline-primary' %></td>
-                <td><%= link_to 'Eliminar', extra, method: :delete, data: { confirm: '¿Estás seguro?' }, class: 'btn btn-sm btn-outline-danger' %></td>
+                <td>
+                  <%= button_to 'Eliminar', 
+                      extra_path(extra), 
+                      method: :delete, 
+                      class: 'btn btn-sm btn-outline-danger',
+                      form: { 
+                        data: { 
+                          turbo_frame: '_top',
+                          turbo_confirm: '¿Estás seguro?' 
+                        } 
+                      } %>
+                </td>
               </tr>
             <% end %>
           </tbody>

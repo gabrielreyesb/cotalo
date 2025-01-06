@@ -1,77 +1,9 @@
-<turbo-frame id="main-content">
+<%= turbo_frame_tag "main-content" do %>
   <div class="container mt-4">
-    <h1 class="text-center mb-4"><%= @manufacturing_process.new_record? ? 'Nuevo proceso' : 'Editar Proceso' %></h1>
-    <div class="row justify-content-center">
-      <div class="col-md-8">
-        <%= form_with(model: @manufacturing_process, data: { turbo_frame: "_top" }) do |form| %>
-          <% if @manufacturing_process.errors.any? %>
-            <div style="color: red">
-              <h2><%= pluralize(@manufacturing_process.errors.count, "error") %> prohibited this manufacturing_process from being saved:</h2>
-
-              <ul>
-                <% @manufacturing_process.errors.each do |error| %>
-                  <li><%= error.full_message %></li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-
-          <div class="form-group">
-            <%= form.label :name, "Nombre", style: "display: block" %> 
-            <%= form.text_field :name, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :description, "Descripción", style: "display: block" %>
-            <%= form.text_field :description, class: "form-control" %>
-          </div>
-
-          <div class="form-group">
-            <%= form.label :specifications, "Especificaciones", style: "display: block" %> 
-            <%= form.text_field :specifications, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :maximum_length, "Largo máximo", style: "display: block" %> 
-            <%= form.text_field :maximum_length, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :maximum_width, "Alto máximo", style: "display: block" %> 
-            <%= form.text_field :maximum_width, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :minimum_length, "Largo mínimo", style: "display: block" %> 
-            <%= form.text_field :minimum_length, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :minimum_width, "Alto mínimo", style: "display: block" %> 
-            <%= form.text_field :minimum_width, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :price, "Precio", style: "display: block" %>
-            <%= form.number_field :price, step: :any, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :unit_id, "Unidad", style: "display: block" %>
-            <%= form.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-control" %> 
-          </div>
-
-          <div class="form-group">
-            <%= form.label :comments, "Comentarios", style: "display: block" %> 
-            <%= form.text_field :comments, class: "form-control" %> 
-          </div>
-
-          <div class="text-center mt-3">
-            <%= form.submit "Guardar proceso", class: "btn btn-green" %> 
-            <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %> 
-          </div>
-        <% end %>
-      </div>
-    </div>
+    <h1 class="text-center mb-4">Nuevo Proceso</h1>
+    
+    <%= form_with(model: @manufacturing_process, data: { turbo_frame: '_top' }) do |f| %>
+      <%= render 'form', form: f %>
+    <% end %>
   </div>
-</turbo-frame>
+<% end %>

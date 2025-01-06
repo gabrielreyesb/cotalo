@@ -3,7 +3,7 @@ class ExtrasController < ApplicationController
 
     # GET /extras or /extras.json
     def index
-      @extras = Extra.all
+      @extras = Extra.order(:description)
     end
   
     # GET /extras/1 or /extras/1.json
@@ -42,11 +42,7 @@ class ExtrasController < ApplicationController
     # DELETE /extras/1 or /extras/1.json
     def destroy
       @extra.destroy!
-  
-      respond_to do |format|
-        format.html { redirect_to extras_url, notice: "Extra was successfully destroyed." }
-        format.json { head :no_content }
-      end
+      redirect_to extras_path, notice: "Extra eliminado exitosamente."
     end
   
     private
