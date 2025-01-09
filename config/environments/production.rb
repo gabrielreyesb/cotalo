@@ -24,9 +24,6 @@ Rails.application.configure do
   config.serve_static_files = true
   config.asset_host = ENV['ASSET_HOST'] if ENV['ASSET_HOST']
   config.assets.css_compressor = :sass
-  config.assets.js_compressor = Terser::Compressor.new(
-    mangle: true,
-    compress: true
-  )
+  config.assets.js_compressor = nil
   config.assets.paths << Rails.root.join('node_modules')
 end
