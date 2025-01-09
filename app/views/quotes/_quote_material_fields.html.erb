@@ -1,0 +1,15 @@
+<tr class="nested-fields">
+  <%= form.hidden_field :material_id %>
+  <td><%= form.object.material&.description %></td>
+  <td class="text-end"><%= form.object.products_per_sheet %></td>
+  <td class="text-end"><%= form.object.sheets_needed %></td>
+  <td class="text-end"><%= form.object.square_meters %></td>
+  <td class="text-end">$<%= form.object.total_price %></td>
+  <td>
+    <button type="button" 
+            class="btn btn-sm btn-outline-danger" 
+            data-action="click->quotes#removeMaterial">
+      Eliminar
+    </button>
+  </td>
+</tr> 

@@ -1,205 +1,113 @@
-<div class="card">
-  <div class="card-header">
-    <h3>Cotización #<%= quote.id %></h3>
-  </div>
-  <div class="card-body">
-    <div class="row">
-      <div class="col-md-6">
-        <h5>Información del Cliente</h5>
-        <p><strong>Nombre:</strong> <%= quote.customer_name %></p>
-        <p><strong>Organización:</strong> <%= quote.customer_organization || "Sin organización" %></p>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2>Cotización #<%= quote.id %></h2>
+    </div>
+
+    <div class="card-body">
+      <div class="quote-details">
+        <p><strong>Cliente:</strong> <%= quote.customer_name %></p>
+        <p><strong>Organización:</strong> <%= quote.customer_organization %></p>
         <p><strong>Email:</strong> <%= quote.customer_email %></p>
-        <p><strong>Fecha:</strong> <%= quote.created_at.strftime("%d/%m/%Y") %></p>
-      </div>
-      <div class="col-md-6">
-        <h5>Detalles del Producto</h5>
+        <p><strong>Proyecto:</strong> <%= quote.projects_name %></p>
+        <p><strong>Producto:</strong> <%= quote.product_name %></p>
         <p><strong>Cantidad:</strong> <%= quote.product_quantity %> piezas</p>
         <p><strong>Dimensiones:</strong> <%= quote.product_width %>x<%= quote.product_length %></p>
-        <p><strong>Material:</strong> <%= quote.material&.description || quote.manual_material %></p>
-      </div>
-    </div>
-
-    <%# Material Information section %>
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <table class="table">
-          <thead style="background-color: #76a835; color: white">
-            <tr>
-              <th>Material</th>
-              <th>Hojas Necesarias</th>
-              <th class="text-end">Precio por Hoja</th>
-              <th class="text-end">Precio Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <%= quote.material&.description || quote.manual_material %>
-                <% if quote.material %>
-                  <br>
-                  <small class="text-muted">
-                    (<%= quote.material.width %>x<%= quote.material.length %> cms)
-                  </small>
-                <% end %>
-              </td>
-              <td><%= quote.amount_of_sheets || 0 %></td>
-              <td class="text-end">
-                <%= number_to_currency(quote.material&.price || quote.manual_material_price || 0) %>
-              </td>
-              <td class="text-end">
-                <% material_price = quote.material&.price || quote.manual_material_price || 0 %>
-                <% sheets = quote.amount_of_sheets || 0 %>
-                <%= number_to_currency(material_price * sheets) %>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="2">
-                <small class="text-muted">
-                  Productos por hoja: <%= quote.products_per_sheet || 0 %>
-                </small>
-              </td>
-              <th class="text-end">Total Material:</th>
-              <td class="text-end">
-                <% material_price = quote.material&.price || quote.manual_material_price || 0 %>
-                <% sheets = quote.amount_of_sheets || 0 %>
-                <%= number_to_currency(material_price * sheets) %>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-
-    <%# Material Necesario section %>
-    <div class="row">
-      <div class="col-md-12">
-        <p>
-          <strong>Material necesario:</strong>
-          <%= quote.material_square_meters %> m²
-        </p>
-      </div>
-    </div>
-
-    <%# Manufacturing Processes section %>
-    <% if quote.quote_processes.any? %>
-      <div class="row mt-4">
-        <div class="col-md-12">
+        
+        <%# Materials Section %>
+        <div class="materials-section mt-4">
+          <h4>Materiales:</h4>
           <table class="table">
-            <thead style="background-color: #76a835; color: white">
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Piezas por pliego</th>
+                <th>Pliegos necesarios</th>
+                <th>Metros cuadrados</th>
+                <th>Precio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% quote.quote_materials.each do |qm| %>
+                <tr>
+                  <td><%= qm.is_manual? ? qm.manual_description : qm.material.description %></td>
+                  <td><%= qm.products_per_sheet %></td>
+                  <td><%= qm.sheets_needed %></td>
+                  <td><%= qm.square_meters %></td>
+                  <td>$<%= number_with_precision(qm.total_price, precision: 2) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <%# Processes Section %>
+        <div class="processes-section mt-4">
+          <h4>Procesos:</h4>
+          <table class="table">
+            <thead>
               <tr>
                 <th>Proceso</th>
-                <th>Descripción</th>
-                <th class="text-end">Precio</th>
+                <th>Precio</th>
               </tr>
             </thead>
             <tbody>
-              <% quote.quote_processes.includes(:manufacturing_process).each do |qp| %>
+              <% quote.quote_processes.each do |qp| %>
                 <tr>
-                  <td><%= qp.manufacturing_process.name %></td>
-                  <td><%= qp.manufacturing_process.description %></td>
-                  <td class="text-end"><%= number_to_currency(qp.price) %></td>
+                  <td><%= qp.manufacturing_process.name %> - <%= qp.manufacturing_process.description %></td>
+                  <td>$<%= number_with_precision(qp.price, precision: 2) %></td>
                 </tr>
               <% end %>
             </tbody>
-            <tfoot>
-              <tr>
-                <th colspan="2" class="text-end">Total Procesos:</th>
-                <td class="text-end">
-                  <%= number_to_currency(quote.quote_processes.sum(&:price)) %>
-                </td>
-              </tr>
-            </tfoot>
           </table>
         </div>
-      </div>
-    <% end %>
 
-    <div class="row mt-4">
-      <div class="col-md-6 offset-md-6">
-        <table class="table">
-          <tr>
-            <th>Subtotal:</th>
-            <td class="text-end"><%= number_to_currency(quote.subtotal) %></td>
-          </tr>
-          <tr>
-            <th>Merma (<%= quote.waste_percentage %>%):</th>
-            <td class="text-end"><%= number_to_currency(quote.waste_price) %></td>
-          </tr>
-          <tr>
-            <th>Margen (<%= quote.margin_percentage %>%):</th>
-            <td class="text-end"><%= number_to_currency(quote.margin_price) %></td>
-          </tr>
-          <tr>
-            <th>Total:</th>
-            <td class="text-end"><%= number_to_currency(quote.total_quote_value) %></td>
-          </tr>
-          <tr>
-            <th>IVA (16%):</th>
-            <td class="text-end"><%= number_to_currency(quote.tax_amount) %></td>
-          </tr>
-          <tr class="table-active">
-            <th>Total con IVA:</th>
-            <td class="text-end"><%= number_to_currency(quote.total_quote_value * 1.16) %></td>
-          </tr>
-        </table>
-      </div>
-    </div>
-
-    <hr> <%# Add a divider %>
-
-    <%# Extras section %>
-    <% if quote.quote_extras.any? %>
-      <div class="row mt-4">
-        <div class="col-md-12">
-          <h5>Extras (No incluidos en el total)</h5>
+        <%# Extras Section %>
+        <div class="extras-section mt-4">
+          <h4>Extras:</h4>
           <table class="table">
-            <thead style="background-color: #76a835; color: white">
+            <thead>
               <tr>
                 <th>Extra</th>
-                <th class="text-center">Cantidad</th>
-                <th class="text-end">Precio Unitario</th>
-                <th class="text-end">Precio Total</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
               </tr>
             </thead>
             <tbody>
-              <% quote.quote_extras.includes(:extra).each do |qe| %>
+              <% quote.quote_extras.each do |qe| %>
                 <tr>
                   <td><%= qe.extra.description %></td>
-                  <td class="text-center"><%= qe.quantity %></td>
-                  <td class="text-end"><%= number_to_currency(qe.extra.price) %></td>
-                  <td class="text-end"><%= number_to_currency(qe.extra.price * qe.quantity) %></td>
+                  <td><%= qe.quantity %></td>
+                  <td>$<%= number_with_precision(qe.extra.price * qe.quantity, precision: 2) %></td>
                 </tr>
               <% end %>
             </tbody>
-            <tfoot>
-              <tr>
-                <th colspan="3" class="text-end">Total Extras:</th>
-                <td class="text-end">
-                  <%= number_to_currency(quote.quote_extras.sum { |qe| qe.extra.price * qe.quantity }) %>
-                </td>
-              </tr>
-            </tfoot>
           </table>
         </div>
-      </div>
-    <% end %>
 
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <h5>Comentarios</h5>
-        <div class="p-3 bg-light rounded">
-          <%= quote.comments.present? ? quote.comments : "Sin comentarios" %>
+        <%# Totals Section %>
+        <div class="totals-section mt-4">
+          <p><strong>Subtotal:</strong> $<%= number_with_precision(quote.subtotal, precision: 2) %></p>
+          <p><strong>Merma (<%= quote.waste_percentage %>%):</strong> $<%= number_with_precision(quote.waste_price, precision: 2) %></p>
+          <p><strong>Margen (<%= quote.margin_percentage %>%):</strong> $<%= number_with_precision(quote.margin_price, precision: 2) %></p>
+          <p><strong>Total:</strong> $<%= number_with_precision(quote.total_quote_value, precision: 2) %></p>
+          <p><strong>Precio por pieza:</strong> $<%= number_with_precision(quote.product_value_per_piece, precision: 2) %></p>
         </div>
+
+        <% if quote.comments.present? %>
+          <div class="comments-section mt-4">
+            <h4>Comentarios:</h4>
+            <p><%= quote.comments %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="mt-4 d-flex justify-content-between">
+        <%= link_to "Volver", root_path, class: "btn btn-secondary" %>
+        <%= link_to "Descargar PDF", quote_path(quote, format: :pdf), 
+                    class: "btn btn-primary", 
+                    target: "_blank" %>
       </div>
     </div>
-    
-  </div>
-  <div class="card-footer text-end">
-    <%= link_to 'Descargar PDF', quote_path(@quote, format: :pdf), class: 'btn btn-primary', target: '_blank' %>
-    <%= link_to 'Volver', home_path, 
-                class: 'btn btn-secondary',
-                data: { turbo_frame: "main-content" } %>
   </div>
 </div> 

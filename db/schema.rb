@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_03_170000) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_08_132000) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -84,6 +84,24 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_03_170000) do
     t.index ["quote_id"], name: "index_quote_extras_on_quote_id"
   end
 
+  create_table "quote_materials", force: :cascade do |t|
+    t.integer "quote_id", null: false
+    t.integer "material_id"
+    t.integer "products_per_sheet"
+    t.integer "sheets_needed"
+    t.decimal "square_meters"
+    t.decimal "total_price"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_manual", default: false
+    t.string "manual_description"
+    t.string "manual_unit"
+    t.decimal "manual_width", precision: 10, scale: 2
+    t.decimal "manual_length", precision: 10, scale: 2
+    t.index ["material_id"], name: "index_quote_materials_on_material_id"
+    t.index ["quote_id"], name: "index_quote_materials_on_quote_id"
+  end
+
   create_table "quote_processes", force: :cascade do |t|
     t.integer "quote_id", null: false
     t.integer "manufacturing_process_id", null: false
@@ -95,7 +113,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_03_170000) do
   end
 
   create_table "quotes", force: :cascade do |t|
-    t.integer "pieces"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "customer_name"
@@ -105,24 +122,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_03_170000) do
     t.integer "product_quantity"
     t.decimal "product_width"
     t.decimal "product_length"
-    t.integer "material_id"
-    t.integer "material_unit_id"
-    t.decimal "material_price"
-    t.integer "products_per_sheet"
-    t.integer "amount_of_sheets"
-    t.decimal "material_total_price"
-    t.decimal "material_square_meters"
     t.decimal "subtotal"
     t.decimal "waste_percentage"
     t.decimal "margin_percentage"
     t.decimal "total_quote_value", default: "0.0"
     t.decimal "product_value_per_piece"
-    t.string "manual_material"
-    t.integer "manual_material_unit_id"
-    t.decimal "manual_material_price"
-    t.string "manual_material_width"
-    t.string "manual_material_length"
-    t.integer "manufacturing_process_id"
     t.decimal "waste_price", default: "0.0"
     t.decimal "margin_price", default: "0.0"
     t.text "comments"
@@ -160,9 +164,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_03_170000) do
   add_foreign_key "materials", "units"
   add_foreign_key "quote_extras", "extras"
   add_foreign_key "quote_extras", "quotes"
+  add_foreign_key "quote_materials", "materials"
+  add_foreign_key "quote_materials", "quotes"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"
-  add_foreign_key "quotes", "materials"
-  add_foreign_key "quotes", "units", column: "manual_material_unit_id"
-  add_foreign_key "quotes", "units", column: "material_unit_id"
 end

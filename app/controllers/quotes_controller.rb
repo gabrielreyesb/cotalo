@@ -36,26 +36,14 @@ class QuotesController < ApplicationController
   def new
     @quote = Quote.new
     @quote.quote_processes.build
-    @quote.quote_toolings.build
   end
 
   def create
     @quote = Quote.new(quote_params)
     
-    # Add these values before saving
-    @quote.amount_of_sheets = @quote.calculate_sheets_needed
-    @quote.products_per_sheet = @quote.calculate_products_per_sheet
-    @quote.material_square_meters = @quote.calculate_material_square_meters
-
-    # Add debugging
-    Rails.logger.debug "Quote params: #{quote_params.inspect}"
-    Rails.logger.debug "Quote extras params: #{quote_params[:quote_extras_attributes]&.inspect}"
-
     if @quote.save
-      Rails.logger.debug "Saved quote extras: #{@quote.quote_extras.inspect}"
       redirect_to root_path, notice: "Cotización creada exitosamente."
     else
-      Rails.logger.debug "Quote errors: #{@quote.errors.full_messages}"
       render :calculate, status: :unprocessable_entity
     end
   end
@@ -134,19 +122,31 @@ class QuotesController < ApplicationController
 
   def quote_params
     params.require(:quote).permit(
-      :customer_name, :customer_email, :customer_organization,
-      :product_quantity, :product_width, :product_length,
-      :material_id, :unit_id,
-      :manual_material, :manual_material_width, :manual_material_length, :manual_material_price,
-      :manual_material_unit_id,
-      :waste_percentage, :margin_percentage,
-      :products_per_sheet, :amount_of_sheets,
-      :subtotal, :waste_price, :margin_price,
-      :total_quote_value, :product_value_per_piece,
+      :customer_name,
+      :projects_name,
+      :customer_organization,
+      :customer_email,
+      :product_quantity,
+      :product_width,
+      :product_length,
+      :subtotal,
+      :waste_percentage,
+      :margin_percentage,
+      :total_quote_value,
+      :product_value_per_piece,
+      :waste_price,
+      :margin_price,
+      :total_quote_value, 
+      :product_value_per_piece,
       :comments,
-      :material_square_meters,
+      :product_name,
       quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
-      quote_extras_attributes: [:id, :extra_id, :quantity, :_destroy]
+      quote_extras_attributes: [:id, :extra_id, :quantity, :_destroy],
+      quote_materials_attributes: [
+        :id, :material_id, :products_per_sheet, :sheets_needed, 
+        :square_meters, :total_price, :_destroy,
+        :is_manual, :manual_description, :manual_unit
+      ]
     )
   end
 

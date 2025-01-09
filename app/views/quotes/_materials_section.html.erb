@@ -1,0 +1,42 @@
+<div class="row ml-3">
+  <div class="col-lg-6">
+    <div class="form-group">
+      <label class="font-weight-bold">Materiales:</label>
+      <div class="input-group">
+        <select id="material-select" class="form-control">
+          <option value="">Select one</option>
+          <% Material.order(:description).each do |material| %>
+            <option value="<%= material.id %>"><%= material.description %></option>
+          <% end %>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" 
+            class="btn btn-green" 
+            data-action="click->quotes#addMaterialToList">
+      Agregar material
+    </button>
+  </div>
+
+  <div class="col-lg-6">
+    <table data-quotes-target="materialsTable" class="table table-bordered">
+      <thead style="background-color: #f8f9fa;">
+        <tr>
+          <th>Material</th>
+          <th>Prod x material</th>
+          <th>Material nece</th>
+          <th>Mts2</th>
+          <th>Precio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <div>
+      <strong>Subtotal materiales: </strong>
+      <span data-quotes-target="materialsSubtotal" class="float-right">0</span>
+    </div>
+  </div>
+</div> 

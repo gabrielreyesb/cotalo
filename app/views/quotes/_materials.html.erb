@@ -1,0 +1,46 @@
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-8">
+        <%= form.collection_select :material_id, 
+            Material.order(:description), :id, :description, 
+            { prompt: "Seleccionar material" }, 
+            { class: "form-control" } %>
+      </div>
+      <div class="col-md-4">
+        <button type="button" 
+                class="btn btn-green" 
+                data-action="click->quotes#addMaterial">
+          Agregar material
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <table class="table" data-quotes-target="materials">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Prod x material</th>
+            <th>Material nece</th>
+            <th>Mts2</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= form.fields_for :quote_materials do |material_form| %>
+            <%= render 'quote_material_fields', form: material_form %>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="4" class="text-end">Subtotal materiales:</th>
+            <td class="text-end" data-quotes-target="materialsSubtotal">$0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div> 

@@ -8,9 +8,15 @@ class MaterialsController < ApplicationController
 
   # GET /materials/1 or /materials/1.json
   def show
+    @material = Material.find(params[:id])
+    
     respond_to do |format|
       format.html
-      format.json { render json: @material.as_json(only: [:id, :description, :width, :length, :price, :unit_id]) }
+      format.json { 
+        render json: @material.as_json(
+          only: [:id, :description, :width, :length, :price, :unit_id]
+        ) 
+      }
     end
   end
 
