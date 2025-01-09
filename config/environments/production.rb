@@ -26,8 +26,7 @@ Rails.application.configure do
   config.assets.css_compressor = :sass
   config.assets.js_compressor = Terser::Compressor.new(
     mangle: true,
-    compress: true,
-    harmony: true
+    compress: true
   )
   config.assets.paths << Rails.root.join('node_modules')
 end
