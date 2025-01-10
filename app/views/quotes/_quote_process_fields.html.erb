@@ -4,10 +4,12 @@
     <span class="process-name"><%= f.object.manufacturing_process.name %></span> -
     <span class="process-description"><%= f.object.manufacturing_process.description %></span>
   </td>
-  <td>
-    <%= link_to_remove_association "Eliminar", f, class: "btn btn-danger" %>
+  <td class="text-end">
+    <span class="process-price-total"><%= f.object.price %></span>
   </td>
-  <td>
-    <span class="process-price-total">0</span>
+  <td class="text-center">
+    <%= link_to_remove_association '<i class="fas fa-trash"></i>'.html_safe, 
+        f, 
+        class: "btn btn-sm btn-link text-danger" %>
   </td>
 </tr>

@@ -30,8 +30,13 @@ export default class extends Controller {
           
         // Get values from the material table row
         const materialRow = this.materialsTableTarget.querySelector('tbody tr');
-        const materialPieces = parseInt(materialRow.children[2].textContent) || 0; // Material nece column
-        const squareMeters = parseFloat(materialRow.children[3].textContent) || 0; // Mts2 column
+        if (!materialRow) {
+          alert('Por favor agregue un material primero');
+          return;
+        }
+
+        const materialPieces = parseInt(materialRow.children[2].textContent) || 0;
+        const squareMeters = parseFloat(materialRow.children[3].textContent) || 0;
 
         let calculatedPrice = 0;
         if (processUnit === "pliego") {
@@ -43,7 +48,6 @@ export default class extends Controller {
           return;
         }
 
-        // Format the calculated price with thousands separator and 2 decimals
         const formattedPrice = calculatedPrice.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
@@ -58,12 +62,16 @@ export default class extends Controller {
             <span class="process-name">${processName}</span> - 
             <span class="process-description">${processDescription}</span>
           </td>
-          <td class="text-center">
-            <button type="button" data-action="click->quotes#removeProcess" class="btn btn-danger">Eliminar</button>
-          </td>
-          <td class="process-price-total text-right" data-price-id="${this.newProcessId}"> 
+          <td class="text-end process-price-total" data-price-id="${this.newProcessId}">
             ${formattedPrice}
-          </td> 
+          </td>
+          <td class="text-center">
+            <button type="button" 
+                    class="btn btn-sm btn-link text-danger"
+                    data-action="click->quotes#removeProcess">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
         `;
 
         // Append the new row to the table body
@@ -156,11 +164,15 @@ export default class extends Controller {
             <span class="extra-description">${extraDescription}</span>
             (<span class="extra-quantity">${extraQuantity}</span>)
           </td>
-          <td class="text-center">
-            <button type="button" data-action="click->quotes#removeExtra" class="btn btn-danger">Eliminar</button>
-          </td>
           <td class="text-right">
             <span class="extra-price-total">${(extraPrice * extraQuantity).toFixed(2)}</span>
+          </td>
+          <td class="text-center">
+            <button type="button" 
+                    class="btn btn-sm btn-link text-danger" 
+                    data-action="click->quotes#removeExtra">
+              <i class="fas fa-trash"></i>
+            </button>
           </td>
         `;
 
@@ -498,11 +510,11 @@ export default class extends Controller {
       <td class="text-end">${sheetsNeeded}</td>
       <td class="text-end">${squareMeters.toFixed(2)}</td>
       <td class="text-end">$${totalPrice.toFixed(2)}</td>
-      <td>
-        <button type="button" 
-                class="btn btn-sm btn-outline-danger" 
+      <td class="text-center">
+        <button type="button"
+                class="btn btn-sm btn-link text-danger"
                 data-action="click->quotes#removeMaterial">
-          Eliminar
+          <i class="fas fa-trash"></i>
         </button>
         <input type="hidden" name="quote[quote_materials_attributes][][material_id]" value="${material.id}">
         <input type="hidden" name="quote[quote_materials_attributes][][products_per_sheet]" value="${productsPerSheet}">
