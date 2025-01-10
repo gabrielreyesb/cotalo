@@ -75,7 +75,7 @@
             <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
             <%= form.number_field :product_quantity, 
                              class: "form-control text-right", 
-                             value: 2000,
+                             value: 0,
                              min: 1,
                              required: true,
                              id: "quote_product_quantity",
@@ -85,7 +85,7 @@
             <%= form.label :product_width, "Ancho del producto:", class: "font-weight-bold" %>
             <%= form.number_field :product_width, 
                              class: "form-control text-right", 
-                             value: 34,
+                             value: 0,
                              min: 1,
                              required: true,
                              id: "quote_product_width",
@@ -95,7 +95,7 @@
             <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
             <%= form.number_field :product_length, 
                              class: "form-control text-right", 
-                             value: 23,
+                             value: 0,
                              min: 1,
                              required: true,
                              id: "quote_product_length",
@@ -265,7 +265,7 @@
           <button type="button" 
                   data-action="click->quotes#addProcess" 
                   class="btn btn-green">
-            Agregar Proceso
+            Agregar proceso
           </button>
         </div>
 
@@ -285,6 +285,75 @@
           <div>
             <strong>Subtotal procesos: </strong>
             <span id="processes-subtotal" class="float-right">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border: 1px solid black;">
+
+      <%# Extras %>
+      <div class="row ml-3">
+        <div class="col-lg-6">
+          <div class="form-group">
+            <%= form.label :extra_id, "Extras: (No suma a la cotización)", class: "font-weight-bold" %>
+            <div class="input-group">
+              <%= form.select :extra_id,
+                        options_for_select(
+                          Extra.all.map { |e|
+                            ["#{e.description}", e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
+                          }
+                        ),
+                        { include_blank: 'Select one' },
+                        { class: "form-control",
+                          id: 'quote_extra_id',
+                          'data-action': 'change->quotes#showExtraInfo'
+                        }
+              %>
+              <div class="input-group-prepend">
+                <span class="input-group-text ml-1" id="extra_unit_display"></span>
+                <span class="input-group-text">$</span>
+                <input type="number" 
+                        step="any" 
+                        class="form-control text-right" 
+                        id="extra_price_display" 
+                        style="width: 100px;">
+                <div class="input-group-append">
+                  <input type="number" 
+                          step="1" 
+                          value="1" 
+                          min="1" 
+                          class="form-control text-right" 
+                          id="quantity" 
+                          style="width: 70px;" 
+                          placeholder="Qty">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button"
+                  data-action="click->quotes#addExtra" 
+                  class="btn btn-green">
+            Agregar extra
+          </button>
+        </div>
+
+        <div class="col-lg-6">
+          <br>
+          <table data-quotes-target="extras" class="table table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 50%">Extras</th>
+                <th style="width: 30%">Precio</th>
+                <th style="width: 20%">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+          <div>
+            <strong>Subtotal extras: </strong>
+            <span id="extras-subtotal" class="float-right" style="text-align: right; ">$0.00</span> 
           </div>
         </div>
       </div>
@@ -429,75 +498,6 @@
       
       <hr style="border: 1px solid black;">
 
-      <%# Extras %>
-      <div class="row ml-3">
-        <div class="col-lg-6">
-          <div class="form-group">
-            <%= form.label :extra_id, "Extras:", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.select :extra_id,
-                        options_for_select(
-                          Extra.all.map { |e|
-                            ["#{e.description}", e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
-                          }
-                        ),
-                        { include_blank: 'Select one' },
-                        { class: "form-control",
-                          id: 'quote_extra_id',
-                          'data-action': 'change->quotes#showExtraInfo'
-                        }
-              %>
-              <div class="input-group-prepend">
-                <span class="input-group-text ml-1" id="extra_unit_display"></span>
-                <span class="input-group-text">$</span>
-                <input type="number" 
-                        step="any" 
-                        class="form-control text-right" 
-                        id="extra_price_display" 
-                        style="width: 100px;">
-                <div class="input-group-append">
-                  <input type="number" 
-                          step="1" 
-                          value="1" 
-                          min="1" 
-                          class="form-control text-right" 
-                          id="quantity" 
-                          style="width: 70px;" 
-                          placeholder="Qty">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button type="button"
-                  data-action="click->quotes#addExtra" 
-                  class="btn btn-green">
-            Agregar Extra
-          </button>
-        </div>
-
-        <div class="col-lg-6">
-          <br>
-          <table data-quotes-target="extras" class="table table-bordered">
-            <thead class="thead-light">
-              <tr>
-                <th style="width: 50%">Extras</th>
-                <th style="width: 30%">Precio</th>
-                <th style="width: 20%">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-          <div>
-            <strong>Subtotal extras: </strong>
-            <span id="extras-subtotal" class="float-right" style="text-align: right; font-weight: bold;">0</span> 
-          </div>
-        </div>
-      </div>
-
-      <hr style="border: 1px solid black;">
-
       <%# Comments field %>
       <div class="row ml-3">
         <div class="col-lg-12">
@@ -509,7 +509,7 @@
       </div>      
 
       <hr style="border: 1px solid black;">
-      
+
       <%# Guardar cotización %>
       <div class="row ml-3">
         <div class="col-lg-12">

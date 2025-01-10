@@ -62,10 +62,10 @@ export default class extends Controller {
             <span class="process-name">${processName}</span> - 
             <span class="process-description">${processDescription}</span>
           </td>
-          <td class="text-end process-price-total" data-price-id="${this.newProcessId}">
+          <td class="text-end align-middle process-price-total" data-price-id="${this.newProcessId}">
             ${formattedPrice}
           </td>
-          <td class="text-center">
+          <td class="text-center align-middle">
             <button type="button" 
                     class="btn btn-sm btn-link text-danger"
                     data-action="click->quotes#removeProcess">
@@ -158,16 +158,16 @@ export default class extends Controller {
         const newRow = document.createElement('tr');
         newRow.dataset.newExtra = "true";
         newRow.innerHTML = `
-          <td>
+          <td class="align-middle">
             <input type="hidden" name="quote[quote_extras_attributes][${this.newExtraId}][extra_id]" value="${extraId}">
             <input type="hidden" name="quote[quote_extras_attributes][${this.newExtraId}][quantity]" value="${extraQuantity}">
             <span class="extra-description">${extraDescription}</span>
             (<span class="extra-quantity">${extraQuantity}</span>)
           </td>
-          <td class="text-right">
+          <td class="text-end align-middle">
             <span class="extra-price-total">${(extraPrice * extraQuantity).toFixed(2)}</span>
           </td>
-          <td class="text-center">
+          <td class="text-center align-middle">
             <button type="button" 
                     class="btn btn-sm btn-link text-danger" 
                     data-action="click->quotes#removeExtra">
@@ -506,10 +506,10 @@ export default class extends Controller {
     
     tr.innerHTML = `
       <td>${material.description}</td>
-      <td class="text-end">${productsPerSheet}</td>
-      <td class="text-end">${sheetsNeeded}</td>
-      <td class="text-end">${squareMeters.toFixed(2)}</td>
-      <td class="text-end">$${totalPrice.toFixed(2)}</td>
+      <td class="text-end align-middle">${productsPerSheet}</td>
+      <td class="text-end align-middle">${sheetsNeeded}</td>
+      <td class="text-end align-middle">${squareMeters.toFixed(2)}</td>
+      <td class="text-end align-middle">$${totalPrice.toFixed(2)}</td>
       <td class="text-center">
         <button type="button"
                 class="btn btn-sm btn-link text-danger"
