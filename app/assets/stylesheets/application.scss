@@ -14,17 +14,29 @@ $surtibox-green: #75A443;
   z-index: 100;
   background-color: white;
   border-bottom: 1px solid lightgray;
+  height: 60px; /* Set a fixed height for the navbar */
 }
 
 body {
   margin: 0;
+  padding-top: 60px; /* Add padding equal to navbar height */
 }
 
 .scrollable-content {
-  margin-top: 60px; /* Adjust to your navbar's height */
-  padding-top: 1rem; 
-  overflow-y: auto; 
-  height: 100vh; /* Ensure the scrollable area takes up full viewport height */
+  height: calc(100vh - 60px); /* Viewport height minus navbar height */
+  overflow-y: auto;
+  position: fixed;
+  top: 60px; /* Position below navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Add this new class for the main content area */
+.main-content-area {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .divider {
@@ -143,4 +155,13 @@ body {
   margin-left: auto;
   padding-right: 15px;
   padding-left: 15px;
+}
+
+[data-bs-toggle="collapse"][aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+[data-bs-toggle="collapse"] .fa-chevron-down {
+  transition: transform 0.2s ease;
 }

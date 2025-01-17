@@ -7,6 +7,12 @@ export default class extends Controller {
 
   click(event) {
     const url = this.element.dataset.url
-    Turbo.visit(url)
+    if (url) {
+      Turbo.visit(url)
+    }
+  }
+
+  stopPropagation(event) {
+    event.stopPropagation()
   }
 } 

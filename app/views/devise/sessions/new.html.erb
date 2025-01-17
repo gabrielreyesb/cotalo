@@ -6,7 +6,7 @@
         <div class="card-header bg-transparent text-center pt-4">
           <%= image_tag "cotalo.jpg", class: "img-fluid", style: "max-width: 200px;" %>
         
-          <hr>
+          <hr class="mt-4">
           <div class="text-center text-muted mb-4">
             <small>Inicia sesión con tus credenciales</small>
           </div>
@@ -33,6 +33,13 @@
               <%= f.submit "Iniciar sesión", class: "btn btn-green my-4" %>
             </div>
           <% end %>
+
+          <div class="text-center mt-3 mb-4">
+            <small>
+              ¿No tienes una cuenta? 
+              <%= link_to "Regístrate aquí", new_registration_path(resource_name), class: "text-primary" %>
+            </small>
+          </div>
         </div>
       </div>
     </div>

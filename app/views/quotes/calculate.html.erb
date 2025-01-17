@@ -1,13 +1,16 @@
 <div class="container-wide">
-  <h1 style="text-align: center;">Nueva cotización</h1>
+  <h1 style="text-align: center;">
+    <%= @quote.persisted? ? "Editar cotización ##{@quote.id}" : "Nueva cotización" %>
+  </h1>
 
   <%= form_with(model: @quote, 
-                url: quotes_path, 
-                method: :post, 
+                url: @quote.persisted? ? quote_path(@quote) : quotes_path,
+                method: @quote.persisted? ? :patch : :post,
                 local: true, 
                 data: { 
                   turbo_frame: '_top'
                 }) do |form| %>
+    <%= form.hidden_field :id if @quote.persisted? %>
     
     <div data-controller="quotes">
       
@@ -37,24 +40,24 @@
         <div class="col-lg-6">
           <div class="form-group">
             <%= form.label :projects_name, "Nombre del proyecto:", class: "font-weight-bold" %>
-            <%= form.text_field :projects_name, class: "form-control", value: "Nombre del proyecto" %>
+            <%= form.text_field :projects_name, class: "form-control", value: @quote.projects_name %>
           </div>
 
           <div class="form-group">
             <%= form.label :product_name, "Nombre del producto:", class: "font-weight-bold" %>
-            <%= form.text_field :product_name, class: "form-control", value: "Nombre del producto" %>
+            <%= form.text_field :product_name, class: "form-control", value: @quote.product_name %>
           </div>
 
           <div class="form-group">
             <%= form.label :customer_name, "Cliente:", class: "font-weight-bold" %>
-            <%= form.text_field :customer_name, class: "form-control", value: "Gabriel Gonzalez" %>
+            <%= form.text_field :customer_name, class: "form-control", value: @quote.customer_name %>
           </div>
 
           <%= form.label :customer_organization, "Organización:", class: "font-weight-bold" %>
             <div class="input-group">
               <%= form.text_field :customer_organization, 
                   class: "form-control flex-grow-1", 
-                  value: "" %>
+                  value: @quote.customer_organization %>
             <div class="input-group-append">
               <button type="button" 
                   class="btn btn-green" 
@@ -66,7 +69,7 @@
 
           <div class="form-group">
             <%= form.label :customer_email, "Correo del cliente:", class: "font-weight-bold" %>
-            <%= form.email_field :customer_email, class: "form-control" %> 
+            <%= form.email_field :customer_email, class: "form-control", value: @quote.customer_email %> 
           </div>
         </div>
 
@@ -75,7 +78,7 @@
             <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
             <%= form.number_field :product_quantity, 
                              class: "form-control text-right", 
-                             value: 0,
+                             value: @quote.product_quantity,
                              min: 1,
                              required: true,
                              id: "quote_product_quantity",
@@ -85,7 +88,7 @@
             <%= form.label :product_width, "Ancho del producto:", class: "font-weight-bold" %>
             <%= form.number_field :product_width, 
                              class: "form-control text-right", 
-                             value: 0,
+                             value: @quote.product_width,
                              min: 1,
                              required: true,
                              id: "quote_product_width",
@@ -95,7 +98,7 @@
             <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
             <%= form.number_field :product_length, 
                              class: "form-control text-right", 
-                             value: 0,
+                             value: @quote.product_length,
                              min: 1,
                              required: true,
                              id: "quote_product_length",
@@ -148,15 +151,44 @@
           <table data-quotes-target="materialsTable" class="table table-bordered">
             <thead class="thead-light">
               <tr>
-                <th>Material</th>
-                <th>Piezas</th>
-                <th>Material</th>
-                <th>Mts2</th>
-                <th>Precio</th>
-                <th>Acciones</th>
+                <th style="width: 100px">Acciones</th>
+                <th class="text-start">Material</th>
+                <th class="text-end">Piezas</th>
+                <th class="text-end">Material</th>
+                <th class="text-end">Mts2</th>
+                <th class="text-end">Precio</th>
               </tr>
             </thead>
             <tbody>
+              <% if @quote.persisted? %>
+                <% @quote.quote_materials.each do |quote_material| %>
+                  <tr>
+                    <td class="text-center align-middle">
+                      <button type="button" 
+                              class="btn btn-sm btn-link text-danger"
+                              data-action="click->quotes#removeMaterial">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                    <td><%= quote_material.is_manual ? quote_material.manual_description : quote_material.material.description %></td>
+                    <td class="text-end"><%= quote_material.products_per_sheet %></td>
+                    <td class="text-end"><%= quote_material.sheets_needed %></td>
+                    <td class="text-end"><%= quote_material.square_meters %></td>
+                    <td class="text-end">$<%= number_with_precision(quote_material.total_price, precision: 2) %></td>
+                    <%= form.fields_for :quote_materials, quote_material do |material_form| %>
+                      <%= material_form.hidden_field :id %>
+                      <%= material_form.hidden_field :material_id %>
+                      <%= material_form.hidden_field :products_per_sheet %>
+                      <%= material_form.hidden_field :sheets_needed %>
+                      <%= material_form.hidden_field :square_meters %>
+                      <%= material_form.hidden_field :total_price %>
+                      <%= material_form.hidden_field :is_manual %>
+                      <%= material_form.hidden_field :manual_description if quote_material.is_manual %>
+                      <%= material_form.hidden_field :manual_unit if quote_material.is_manual %>
+                    <% end %>
+                  </tr>
+                <% end %>
+              <% end %>
             </tbody>
           </table>
           <div>
@@ -271,20 +303,45 @@
 
         <div class="col-lg-6">
           <br>
-          <table data-quotes-target="processes" class="table table-bordered">
-            <thead class="thead-light">
-              <tr>
-                <th style="width: 50%">Proceso</th>
-                <th style="width: 30%">Precio</th>
-                <th style="width: 20%">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-          <div>
-            <strong>Subtotal procesos: </strong>
-            <span id="processes-subtotal" class="float-right">$0.00</span>
+          <%# Processes Table %>
+          <div data-quotes-target="processes">
+            <table class="table table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th style="width: 100px">Acciones</th>
+                  <th>Proceso</th>
+                  <th>Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if @quote.persisted? %>
+                  <% @quote.quote_processes.each do |quote_process| %>
+                    <tr>
+                      <td class="text-center align-middle">
+                        <button type="button" 
+                                class="btn btn-sm btn-link text-danger"
+                                data-action="click->quotes#removeProcess">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                      <td><%= quote_process.manufacturing_process.description %></td>
+                      <td class="text-end process-price-total">
+                        $<%= number_with_precision(quote_process.price, precision: 2) %>
+                      </td>
+                      <%= form.fields_for :quote_processes, quote_process do |process_form| %>
+                        <%= process_form.hidden_field :id %>
+                        <%= process_form.hidden_field :manufacturing_process_id %>
+                        <%= process_form.hidden_field :price %>
+                      <% end %>
+                    </tr>
+                  <% end %>
+                <% end %>
+              </tbody>
+            </table>
+            <div>
+              <strong>Subtotal procesos: </strong>
+              <span id="processes-subtotal" class="float-right">$0.00</span>
+            </div>
           </div>
         </div>
       </div>
@@ -340,20 +397,47 @@
 
         <div class="col-lg-6">
           <br>
-          <table data-quotes-target="extras" class="table table-bordered">
-            <thead class="thead-light">
-              <tr>
-                <th style="width: 50%">Extras</th>
-                <th style="width: 30%">Precio</th>
-                <th style="width: 20%">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-          <div>
-            <strong>Subtotal extras: </strong>
-            <span id="extras-subtotal" class="float-right" style="text-align: right; ">$0.00</span> 
+          <%# Extras Table %>
+          <div data-quotes-target="extras">
+            <table class="table table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th style="width: 100px" class="text-center">Acciones</th>
+                  <th>Extra</th>
+                  <th class="text-start">Cantidad</th>
+                  <th class="text-start">Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if @quote.persisted? %>
+                  <% @quote.quote_extras.each do |quote_extra| %>
+                    <tr>
+                      <td class="text-center align-middle">
+                        <button type="button" 
+                                class="btn btn-sm btn-link text-danger"
+                                data-action="click->quotes#removeExtra">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                      <td class="text-start"><%= quote_extra.extra.description %></td>
+                      <td class="text-end"><%= quote_extra.quantity %></td>
+                      <td class="text-end extra-price-total">
+                        $<%= number_with_precision(quote_extra.quantity * quote_extra.extra.price, precision: 2) %>
+                      </td>
+                      <%= form.fields_for :quote_extras, quote_extra do |extra_form| %>
+                        <%= extra_form.hidden_field :id %>
+                        <%= extra_form.hidden_field :extra_id %>
+                        <%= extra_form.hidden_field :quantity %>
+                      <% end %>
+                    </tr>
+                  <% end %>
+                <% end %>
+              </tbody>
+            </table>
+            <div>
+              <strong>Subtotal extras: </strong>
+              <span id="extras-subtotal" class="float-right">$0.00</span>
+            </div>
           </div>
         </div>
       </div>
@@ -365,18 +449,19 @@
         <div class="col-lg-6">
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span><%= form.label :pieces, "Subtotal:", class: "font-weight-bold" %></span>
+              <span><%= form.label :subtotal, "Subtotal:", class: "font-weight-bold" %></span>
             </div>
           </div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-6"> 
           <div class="form-group">
-            <div style="display: flex; justify-content: flex-end; align-items: center;">
+            <div style="display: flex; justify-content: flex-end; align-items: center;"> 
               <%= form.text_field :subtotal, 
                                 class: "form-control", 
                                 style: "width: 150px; text-align: right;", 
+                                name: "quote[subtotal]",
+                                value: @quote.subtotal,
                                 id: "quote_subtotal",
-                                value: "0.0",
                                 readonly: true %>
             </div>
           </div>
@@ -393,9 +478,8 @@
                 <input type="number" 
                        id="waste" 
                        name="quote[waste_percentage]"
-                       value="<%= @waste_config&.amount %>"
+                       value="<%= @quote.persisted? ? @quote.waste_percentage : @waste_config&.amount %>"
                        class="form-control text-right"
-                       step=any,
                        data-action="change->quotes#calculateTotals">
                 <span class="ml-1">%</span>
               </div>
@@ -409,6 +493,7 @@
                                 class: "form-control", 
                                 style: "width: 150px; text-align: right;", 
                                 name: "quote[waste_price]",
+                                value: @quote.waste_price,
                                 readonly: true %>
             </div>
           </div>
@@ -425,7 +510,7 @@
                 <input type="number" 
                        id="margin" 
                        name="quote[margin_percentage]"
-                       value="<%= @margin_config&.amount %>"
+                       value="<%= @quote.persisted? ? @quote.margin_percentage : @margin_config&.amount %>"
                        class="form-control text-right"
                        data-action="change->quotes#calculateTotals">
                 <span class="ml-1">%</span>
@@ -440,6 +525,7 @@
                                 class: "form-control", 
                                 style: "width: 150px; text-align: right;", 
                                 name: "quote[margin_price]",
+                                value: @quote.margin_price,
                                 readonly: true %>
             </div>
           </div>
@@ -468,6 +554,7 @@
                                 style: "width: 150px; text-align: right;", 
                                 name: "quote[total_quote_value]",
                                 id: "total-quote-value",
+                                value: @quote.total_quote_value,
                                 readonly: true %>
             </div>
           </div> 
@@ -478,7 +565,7 @@
                     class: "form-control", 
                     style: "width: 150px; text-align: right;", 
                     id: "quote_product_value_per_piece",
-                    value: "0.0",
+                    value: @quote.product_value_per_piece,
                     readonly: true %>
             </div>
           </div>
@@ -487,12 +574,28 @@
     
       <%# Calcula cotización %>
       <div class="row ml-3">
-        <div class="col-lg-6">
+        <div class="col-lg-12 d-flex align-items-center">
           <button type="button" 
-                  data-action="click->quotes#calculateTotals" 
+                  data-action="quotes#calculateTotals"
                   class="btn btn-green"> 
             Calcular cotización
           </button>
+          
+          <div class="form-check ml-3">
+            <input type="checkbox" 
+                    class="form-check-input" 
+                    data-quotes-target="includeExtras"
+                    <%= 'checked' if @quote.include_extras %>
+                    id="include_extras">
+            <input type="hidden" 
+                    data-quotes-target="includeExtrasHidden"
+                    name="quote[include_extras]" 
+                    value="<%= @quote.include_extras %>"
+                    id="include_extras">
+            <label class="form-check-label" for="include_extras">
+              Incluir extras en el cálculo
+            </label>
+          </div>
         </div>
       </div>
       

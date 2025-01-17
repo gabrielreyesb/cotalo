@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_08_132000) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_16_202923) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -131,6 +131,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_08_132000) do
     t.decimal "margin_price", default: "0.0"
     t.text "comments"
     t.string "product_name"
+    t.boolean "include_extras", default: false
   end
 
   create_table "units", force: :cascade do |t|

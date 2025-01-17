@@ -1,93 +1,124 @@
 <%= turbo_frame_tag "main-content" do %>
-  <div class="container-fluid px-4">
-    <%# Search/Filter Card %>
-    <div class="card mb-4">
-      <div class="card-body">
-        <%= form_tag root_path, method: :get do %>
-          <div class="row mb-3">
-            <div class="col-sm-6">
-              <label>Fecha desde:</label>
-              <%= date_field_tag :start_date, params[:start_date], 
-                  class: "form-control",
-                  placeholder: "dd/mm/yyyy" %>
-            </div>
-            
-            <div class="col-sm-6">
-              <label>Fecha hasta:</label>
-              <%= date_field_tag :end_date, params[:end_date], 
-                  class: "form-control",
-                  placeholder: "dd/mm/yyyy" %>
-            </div>
+  <div class="scrollable-content">
+    <div class="main-content-area">
+      <div class="container">
+        <div class="d-flex justify-content-center align-items-center mb-5 pt-4">
+          <h1 class="h2">Cotizaciones</h1>
+        </div>
+        <hr class="my-5">
+
+        <%# Collapsible Filters Block %>
+        <div class="card mb-4" data-controller="collapse">
+          <div class="card-header bg-white">
+            <button class="btn btn-link w-100 text-left d-flex justify-content-between align-items-center" 
+                    type="button" 
+                    data-action="click->collapse#toggle">
+              <span>Filtros</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-12">
-              <label>Cliente:</label>
-              <%= text_field_tag :customer_name, params[:customer_name], 
-                  class: "form-control",
-                  placeholder: "Buscar por nombre de cliente" %>
-            </div>
-          </div>
+          <div id="filtersCollapse" style="display: none;">
+            <div class="card-body">
+              <%= form_tag root_path, method: :get do %>
+                <div class="row mb-3">
+                  <div class="col-sm-6">
+                    <label>Fecha desde:</label>
+                    <%= date_field_tag :start_date, params[:start_date], 
+                        class: "form-control",
+                        placeholder: "dd/mm/yyyy" %>
+                  </div>
+                  
+                  <div class="col-sm-6">
+                    <label>Fecha hasta:</label>
+                    <%= date_field_tag :end_date, params[:end_date], 
+                        class: "form-control",
+                        placeholder: "dd/mm/yyyy" %>
+                  </div>
+                </div>
 
-          <div class="row">
-            <div class="col-12">
-              <%= submit_tag "Filtrar", class: "btn btn-green" %>
-              <%= link_to "Limpiar", root_path, class: "btn btn-secondary" %>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <label>Cliente:</label>
+                    <%= text_field_tag :customer_name, params[:customer_name], 
+                        class: "form-control",
+                        placeholder: "Buscar por nombre de cliente" %>
+                  </div>
+                </div>
 
-    <%# Quotes Table %>
-    <div class="card">
-      <div class="card-body px-0 pt-0 pb-2">
-        <div class="table-responsive p-0">
-          <table class="table align-items-center mb-0">
-            <thead>
-              <tr>
-                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
-                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Cliente</th>
-                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Precio</th>
-                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">IVA</th>
-                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @quotes.each do |quote| %>
-                <tr style="cursor: pointer" 
-                    data-controller="row-click" 
-                    data-action="click->row-click#click" 
-                    data-url="<%= quote_path(quote) %>">
-                  <td>
-                    <div class="d-flex px-3 py-1">
-                      <div class="d-flex flex-column justify-content-center">
-                        <h6 class="mb-0 text-sm"><%= quote.created_at.strftime("%d/%m/%Y") %></h6>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="d-flex flex-column justify-content-center">
-                      <h6 class="mb-0 text-sm"><%= quote.customer_name %></h6>
-                      <p class="text-xs text-secondary mb-0"><%= quote.customer_organization || "Sin organización" %></p>
-                    </div>
-                  </td>
-                  <td class="align-middle text-center">
-                    <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value, precision: 2) %></h6>
-                    <p class="text-xs text-secondary mb-0">Cotización #<%= quote.id %></p>
-                  </td>
-                  <td class="align-middle text-center">
-                    <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 0.16, precision: 2) %></h6>
-                    <p class="text-xs text-secondary mb-0">16%</p>
-                  </td>
-                  <td class="align-middle text-center">
-                    <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 1.16, precision: 2) %></h6>
-                    <p class="text-xs text-secondary mb-0">Total con IVA</p>
-                  </td>
-                </tr>
+                <div class="row">
+                  <div class="col-12">
+                    <%= submit_tag "Filtrar", class: "btn btn-green" %>
+                    <%= link_to "Limpiar", root_path, class: "btn btn-secondary" %>
+                  </div>
+                </div>
               <% end %>
-            </tbody>
-          </table>
+            </div>
+          </div>
+        </div>
+
+        <%# Quotes Table %>
+        <div class="card">
+          <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+              <table class="table align-items-center mb-0">
+                <thead>
+                  <tr>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Cliente</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Precio</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">IVA</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Total</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @quotes.each do |quote| %>
+                    <tr style="cursor: pointer" 
+                        data-controller="row-click" 
+                        data-action="click->row-click#click" 
+                        data-url="<%= quote_path(quote) %>">
+                      <td>
+                        <div class="d-flex px-3 py-1">
+                          <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 text-sm"><%= quote.created_at.strftime("%d/%m/%Y") %></h6>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex flex-column justify-content-center">
+                          <h6 class="mb-0 text-sm"><%= quote.customer_name %></h6>
+                          <p class="text-xs text-secondary mb-0"><%= quote.customer_organization || "Sin organización" %></p>
+                        </div>
+                      </td>
+                      <td class="align-middle text-center">
+                        <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value, precision: 2) %></h6>
+                        <p class="text-xs text-secondary mb-0">Cotización #<%= quote.id %></p>
+                      </td>
+                      <td class="align-middle text-center">
+                        <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 0.16, precision: 2) %></h6>
+                        <p class="text-xs text-secondary mb-0">16%</p>
+                      </td>
+                      <td class="align-middle text-center">
+                        <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 1.16, precision: 2) %></h6>
+                        <p class="text-xs text-secondary mb-0">Total con IVA</p>
+                      </td>
+                      <td>
+                        <%= link_to quote_path(quote), class: "btn btn-sm btn-gray" do %>
+                          <i class="fas fa-eye"></i>
+                        <% end %>
+                        <%= link_to calculate_quotes_path(quote_id: quote.id),
+                                    class: "btn btn-sm btn-green ml-2",
+                                    data: { action: "click->row-click#stopPropagation" } do %>
+                          <i class="fas fa-edit"></i>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>

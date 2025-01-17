@@ -6,7 +6,13 @@ class QuotesController < ApplicationController
   protect_from_forgery with: :exception
 
   def calculate
-    @quote = Quote.new
+    @quote = if params[:quote_id]
+              Quote.includes(:quote_materials, :quote_processes, :manufacturing_processes,
+                           quote_extras: :extra).find(params[:quote_id])
+            else
+              Quote.new
+            end
+    
     @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
     @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
     @waste_config = GeneralConfiguration.find_by(description: 'merma')
@@ -51,23 +57,35 @@ class QuotesController < ApplicationController
   def search_customer
     begin
       customer_name = params[:quote][:customer_name]
+      Rails.logger.debug "Starting customer search for: #{customer_name}"
+      
+      Rails.logger.debug "Environment variables:"
+      Rails.logger.debug "PIPEDRIVE_API_KEY present?: #{ENV['PIPEDRIVE_API_KEY'].present?}"
+      Rails.logger.debug "All ENV keys: #{ENV.keys}"
       
       unless ENV['PIPEDRIVE_API_KEY']
+        Rails.logger.error "PIPEDRIVE_API_KEY not found in environment variables"
         render json: { error: "Pipedrive API key not configured." }, 
                status: :internal_server_error
         return
       end
 
+      Rails.logger.debug "PIPEDRIVE_API_KEY is present"
       api_token = ENV['PIPEDRIVE_API_KEY']
       url = URI("https://api.pipedrive.com/v1/persons/search?term=#{CGI.escape(customer_name)}&api_token=#{api_token}")
+      Rails.logger.debug "Making request to Pipedrive URL: #{url.to_s.gsub(api_token, '[REDACTED]')}"
       
       response = Net::HTTP.get_response(url)
+      Rails.logger.debug "Pipedrive response code: #{response.code}"
+      Rails.logger.debug "Pipedrive response body: #{response.body}"
       
       if response.code == '200'
         data = JSON.parse(response.body)
+        Rails.logger.debug "Successfully parsed JSON response"
         results = []
 
         if data['data'] && data['data']['items']
+          Rails.logger.debug "Found #{data['data']['items'].length} results"
           data['data']['items'].each do |item|
             person = item['item']
             
@@ -89,12 +107,14 @@ class QuotesController < ApplicationController
 
         render json: { results: results }
       else
+        Rails.logger.error "Pipedrive API error. Response code: #{response.code}, Body: #{response.body}"
         render json: { error: "Pipedrive API error" }, status: :unprocessable_entity
       end
       
     rescue StandardError => e
       Rails.logger.error "Error in search_customer: #{e.class} - #{e.message}"
-      render json: { error: "Internal server error", message: e.message }, status: :internal_server_entity
+      Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+      render json: { error: "Internal server error", message: e.message }, status: :internal_server_error
     end
   end
 
@@ -118,6 +138,22 @@ class QuotesController < ApplicationController
     @quotes = Quote.order(created_at: :desc)
   end
 
+  def update
+    @quote = Quote.find(params[:id])
+    Rails.logger.debug "Quote params: #{quote_params.inspect}"
+    Rails.logger.debug "Quote processes params: #{quote_params[:quote_processes_attributes]&.inspect}"
+    
+    if @quote.update(quote_params)
+      redirect_to root_path, notice: "Cotización actualizada exitosamente."
+    else
+      @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
+      @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
+      @waste_config = GeneralConfiguration.find_by(description: 'merma')
+      @margin_config = GeneralConfiguration.find_by(description: 'margen')
+      render :calculate, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def quote_params
@@ -136,10 +172,9 @@ class QuotesController < ApplicationController
       :product_value_per_piece,
       :waste_price,
       :margin_price,
-      :total_quote_value, 
-      :product_value_per_piece,
       :comments,
       :product_name,
+      :include_extras,
       quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
       quote_extras_attributes: [:id, :extra_id, :quantity, :_destroy],
       quote_materials_attributes: [
