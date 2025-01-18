@@ -28,7 +28,8 @@ units = [
   { description: 'pieza' },
   { description: 'cms' },
   { description: 'mt2' },
-  { description: 'pliego' }
+  { description: 'pliego' },
+  { description: 'mts' }
 ]
 
 units.each do |unit|
@@ -128,8 +129,31 @@ configs = [
   }
 ]
 
+puts "Creating unit equivalences..."
+unit_equivalences = [
+  {
+    unit_one_id: Unit.find_by(id: 1),
+    unit_two_id: Unit.find_by(description: 'mts'),
+    conversion_factor: 0.01  # 1 cm = 0.01 meters
+  }
+]
+
 configs.each do |config|
   GeneralConfiguration.create!(config)
 end
+
+# First find the units (using the exact descriptions from your database)
+cms_unit = Unit.find_by(description: 'cms')  # adjust this to match your database
+mts_unit = Unit.find_by(description: 'mts')  # adjust this to match your database
+
+puts "Found CMS unit: #{cms_unit.inspect}"  # Debug output
+puts "Found MTS unit: #{mts_unit.inspect}"  # Debug output
+
+# Create unit equivalence for centimeters to meters
+UnitEquivalence.create!(
+  unit_one_id: cms_unit.id,
+  unit_two_id: mts_unit.id,
+  conversion_factor: 0.01  # 1 cm = 0.01 meters
+)
 
 puts "Seed completed successfully!"
