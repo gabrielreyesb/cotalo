@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_17_235959) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_08_103903) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -86,18 +86,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_17_235959) do
 
   create_table "quote_materials", force: :cascade do |t|
     t.integer "quote_id", null: false
-    t.integer "material_id"
+    t.integer "material_id", null: false
     t.integer "products_per_sheet"
     t.integer "sheets_needed"
     t.decimal "square_meters"
     t.decimal "total_price"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "is_manual", default: false
-    t.string "manual_description"
-    t.string "manual_unit"
-    t.decimal "manual_width", precision: 10, scale: 2
-    t.decimal "manual_length", precision: 10, scale: 2
     t.index ["material_id"], name: "index_quote_materials_on_material_id"
     t.index ["quote_id"], name: "index_quote_materials_on_quote_id"
   end
@@ -131,18 +126,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_17_235959) do
     t.decimal "margin_price", default: "0.0"
     t.text "comments"
     t.string "product_name"
-    t.boolean "include_extras", default: false
-  end
-
-  create_table "unit_equivalences", force: :cascade do |t|
-    t.decimal "conversion_factor", precision: 15, scale: 6, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "unit_one_id", null: false
-    t.integer "unit_two_id", null: false
-    t.index ["unit_one_id", "unit_two_id"], name: "index_unit_equivalences_on_unit_one_id_and_unit_two_id", unique: true
-    t.index ["unit_one_id"], name: "index_unit_equivalences_on_unit_one_id"
-    t.index ["unit_two_id"], name: "index_unit_equivalences_on_unit_two_id"
   end
 
   create_table "units", force: :cascade do |t|
@@ -180,6 +163,4 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_17_235959) do
   add_foreign_key "quote_materials", "quotes"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"
-  add_foreign_key "unit_equivalences", "units", column: "unit_one_id"
-  add_foreign_key "unit_equivalences", "units", column: "unit_two_id"
 end
