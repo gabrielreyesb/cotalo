@@ -1,1 +1,1 @@
-json.array! @toolings, partial: "toolings/tooling", as: :tooling
+json.array! @extras, partial: "extras/extra", as: :extra

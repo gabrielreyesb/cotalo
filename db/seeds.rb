@@ -95,7 +95,7 @@ puts "Creating extras..."
 extras = [
   {
     description: 'MADERA PARA SUAJE',
-    unit: Unit.find_by(description: 'cms'),
+    unit: Unit.find_by(description: 'mt2'),
     price: 0.12
   }
 ]

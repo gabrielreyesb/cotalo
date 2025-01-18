@@ -53,6 +53,6 @@ class ExtrasController < ApplicationController
   
       # Only allow a list of trusted parameters through.
       def extra_params
-        params.require(:extra).permit(:description, :price, :unit_id)
+        params.require(:extra).permit(:description, :price, :unit_id, :comments)
       end
 end 

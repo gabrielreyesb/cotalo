@@ -1,1 +1,1 @@
-json.partial! "toolings/tooling", tooling: @tooling
+json.partial! "extras/extra", extra: @extra

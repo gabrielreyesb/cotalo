@@ -1,4 +1,4 @@
-<%= form_with(model: extra) do |form| %>
+<%= form_with(model: extra, data: { turbo_frame: "_top" }) do |form| %>
   <% if extra.errors.any? %>
     <div class="alert alert-danger">
       <h2><%= pluralize(extra.errors.count, "error") %> prohibited this extra from being saved:</h2>
