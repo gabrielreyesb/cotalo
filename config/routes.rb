@@ -1,21 +1,20 @@
 Rails.application.routes.draw do
   get 'quotes/calculate', to: 'quotes#calculate', as: :calculate_quotes
   resources :quotes
-
   resources :general_configurations
-
   devise_for :users
-  
   resources :extras
+  resources :units
+  resources :customers
+  resources :materials
+  resources :vendors
+  resources :unit_equivalences
+
   resources :manufacturing_processes do
     member do
       post :copy
     end
   end
-  resources :units
-  resources :customers
-  resources :materials
-  resources :vendors
 
   resources :quotes, only: [:new, :create, :show] do
     resources :quote_processes

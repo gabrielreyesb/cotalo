@@ -1,0 +1,43 @@
+<% if form.object.errors.any? %>
+  <div class="alert alert-danger">
+    <h2><%= pluralize(form.object.errors.count, "error") %> prohibited this equivalence from being saved:</h2>
+    <ul>
+      <% form.object.errors.each do |error| %>
+        <li><%= error.full_message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div class="form-group">
+  <%= form.label :unit_one_id, "Unidad 1:", class: "form-label" %>
+  <%= form.collection_select :unit_one_id, 
+          @available_units, 
+          :id, 
+          :description, 
+          { prompt: "Seleccione una unidad" }, 
+          class: "form-control" %>
+</div>
+
+<div class="form-group">
+  <%= form.label :unit_two_id, "Unidad 2:", class: "form-label" %>
+  <%= form.collection_select :unit_two_id, 
+          @available_units, 
+          :id, 
+          :description, 
+          { prompt: "Seleccione una unidad" }, 
+          class: "form-control" %>
+</div>
+
+<div class="form-group">
+  <%= form.label :conversion_factor, "Factor de conversión:", class: "form-label" %>
+  <%= form.number_field :conversion_factor, 
+          class: "form-control", 
+          step: :any, 
+          placeholder: "Ej: 1000 para m a mm" %>
+</div>
+
+<div class="form-actions text-center mt-4">
+  <%= form.submit "Guardar equivalencia", class: "btn btn-green" %>
+  <%= link_to "Volver a equivalencias", unit_equivalences_path, class: "btn btn-secondary" %>
+</div>

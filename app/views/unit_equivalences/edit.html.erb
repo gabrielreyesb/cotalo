@@ -1,0 +1,9 @@
+<%= turbo_frame_tag "main-content" do %>
+  <div class="container mt-4">
+    <h1 class="text-center mb-4">Editar equivalencia</h1>
+
+    <%= form_with(model: @unit_equivalence, data: { turbo_frame: '_top' }) do |f| %>
+      <%= render 'form', form: f %>
+    <% end %>
+  </div>
+<% end %>

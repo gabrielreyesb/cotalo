@@ -152,11 +152,11 @@
             <thead class="thead-light">
               <tr>
                 <th style="width: 100px">Acciones</th>
-                <th class="text-start">Material</th>
-                <th class="text-end">Piezas</th>
-                <th class="text-end">Material</th>
-                <th class="text-end">Mts2</th>
-                <th class="text-end">Precio</th>
+                <th>Material</th>
+                <th style="text-align: right">Piezas</th>
+                <th style="text-align: right">Material</th>
+                <th style="text-align: right">Mts2</th>
+                <th style="text-align: right">Precio</th>
               </tr>
             </thead>
             <tbody>
@@ -170,11 +170,11 @@
                         <i class="fas fa-trash"></i>
                       </button>
                     </td>
-                    <td><%= quote_material.is_manual ? quote_material.manual_description : quote_material.material.description %></td>
-                    <td class="text-end"><%= quote_material.products_per_sheet %></td>
-                    <td class="text-end"><%= quote_material.sheets_needed %></td>
-                    <td class="text-end"><%= quote_material.square_meters %></td>
-                    <td class="text-end">$<%= number_with_precision(quote_material.total_price, precision: 2) %></td>
+                    <td style="text-align: left !important"><%= quote_material.is_manual ? quote_material.manual_description : quote_material.material.description %></td>
+                    <td style="text-align: right !important"><%= quote_material.products_per_sheet %></td>
+                    <td style="text-align: right !important"><%= quote_material.sheets_needed %></td>
+                    <td style="text-align: right !important"><%= quote_material.square_meters %></td>
+                    <td style="text-align: right !important">$<%= number_with_precision(quote_material.total_price, precision: 2) %></td>
                     <%= form.fields_for :quote_materials, quote_material do |material_form| %>
                       <%= material_form.hidden_field :id %>
                       <%= material_form.hidden_field :material_id %>
@@ -324,8 +324,8 @@
                           <i class="fas fa-trash"></i>
                         </button>
                       </td>
-                      <td><%= quote_process.manufacturing_process.description %></td>
-                      <td class="text-end process-price-total">
+                      <td style="text-align: left !important"><%= quote_process.manufacturing_process.name %> - <%= quote_process.manufacturing_process.description %></td>
+                      <td style="text-align: right !important" class="process-price-total">
                         $<%= number_with_precision(quote_process.price, precision: 2) %>
                       </td>
                       <%= form.fields_for :quote_processes, quote_process do |process_form| %>
@@ -419,9 +419,9 @@
                           <i class="fas fa-trash"></i>
                         </button>
                       </td>
-                      <td class="text-start"><%= quote_extra.extra.description %></td>
-                      <td class="text-end"><%= quote_extra.quantity %></td>
-                      <td class="text-end extra-price-total">
+                      <td style="text-align: left !important"><%= quote_extra.extra.description %></td>
+                      <td style="text-align: right !important"><%= quote_extra.quantity %></td>
+                      <td style="text-align: right !important" class="extra-price-total">
                         $<%= number_with_precision(quote_extra.quantity * quote_extra.extra.price, precision: 2) %>
                       </td>
                       <%= form.fields_for :quote_extras, quote_extra do |extra_form| %>

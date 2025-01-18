@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  unit_one: MyString
+  unit_two: MyString
+  conversion_factor: 9.99
+
+two:
+  unit_one: MyString
+  unit_two: MyString
+  conversion_factor: 9.99

@@ -1,0 +1,10 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @unit_equivalence %>
+
+<div>
+  <%= link_to "Edit this unit equivalence", edit_unit_equivalence_path(@unit_equivalence) %> |
+  <%= link_to "Back to unit equivalences", unit_equivalences_path %>
+
+  <%= button_to "Destroy this unit equivalence", @unit_equivalence, method: :delete %>
+</div>

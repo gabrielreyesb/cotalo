@@ -76,7 +76,7 @@ export default class extends Controller {
     }
   }
 
-  loadExistingData(data) {
+  loadExistingDataOld(data) {
     console.log('Loading existing data...');
     
     // Basic quote information
@@ -109,6 +109,7 @@ export default class extends Controller {
     const materialsTable = this.materialsTableTarget;
     const processesTable = this.processesTarget;
     const extrasTable = this.extrasTarget;
+
     // Clear existing rows
     materialsTable.querySelector('tbody').innerHTML = '';
     processesTable.querySelector('tbody').innerHTML = '';
@@ -125,11 +126,11 @@ export default class extends Controller {
               <i class="fas fa-trash"></i>
             </button>
           </td>
-          <td style="text-align: left !important">${material.material.description}</td>
-          <td style="text-align: right !important">${material.products_per_sheet}</td>
-          <td style="text-align: right !important">${material.sheets_needed}</td>
-          <td style="text-align: right !important">${material.square_meters}</td>
-          <td style="text-align: right !important">$${material.total_price.toFixed(2)}</td>`;
+          <td class="text-start">${material.material.description}</td>
+          <td class="text-end">${material.products_per_sheet}</td>
+          <td class="text-end">${material.sheets_needed}</td>
+          <td class="text-end">${material.square_meters}</td>
+          <td class="text-end">$${material.total_price.toFixed(2)}</td>`;
       materialsTable.querySelector('tbody').appendChild(row);
       
       // Debug: Check applied styles
@@ -156,12 +157,9 @@ export default class extends Controller {
             </button>
           </td>
           <td style="text-align: left !important">${process.manufacturing_process.name} - ${process.manufacturing_process.description}</td>
-          <td style="text-align: right !important" class="process-price-total">$${process.price.toFixed(2)}</td>
+          <td class="text-end process-price-total">$${process.price.toFixed(2)}</td>
       `;
-      console.log('Row HTML created:', row.innerHTML);
       processesTable.querySelector('tbody').appendChild(row);
-      console.log('Process table after adding row:', processesTable.outerHTML);
-      console.log('Process price elements in table:', processesTable.querySelectorAll('.process-price-total').length);
     });
 
     // Load extras
@@ -248,7 +246,6 @@ export default class extends Controller {
 
   addProcess(event) {
     event.preventDefault();
-    console.log('Adding new process...');
 
     const selectElement = document.getElementById('quote_manufacturing_process_id');
     const priceInput = document.getElementById('manufacturing_process_price_display');
@@ -263,14 +260,6 @@ export default class extends Controller {
         const processPrice = parseFloat(priceInput.value);
         const processUnit = selectedOption.getAttribute('data-unit');
           
-        console.log('Process data:', {
-          processId,
-          processName,
-          processDescription,
-          processPrice,
-          processUnit
-        });
-
         // Get values from the material table row
         const materialRow = this.materialsTableTarget.querySelector('tbody tr');
         if (!materialRow) {
@@ -291,13 +280,8 @@ export default class extends Controller {
           return;
         }
 
-        console.log('Calculated values:', {
-          materialPieces,
-          squareMeters,
-          calculatedPrice
-        });
-
         const newRow = document.createElement('tr');
+        newRow.classList.add('js-rendered');
         newRow.dataset.newProcess = "true";
         
         newRow.innerHTML = `
@@ -314,12 +298,8 @@ export default class extends Controller {
           <input type="hidden" name="quote[quote_processes_attributes][][price]" value="${calculatedPrice}">
         `;
 
-        console.log('New row HTML:', newRow.innerHTML);
-        console.log('Hidden fields added:', newRow.querySelectorAll('input[type="hidden"]').length);
-
         // Append the new row to the table body
         this.processesTarget.querySelector('tbody').appendChild(newRow);
-        console.log('Process row added, updating subtotal...');
 
         // Update processes subtotal
         this.updateProcessesSubtotal();
@@ -378,7 +358,6 @@ export default class extends Controller {
 
   addExtra(event) {
     event.preventDefault();
-    console.log('Adding new extra...');
 
     const selectElement = document.getElementById('quote_extra_id');
     const priceInput = document.getElementById('extra_price_display');
@@ -419,7 +398,6 @@ export default class extends Controller {
 
         const tbody = this.extrasTarget.querySelector('tbody');
         tbody.appendChild(newRow);
-        console.log('Extra row added, updating subtotal...');
         
         this.newExtraId++;
         this.updateExtrasSubtotal();
@@ -728,7 +706,7 @@ export default class extends Controller {
           <td class="text-center align-middle">
             <button type="button" 
                     class="btn btn-sm btn-link text-danger"
-                    data-action="click->quotes#removeMaterial">
+                    data-action="click->quotes#addMaterialToList">
               <i class="fas fa-trash"></i>
             </button>
           </td>
