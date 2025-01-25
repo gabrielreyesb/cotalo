@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_17_202400) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
   create_table "customers", force: :cascade do |t|
     t.string "name"
     t.string "contact"
@@ -98,6 +98,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_17_202400) do
     t.string "manual_unit"
     t.decimal "manual_width", precision: 10, scale: 2
     t.decimal "manual_length", precision: 10, scale: 2
+    t.boolean "is_main", default: false, null: false
     t.index ["material_id"], name: "index_quote_materials_on_material_id"
     t.index ["quote_id"], name: "index_quote_materials_on_quote_id"
   end

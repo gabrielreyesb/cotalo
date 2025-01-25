@@ -50,21 +50,23 @@
 
           <div class="form-group">
             <%= form.label :customer_name, "Cliente:", class: "font-weight-bold" %>
-            <%= form.text_field :customer_name, class: "form-control", value: @quote.customer_name %>
+            <div class="input-group">
+              <%= form.text_field :customer_name, class: "form-control", value: @quote.customer_name %>
+              <div class="input-group-append">
+                <button type="button" 
+                    class="btn btn-green" 
+                    data-action="click->quotes#searchCustomer">
+                  Buscar en Pipedrive
+                </button>
+              </div>
+            </div>
           </div>
 
-          <%= form.label :customer_organization, "Organización:", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.text_field :customer_organization, 
-                  class: "form-control flex-grow-1", 
-                  value: @quote.customer_organization %>
-            <div class="input-group-append">
-              <button type="button" 
-                  class="btn btn-green" 
-                  data-action="click->quotes#searchCustomer">
-                Buscar en Pipedrive
-              </button>
-            </div>
+          <div class="form-group">
+            <%= form.label :customer_organization, "Organización:", class: "font-weight-bold" %>
+            <%= form.text_field :customer_organization, 
+                class: "form-control", 
+                value: @quote.customer_organization %>
           </div>
 
           <div class="form-group">
@@ -75,7 +77,7 @@
 
         <div class="col-lg-6">
           <div class="form-group">
-            <%= form.label :product_quantity, "Cantidad de piezas:", class: "font-weight-bold" %>
+            <%= form.label :product_quantity, "Cantidad de productos deseados:", class: "font-weight-bold" %>
             <%= form.number_field :product_quantity, 
                              class: "form-control text-right", 
                              value: @quote.product_quantity,
@@ -114,34 +116,77 @@
         <div class="col-lg-6">
           <div class="form-group">
             <%= form.label :material_id, "Materiales:", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.select :material_id,
-                options_for_select(
-                  Material.order(:description).map { |m|
-                    [m.description, m.id, { 'data-price' => m.price, 'data-unit' => m.unit.description }]
-                  }
-                ),
-                { include_blank: 'Select one' },
-                { class: "form-control",
-                  id: 'material-select',
-                  data: { action: 'change->quotes#showAdditionalMaterialInfo' }
+            <%= form.select :material_id,
+              options_for_select(
+                Material.order(:description).map { |m|
+                  [m.description, m.id, { 
+                    'data-price' => m.price, 
+                    'data-unit' => m.unit.description,
+                    'data-width' => m.width,
+                    'data-length' => m.length
+                  }]
                 }
-              %>
-              <div class="input-group-prepend">
-                <span class="input-group-text ml-1" id="additional_material_unit_display"></span>
-                <span class="input-group-text">$</span>
-                <input type="number" 
-                       step="any" 
-                       class="form-control text-right" 
-                       id="additional_material_price_display" 
-                       style="width: 100px;">
+              ),
+              { include_blank: 'Select one' },
+              { class: "form-control",
+                id: 'material-select',
+                data: { action: 'change->quotes#showAdditionalMaterialInfo' }
+              }
+            %>
+            
+            <div class="row mt-2">
+              <div class="col-md-4">
+                <label class="mb-1">Precio</label>
+                <div class="input-group">
+                  <input type="number" 
+                         step="any" 
+                         class="form-control text-right" 
+                         id="additional_material_price_display"
+                         readonly>
+                  <span class="input-group-text" id="additional_material_unit_display"></span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="mb-1">Ancho</label>
+                <div class="input-group">
+                  <input type="number" 
+                         step="any"
+                         class="form-control text-right" 
+                         id="additional_material_width_display">
+                  <span class="input-group-text">cm</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="mb-1">Largo</label>
+                <div class="input-group">
+                  <input type="number" 
+                         step="any"
+                         class="form-control text-right" 
+                         id="additional_material_length_display">
+                  <span class="input-group-text">cm</span>
+                </div>
               </div>
             </div>
           </div>
-
+          
+          <%# Material Visualization Canvas %>
+          <div class="form-check mb-2">
+            <input type="checkbox" 
+                   class="form-check-input" 
+                   id="show-visualization" 
+                   data-action="change->quotes#toggleVisualization"
+                   unchecked>
+            <label class="form-check-label" for="show-visualization">
+              Mostrar visualización
+            </label>
+          </div>
+          <div class="mt-3" id="visualization-container">
+            <canvas id="material-visualization" width="400" height="300" style="border: 1px solid #ccc;"></canvas>
+          </div>
+          <br>
           <button type="button" 
                   class="btn btn-green" 
-                  data-action="click->quotes#addMaterialToList">
+                  data-action="click->quotes#addMaterial">
             Agregar material
           </button>
         </div>
@@ -151,30 +196,39 @@
           <table data-quotes-target="materialsTable" class="table table-bordered">
             <thead class="thead-light">
               <tr>
-                <th style="width: 100px">Acciones</th>
-                <th>Material</th>
-                <th style="text-align: right">Piezas</th>
-                <th style="text-align: right">Material</th>
-                <th style="text-align: right">Mts2</th>
-                <th style="text-align: right">Precio</th>
+                <th class="align-middle text-center" style="width: 80px; height: 60px;">Acciones</th>
+                <th class="align-middle" style="height: 60px;">Material</th>
+                <th class="align-middle text-end" style="height: 60px; white-space: normal;">Prods. x<br>material</th>
+                <th class="align-middle text-end" style="height: 60px;">Material<br>requerido</th>
+                <th class="align-middle text-end" style="height: 60px;">Mts2</th>
+                <th class="align-middle text-end" style="height: 60px;">Precio</th>
               </tr>
             </thead>
             <tbody>
               <% if @quote.persisted? %>
                 <% @quote.quote_materials.each do |quote_material| %>
                   <tr>
-                    <td class="text-center align-middle">
-                      <button type="button" 
-                              class="btn btn-sm btn-link text-danger"
-                              data-action="click->quotes#removeMaterial">
-                        <i class="fas fa-trash"></i>
-                      </button>
+                    <td class="align-middle text-center">
+                      <div class="d-flex align-items-center justify-content-between" style="min-width: 60px; margin: 0 auto; max-width: 80px;">
+                        <div class="form-check mb-0">
+                          <input type="radio" 
+                                 name="main_material" 
+                                 class="form-check-input" 
+                                 data-action="change->quotes#updateMainMaterial"
+                                 <%= 'checked' if quote_material.is_main %>>
+                        </div>
+                        <button type="button" 
+                                class="btn btn-sm btn-link text-danger p-0"
+                                data-action="click->quotes#removeMaterial">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
                     </td>
-                    <td style="text-align: left !important"><%= quote_material.is_manual ? quote_material.manual_description : quote_material.material.description %></td>
-                    <td style="text-align: right !important"><%= quote_material.products_per_sheet %></td>
-                    <td style="text-align: right !important"><%= quote_material.sheets_needed %></td>
-                    <td style="text-align: right !important"><%= quote_material.square_meters %></td>
-                    <td style="text-align: right !important">$<%= number_with_precision(quote_material.total_price, precision: 2) %></td>
+                    <td class="align-middle"><%= quote_material.is_manual ? quote_material.manual_description : quote_material.material.description %></td>
+                    <td class="align-middle text-end"><%= quote_material.products_per_sheet %></td>
+                    <td class="align-middle text-end"><%= quote_material.sheets_needed %></td>
+                    <td class="align-middle text-end"><%= quote_material.square_meters %></td>
+                    <td class="align-middle text-end">$<%= number_with_precision(quote_material.total_price, precision: 2) %></td>
                     <%= form.fields_for :quote_materials, quote_material do |material_form| %>
                       <%= material_form.hidden_field :id %>
                       <%= material_form.hidden_field :material_id %>
@@ -199,6 +253,7 @@
       </div>
 
       <br>
+      <%# Manual Materials Section %>
       <div class="col-lg-6">
         <div class="manual-material-section">
           <a href="javascript:void(0);" 
@@ -352,7 +407,7 @@
       <div class="row ml-3">
         <div class="col-lg-6">
           <div class="form-group">
-            <%= form.label :extra_id, "Extras: (No suma a la cotización)", class: "font-weight-bold" %>
+            <%= form.label :extra_id, "Extras: ", class: "font-weight-bold" %>
             <div class="input-group">
               <%= form.select :extra_id,
                         options_for_select(
@@ -456,13 +511,12 @@
         <div class="col-lg-6"> 
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-              <%= form.text_field :subtotal, 
-                                class: "form-control", 
-                                style: "width: 150px; text-align: right;", 
-                                name: "quote[subtotal]",
-                                value: @quote.subtotal,
+              <%= form.hidden_field :subtotal, 
                                 id: "quote_subtotal",
-                                readonly: true %>
+                                value: @quote.subtotal %>
+              <span id="subtotal-display" class="form-control" style="width: 150px; text-align: right !important;">
+                $<%= number_with_precision(@quote.subtotal, precision: 2) %>
+              </span>
             </div>
           </div>
         </div>
@@ -480,6 +534,7 @@
                        name="quote[waste_percentage]"
                        value="<%= @quote.persisted? ? @quote.waste_percentage : @waste_config&.amount %>"
                        class="form-control text-right"
+                       style="width: 80px;"
                        data-action="change->quotes#calculateTotals">
                 <span class="ml-1">%</span>
               </div>
@@ -489,12 +544,12 @@
         <div class="col-lg-6"> 
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-              <%= form.text_field :waste_price, 
-                                class: "form-control", 
-                                style: "width: 150px; text-align: right;", 
-                                name: "quote[waste_price]",
-                                value: @quote.waste_price,
-                                readonly: true %>
+              <%= form.hidden_field :waste_price, 
+                                id: "quote_waste_price",
+                                value: @quote.waste_price %>
+              <span id="waste-price-display" class="form-control" style="width: 150px; text-align: right !important;">
+                $<%= number_with_precision(@quote.waste_price, precision: 2) %>
+              </span>
             </div>
           </div>
         </div>
@@ -512,6 +567,7 @@
                        name="quote[margin_percentage]"
                        value="<%= @quote.persisted? ? @quote.margin_percentage : @margin_config&.amount %>"
                        class="form-control text-right"
+                       style="width: 80px;"
                        data-action="change->quotes#calculateTotals">
                 <span class="ml-1">%</span>
               </div>
@@ -521,12 +577,12 @@
         <div class="col-lg-6"> 
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;"> 
-              <%= form.text_field :margin_price, 
-                                class: "form-control", 
-                                style: "width: 150px; text-align: right;", 
-                                name: "quote[margin_price]",
-                                value: @quote.margin_price,
-                                readonly: true %>
+              <%= form.hidden_field :margin_price, 
+                                id: "quote_margin_price",
+                                value: @quote.margin_price %>
+              <span id="margin-price-display" class="form-control" style="width: 150px; text-align: right !important;">
+                $<%= number_with_precision(@quote.margin_price, precision: 2) %>
+              </span>
             </div>
           </div>
         </div>
@@ -549,24 +605,22 @@
         <div class="col-lg-6">
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;">
-              <%= form.text_field :total_quote_value, 
-                                class: "form-control", 
-                                style: "width: 150px; text-align: right;", 
-                                name: "quote[total_quote_value]",
-                                id: "total-quote-value",
-                                value: @quote.total_quote_value,
-                                readonly: true %>
+              <%= form.hidden_field :total_quote_value, 
+                                id: "quote_total_quote_value",
+                                value: @quote.total_quote_value %>
+              <span id="total-quote-value-display" class="form-control" style="width: 150px; text-align: right !important;">
+                $<%= number_with_precision(@quote.total_quote_value, precision: 2) %>
+              </span>
             </div>
           </div> 
           <div class="form-group">
             <div style="display: flex; justify-content: flex-end; align-items: center;">
-              <%= form.text_field :product_value_per_piece, 
-                    step: :any, 
-                    class: "form-control", 
-                    style: "width: 150px; text-align: right;", 
+              <%= form.hidden_field :product_value_per_piece, 
                     id: "quote_product_value_per_piece",
-                    value: @quote.product_value_per_piece,
-                    readonly: true %>
+                    value: @quote.product_value_per_piece %>
+              <span id="price-per-piece-display" class="form-control" style="width: 150px; text-align: right !important;">
+                $<%= number_with_precision(@quote.product_value_per_piece, precision: 2) %>
+              </span>
             </div>
           </div>
         </div>

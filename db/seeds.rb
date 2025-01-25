@@ -29,7 +29,8 @@ units = [
   { description: 'cms' },
   { description: 'mt2' },
   { description: 'pliego' },
-  { description: 'mts' }
+  { description: 'mts' },
+  { description: 'producto' }
 ]
 
 units.each do |unit|

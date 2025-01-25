@@ -50,6 +50,13 @@ class QuotesController < ApplicationController
     if @quote.save
       redirect_to root_path, notice: "Cotización creada exitosamente."
     else
+      # Load necessary configurations for the form
+      @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
+      @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
+      @waste_config = GeneralConfiguration.find_by(description: 'merma')
+      @margin_config = GeneralConfiguration.find_by(description: 'margen')
+      
+      # Re-render the form with the submitted data
       render :calculate, status: :unprocessable_entity
     end
   end
@@ -180,7 +187,7 @@ class QuotesController < ApplicationController
       quote_materials_attributes: [
         :id, :material_id, :products_per_sheet, :sheets_needed, 
         :square_meters, :total_price, :_destroy,
-        :is_manual, :manual_description, :manual_unit
+        :is_manual, :manual_description, :manual_unit, :is_main
       ]
     )
   end
