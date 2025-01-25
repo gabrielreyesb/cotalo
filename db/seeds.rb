@@ -18,6 +18,7 @@ Material.destroy_all
 ManufacturingProcess.destroy_all
 Extra.destroy_all
 GeneralConfiguration.destroy_all
+UnitEquivalence.destroy_all  # Delete unit equivalences before units
 Unit.destroy_all
 
 # Create Units
