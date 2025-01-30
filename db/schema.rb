@@ -10,15 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
-  create_table "customers", force: :cascade do |t|
-    t.string "name"
-    t.string "contact"
-    t.string "email"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
+ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
   create_table "extras", force: :cascade do |t|
     t.string "description"
     t.decimal "price", precision: 10, scale: 2
@@ -26,7 +18,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "comments"
+    t.integer "user_id", null: false
     t.index ["unit_id"], name: "index_extras_on_unit_id"
+    t.index ["user_id"], name: "index_extras_on_user_id"
   end
 
   create_table "general_configurations", force: :cascade do |t|
@@ -35,7 +29,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "unit_id"
+    t.integer "user_id", null: false
     t.index ["unit_id"], name: "index_general_configurations_on_unit_id"
+    t.index ["user_id"], name: "index_general_configurations_on_user_id"
   end
 
   create_table "manufacturing_processes", force: :cascade do |t|
@@ -51,7 +47,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.integer "maximum_width"
     t.integer "minimum_length"
     t.integer "minimum_width"
+    t.integer "user_id", null: false
     t.index ["unit_id"], name: "index_manufacturing_processes_on_unit_id"
+    t.index ["user_id"], name: "index_manufacturing_processes_on_user_id"
   end
 
   create_table "materials", force: :cascade do |t|
@@ -63,15 +61,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.datetime "updated_at", null: false
     t.decimal "price", precision: 10, scale: 2
     t.integer "unit_id", null: false
+    t.integer "user_id", null: false
     t.index ["unit_id"], name: "index_materials_on_unit_id"
-  end
-
-  create_table "papers", force: :cascade do |t|
-    t.string "description"
-    t.string "size"
-    t.decimal "weight"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_materials_on_user_id"
   end
 
   create_table "quote_extras", force: :cascade do |t|
@@ -80,6 +72,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "quantity"
+    t.decimal "price", precision: 10, scale: 2
     t.index ["extra_id"], name: "index_quote_extras_on_extra_id"
     t.index ["quote_id"], name: "index_quote_extras_on_quote_id"
   end
@@ -99,6 +92,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.decimal "manual_width", precision: 10, scale: 2
     t.decimal "manual_length", precision: 10, scale: 2
     t.boolean "is_main", default: false, null: false
+    t.decimal "price_per_unit", precision: 10, scale: 2
+    t.decimal "width", precision: 10, scale: 2
+    t.decimal "length", precision: 10, scale: 2
     t.index ["material_id"], name: "index_quote_materials_on_material_id"
     t.index ["quote_id"], name: "index_quote_materials_on_quote_id"
   end
@@ -108,7 +104,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.integer "manufacturing_process_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.decimal "price"
+    t.decimal "price", precision: 10, scale: 2
+    t.decimal "unit_price", precision: 10, scale: 2
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
     t.index ["quote_id"], name: "index_quote_processes_on_quote_id"
   end
@@ -133,6 +130,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.text "comments"
     t.string "product_name"
     t.boolean "include_extras", default: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_quotes_on_user_id"
   end
 
   create_table "unit_equivalences", force: :cascade do |t|
@@ -141,15 +140,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.decimal "conversion_factor", precision: 15, scale: 6, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
     t.index ["unit_one_id", "unit_two_id"], name: "index_unit_equivalences_on_unit_one_id_and_unit_two_id", unique: true
     t.index ["unit_one_id"], name: "index_unit_equivalences_on_unit_one_id"
     t.index ["unit_two_id"], name: "index_unit_equivalences_on_unit_two_id"
+    t.index ["user_id"], name: "index_unit_equivalences_on_user_id"
   end
 
   create_table "units", force: :cascade do |t|
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_units_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -164,23 +167,22 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_24_230912) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  create_table "vendors", force: :cascade do |t|
-    t.string "company"
-    t.string "contact_name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   add_foreign_key "extras", "units"
+  add_foreign_key "extras", "users"
   add_foreign_key "general_configurations", "units"
+  add_foreign_key "general_configurations", "users"
   add_foreign_key "manufacturing_processes", "units"
+  add_foreign_key "manufacturing_processes", "users"
   add_foreign_key "materials", "units"
+  add_foreign_key "materials", "users"
   add_foreign_key "quote_extras", "extras"
   add_foreign_key "quote_extras", "quotes"
-  add_foreign_key "quote_materials", "materials"
   add_foreign_key "quote_materials", "quotes"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"
+  add_foreign_key "quotes", "users"
   add_foreign_key "unit_equivalences", "units", column: "unit_one_id"
   add_foreign_key "unit_equivalences", "units", column: "unit_two_id"
+  add_foreign_key "unit_equivalences", "users"
+  add_foreign_key "units", "users"
 end

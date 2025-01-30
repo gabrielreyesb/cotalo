@@ -5,9 +5,7 @@ Rails.application.routes.draw do
   devise_for :users
   resources :extras
   resources :units
-  resources :customers
   resources :materials
-  resources :vendors
   resources :unit_equivalences
 
   resources :manufacturing_processes do

@@ -53,8 +53,8 @@
       </div>
 
       <div class="form-group">
-        <%= form.label :unit_id, "Unidad:", class: "form-label" %>
-        <%= form.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-control" %>
+        <%= form.label :unit_id, "Unidad de medida:", style: "display: block" %>
+        <%= form.collection_select :unit_id, current_user.units.order(:description), :id, :description, {}, class: "form-control" %>
       </div>
 
       <div class="form-group">

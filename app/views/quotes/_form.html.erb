@@ -1,5 +1,15 @@
-<%= form_with(model: @quote, url: quotes_path, local: true) do |form| %>
+<%= form_with(model: @quote, 
+              url: quotes_path, 
+              local: false, 
+              novalidate: true,
+              data: { 
+                controller: "quotes",
+                action: "turbo:submit-end->quotes#handleFormSubmission"
+              }) do |form| %>
     
+    <%# Error messages container that will be updated by Turbo %>
+    <div id="error_messages"></div>
+
     <%# Manejo de errores %>
     <% if @quote.errors.any? %>
       <div style="color: red">
@@ -50,17 +60,18 @@
               <input type="number" step="any" class="form-control" id="material_price_display" style="width: 100px;">
               <span class="input-group-text ml-1" id="material_unit_display"></span>
             </div>
-            <%= form.select :material_id,
-                      options_for_select(
-                        Material.all.map { |m|
-                        [m.description, m.id, { 'data-width' => m.width, 'data-length' => m.lenght, 'data-price' => m.price, 'data-unit' => m.unit.description }]
-                        },
-                        selected: @quote.material_id
-                      ),
-                      { include_blank: 'Select one' },
-                      { class: "form-control",
-                        'data-action': 'change->quotes#showMaterialPrice' 
-            } %>
+            <%= select_tag 'material-select',
+              options_for_select(
+                @materials.map { |m|
+                  [m.description, m.id, { 'data-width' => m.width, 'data-length' => m.length, 'data-price' => m.price, 'data-unit' => m.unit.description }]
+                }
+              ),
+              { 
+                include_blank: 'Select one',
+                class: "form-control",
+                data: { action: "change->quotes#showAdditionalMaterialInfo" }
+              }
+            %>
           </div>
         </div>
 
@@ -105,7 +116,7 @@
     <%# Datos de procesos %>
     <div class="nested-fields"> 
       <div class="row ml-3">
-        <div class="col-6">
+        <div class="col-12">
           <div class="form-group">
             <%= form.label :manufacturing_process_id, "Procesos:", class: "font-weight-bold" %>
             <div class="input-group">
@@ -114,94 +125,102 @@
                 <input type="number" step="any" class="form-control" id="manufacturing_process_price_display" style="width: 100px;">
                 <span class="input-group-text ml-1" id="manufacturing_process_unit_display"></span>
               </div>
-              <%= form.select :manufacturing_process_id,
-                        options_for_select(
-                          ManufacturingProcess.all.map { |mp|
-                          ["#{mp.name} - #{mp.description}", mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
-                          },
-                        ),
-                        { include_blank: 'Select one' },
-                        { class: "form-control",
-                          'data-action': 'change->quotes#showManufactureProcessInfo'
-              } %>
+                <%= form.select :manufacturing_process_id,
+                          options_for_select(
+                            ManufacturingProcess.all.map { |mp|
+                            ["#{mp.name} - #{mp.description}", mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
+                            },
+                          ),
+                          { include_blank: 'Select one' },
+                          { class: "form-control",
+                            'data-action': 'change->quotes#showManufactureProcessInfo'
+                } %>
+              <div class="input-group-append">
+                <button data-action="quotes#addProcess" class="btn btn-green">
+                  Agregar Proceso
+                </button>
+              </div>
             </div>
           </div>
-
-          <button data-action="quotes#addProcess" class="btn btn-green">
-            Agregar Proceso
-          </button> 
         </div>
-                              
-        <div class="col-6">
-          <br>
+
+        <div class="col-12">
           <table data-quotes-target="processes" class="table table-bordered"> 
             <thead class="thead-light"> 
               <tr>
+                <th style="width: 80px;" class="text-center">Acciones</th>
                 <th>Proceso</th>
-                <th>Precio Total</th>
-                <th>Acciones</th>
+                <th style="width: 150px;" class="text-right">Precio Total</th>
               </tr>
             </thead>
             <tbody>
             </tbody>
           </table>
+          <div class="text-right">
+            <strong>Subtotal procesos: </strong>
+            <span data-quotes-target="processesSubtotal">$0.00</span>
+          </div>
         </div>
       </div>
     </div>
     
     <hr style="border: 1px solid black;">
 
-    <%# Herramentales %>
+    <%# Extras %>
     <div class="nested-fields">
       <div class="row ml-3">
         <div class="col-6">
           <div class="form-group">
-            <%= form.label :tooling_id, "Herramentales:", class: "font-weight-bold" %>
+            <%= form.label :extra_id, "Extras:", class: "font-weight-bold" %>
             <div class="input-group">
               <div class="input-group-prepend">
                 <span class="input-group-text">$</span>
-                <input type="number" step="any" class="form-control" id="tooling_price_display" style="width: 100px;">
-                <span class="input-group-text ml-1" id="tooling_unit_display"></span>
+                <input type="number" step="any" class="form-control" id="extra_price_display" style="width: 100px;">
+                <span class="input-group-text ml-1" id="extra_unit_display"></span>
                 <div style="width: 5px;"></div> 
               </div>
-              <%= form.select :tooling_id,
+              <%= form.select :extra_id,
                         options_for_select(
-                          Tooling.all.map { |t|
-                          ["#{t.description}", t.id, { 'data-price' => t.price, 'data-unit' => t.unit.description }]
-                          },
+                          Extra.all.map { |e|
+                          [e.description, e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
+                          }
                         ),
                         { include_blank: 'Select one' },
                         { class: "form-control",
-                          'data-action': 'change->quotes#showToolingInfo'
+                          'data-action': 'change->quotes#showAdditionalExtraInfo'
               } %>
               <div class="input-group-append">
-                <%= form.fields_for :quote_toolings do |quote_tooling_form| %>
-                  <div style="width: 5px;"></div> 
-                  <%= quote_tooling_form.number_field :quantity, value: 1, min: 1, class: "form-control", style: "width: 70px;" %> 
-                <% end %>
+                <div style="width: 5px;"></div> 
+                <input type="number" id="quantity" value="1" min="1" class="form-control" style="width: 70px;">
               </div>
             </div>
           </div>
 
-
-          <button data-action="quotes#addTooling" class="btn btn-green">
-            Agregar Herramental
+          <button data-action="quotes#addExtra" class="btn btn-green">
+            Agregar Extra
           </button>
-        </div> <%# Added closing div tag here %> 
+        </div>
 
         <div class="col-6">
           <br>
-          <table data-quotes-target="toolings" class="table table-bordered">
+          <table data-quotes-target="extras" class="table table-bordered">
             <thead class="thead-light">
               <tr>
-                <th>Herramental</th>
-                <th>Precio Total</th>
-                <th>Acciones</th>
+                <th style="width: 80px;" class="text-center">Acciones</th>
+                <th>Extra</th>
+                <th style="width: 100px;" class="text-right">Precio</th>
+                <th style="width: 100px;" class="text-right">Unidad</th>
+                <th style="width: 100px;" class="text-right">Cantidad</th>
+                <th style="width: 150px;" class="text-right">Precio Total</th>
               </tr>
             </thead>
             <tbody>
             </tbody>
           </table>
+          <div class="text-right">
+            <strong>Subtotal extras: </strong>
+            <span data-quotes-target="extrasSubtotal">$0.00</span>
+          </div>
         </div>
       </div>
     </div>

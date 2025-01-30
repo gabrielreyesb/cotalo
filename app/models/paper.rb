@@ -1,2 +1,0 @@
-class Paper < ApplicationRecord
-end

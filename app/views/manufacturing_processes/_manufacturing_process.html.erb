@@ -23,7 +23,7 @@
 
   <div>
     <%= form.label :unit_id, style: "display: block" %> dwdw
-    <%= form.collection_select :unit_id, Unit.all, :id, :description %> 
+    <%= form.collection_select :unit_id, current_user.units.order(:description), :id, :description %> 
   </div>
 
   <div>

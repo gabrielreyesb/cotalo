@@ -7,6 +7,7 @@
                 url: @quote.persisted? ? quote_path(@quote) : quotes_path,
                 method: @quote.persisted? ? :patch : :post,
                 local: true, 
+                novalidate: true,
                 data: { 
                   turbo_frame: '_top'
                 }) do |form| %>
@@ -16,9 +17,22 @@
       
       <%# Hidden fields %>
       <div>
+        <%= hidden_field_tag 'quote_id', @quote.id if @quote.persisted? %>
         <%= hidden_field_tag 'config_margin_width', @configuration_margin_width %> 
         <%= hidden_field_tag 'config_margin_length', @configuration_margin_length %> 
       </div>
+
+      <%# Debug info %>
+      <% if Rails.env.development? %>
+        <script>
+          console.log('Quote ID:', <%= @quote.id if @quote.persisted? %>);
+          console.log('Quote Data:', <%= raw @quote.to_json(include: { 
+            quote_processes: { include: { manufacturing_process: { include: :unit } } },
+            quote_materials: { include: { material: { include: :unit } } },
+            quote_extras: { include: { extra: { include: :unit } } }
+          }) %>);
+        </script>
+      <% end %>
 
       <%# Error handling %>
       <% if @quote.errors.any? %>
@@ -81,8 +95,6 @@
             <%= form.number_field :product_quantity, 
                              class: "form-control text-right", 
                              value: @quote.product_quantity,
-                             min: 1,
-                             required: true,
                              id: "quote_product_quantity",
                              data: { quotes_target: "quantity" } %>
           </div>
@@ -91,8 +103,6 @@
             <%= form.number_field :product_width, 
                              class: "form-control text-right", 
                              value: @quote.product_width,
-                             min: 1,
-                             required: true,
                              id: "quote_product_width",
                              data: { quotes_target: "width" } %>
           </div>
@@ -101,8 +111,6 @@
             <%= form.number_field :product_length, 
                              class: "form-control text-right", 
                              value: @quote.product_length,
-                             min: 1,
-                             required: true,
                              id: "quote_product_length",
                              data: { quotes_target: "length" } %>
           </div>
@@ -112,41 +120,41 @@
       <hr style="border: 1px solid black;">
       
       <%# Materials Section %>
-      <div class="row ml-3">
-        <div class="col-lg-6">
+      <div class="row">
+        <div class="col-12">
           <div class="form-group">
             <%= form.label :material_id, "Materiales:", class: "font-weight-bold" %>
-            <%= form.select :material_id,
-              options_for_select(
-                Material.order(:description).map { |m|
-                  [m.description, m.id, { 
-                    'data-price' => m.price, 
-                    'data-unit' => m.unit.description,
-                    'data-width' => m.width,
-                    'data-length' => m.length
-                  }]
-                }
-              ),
-              { include_blank: 'Select one' },
-              { class: "form-control",
-                id: 'material-select',
-                data: { action: 'change->quotes#showAdditionalMaterialInfo' }
-              }
-            %>
-            
-            <div class="row mt-2">
-              <div class="col-md-4">
+            <div class="row align-items-end">
+              <div class="col-md-5">
+                <%= form.select :material_id,
+                  options_for_select(
+                    current_user.materials.includes(:unit).order(:description).map { |m|
+                      [m.description, m.id, { 
+                        'data-price' => m.price, 
+                        'data-unit' => m.unit.description,
+                        'data-width' => m.width,
+                        'data-length' => m.length
+                      }]
+                    }
+                  ),
+                  { include_blank: 'Select one' },
+                  { class: "form-control",
+                    id: 'material-select',
+                    data: { action: 'change->quotes#showAdditionalMaterialInfo' }
+                  }
+                %>
+              </div>
+              <div class="col-md-2">
                 <label class="mb-1">Precio</label>
                 <div class="input-group">
                   <input type="number" 
                          step="any" 
                          class="form-control text-right" 
-                         id="additional_material_price_display"
-                         readonly>
+                         id="additional_material_price_display">
                   <span class="input-group-text" id="additional_material_unit_display"></span>
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-2">
                 <label class="mb-1">Ancho</label>
                 <div class="input-group">
                   <input type="number" 
@@ -156,7 +164,7 @@
                   <span class="input-group-text">cm</span>
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-2">
                 <label class="mb-1">Largo</label>
                 <div class="input-group">
                   <input type="number" 
@@ -166,42 +174,115 @@
                   <span class="input-group-text">cm</span>
                 </div>
               </div>
+              <div class="col-md-1">
+                <button type="button" 
+                        class="btn btn-green w-100" 
+                        data-action="click->quotes#addMaterial">
+                  Agregar
+                </button>
+              </div>
+            </div>
+
+            <%# Material Visualization Canvas %>
+            <div class="row mt-2">
+              <div class="col-12">
+                <div class="form-check mb-2">
+                  <input type="checkbox" 
+                         class="form-check-input" 
+                         id="show-visualization" 
+                         data-action="change->quotes#toggleVisualization"
+                         unchecked>
+                  <label class="form-check-label" for="show-visualization">
+                    Mostrar visualización
+                  </label>
+                </div>
+                <div class="mt-3" id="visualization-container">
+                  <canvas id="material-visualization" width="400" height="300" style="border: 1px solid #ccc;"></canvas>
+                </div>
+
+                <%# Manual Materials Link %>
+                <div class="mt-2">
+                  <a href="javascript:void(0);" 
+                     class="text-primary text-decoration-underline" 
+                     style="cursor: pointer;"
+                     data-action="click->quotes#toggleManualMaterial prevent">
+                    Agregar material manual
+                  </a>
+                </div>
+
+                <%# Manual Materials Form %>
+                <div id="manualMaterialForm" style="display: none;" class="mt-3">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title mb-3">Material Manual</h5>
+                      <div class="form-group mb-3">
+                        <label>Descripción del Material:</label>
+                        <input type="text" id="manual_material_description" class="form-control">
+                      </div>
+                      
+                      <div class="form-group mb-3">
+                        <label>Unidad:</label>
+                        <%= select_tag "manual_material_unit", 
+                                    options_from_collection_for_select(current_user.units.order(:description), :id, :description),
+                                    class: "form-control" %>
+                      </div>
+
+                      <div class="row mb-3">
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label>Ancho del Material (cm):</label>
+                            <input type="number" 
+                                   id="manual_material_width" 
+                                   class="form-control" 
+                                   step="0.01" 
+                                   min="0">
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label>Largo del Material (cm):</label>
+                            <input type="number" 
+                                   id="manual_material_length" 
+                                   class="form-control" 
+                                   step="0.01" 
+                                   min="0">
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="form-group mb-3">
+                        <label>Precio:</label>
+                        <input type="number" id="manual_material_price" class="form-control" step="0.01">
+                      </div>
+
+                      <button type="button" 
+                              class="btn btn-success"
+                              data-action="click->quotes#addManualMaterial">
+                        Agregar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <%# Material Visualization Canvas %>
-          <div class="form-check mb-2">
-            <input type="checkbox" 
-                   class="form-check-input" 
-                   id="show-visualization" 
-                   data-action="change->quotes#toggleVisualization"
-                   unchecked>
-            <label class="form-check-label" for="show-visualization">
-              Mostrar visualización
-            </label>
-          </div>
-          <div class="mt-3" id="visualization-container">
-            <canvas id="material-visualization" width="400" height="300" style="border: 1px solid #ccc;"></canvas>
-          </div>
-          <br>
-          <button type="button" 
-                  class="btn btn-green" 
-                  data-action="click->quotes#addMaterial">
-            Agregar material
-          </button>
         </div>
+      </div>
 
-        <div class="col-lg-6">
-          <br>
+      <div class="row mt-4">
+        <div class="col-12">
           <table data-quotes-target="materialsTable" class="table table-bordered">
             <thead class="thead-light">
               <tr>
-                <th class="align-middle text-center" style="width: 80px; height: 60px;">Acciones</th>
-                <th class="align-middle" style="height: 60px;">Material</th>
-                <th class="align-middle text-end" style="height: 60px; white-space: normal;">Prods. x<br>material</th>
-                <th class="align-middle text-end" style="height: 60px;">Material<br>requerido</th>
-                <th class="align-middle text-end" style="height: 60px;">Mts2</th>
-                <th class="align-middle text-end" style="height: 60px;">Precio</th>
+                <th class="align-middle text-center" style="width: 80px;">Acciones</th>
+                <th class="align-middle">Material</th>
+                <th class="align-middle text-end" style="width: 100px;">Precio</th>
+                <th class="align-middle text-end" style="width: 100px;">Ancho</th>
+                <th class="align-middle text-end" style="width: 100px;">Largo</th>
+                <th class="align-middle text-end" style="width: 120px;">Prods. x material</th>
+                <th class="align-middle text-end" style="width: 120px;">Material requerido</th>
+                <th class="align-middle text-end" style="width: 100px;">Mts2</th>
+                <th class="align-middle text-end" style="width: 120px;">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -225,6 +306,15 @@
                       </div>
                     </td>
                     <td class="align-middle"><%= quote_material.is_manual ? quote_material.manual_description : quote_material.material.description %></td>
+                    <td class="align-middle text-end">
+                        <input type="number" 
+                               class="form-control form-control-sm text-end" 
+                               value="<%= number_with_precision(quote_material.price_per_unit, precision: 2) %>"
+                               step="0.01"
+                               data-action="change->quotes#updateMaterialPrice">
+                    </td>
+                    <td class="align-middle text-end"><%= quote_material.width %> cm</td>
+                    <td class="align-middle text-end"><%= quote_material.length %> cm</td>
                     <td class="align-middle text-end"><%= quote_material.products_per_sheet %></td>
                     <td class="align-middle text-end"><%= quote_material.sheets_needed %></td>
                     <td class="align-middle text-end"><%= quote_material.square_meters %></td>
@@ -232,6 +322,9 @@
                     <%= form.fields_for :quote_materials, quote_material do |material_form| %>
                       <%= material_form.hidden_field :id %>
                       <%= material_form.hidden_field :material_id %>
+                      <%= material_form.hidden_field :price_per_unit %>
+                      <%= material_form.hidden_field :width %>
+                      <%= material_form.hidden_field :length %>
                       <%= material_form.hidden_field :products_per_sheet %>
                       <%= material_form.hidden_field :sheets_needed %>
                       <%= material_form.hidden_field :square_meters %>
@@ -245,157 +338,91 @@
               <% end %>
             </tbody>
           </table>
-          <div>
-            <strong>Subtotal materiales: </strong>
-            <span data-quotes-target="materialsSubtotal" class="float-right">$0.00</span>
-          </div>
         </div>
       </div>
 
-      <br>
-      <%# Manual Materials Section %>
-      <div class="col-lg-6">
-        <div class="manual-material-section">
-          <a href="javascript:void(0);" 
-             class="text-primary text-decoration-underline mb-3" 
-             style="cursor: pointer;"
-             data-action="click->quotes#toggleManualMaterial prevent">
-            Agregar material manual
-          </a>
+      <div class="d-flex justify-content-end">
+        <div class="text-end" style="min-width: 250px;">
+          <strong>Subtotal materiales:</strong>
+          <span data-quotes-target="materialsSubtotal" class="ms-2">$0.00</span>
+        </div>
+      </div>
 
-          <div id="manualMaterialForm" style="display: none;" class="mt-3">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title mb-3">Material Manual</h5>
-                <div class="form-group mb-3">
-                  <label>Descripción del Material:</label>
-                  <input type="text" id="manual_material_description" class="form-control">
-                </div>
-                
-                <div class="form-group mb-3">
-                  <label>Unidad:</label>
-                  <%= select_tag "manual_material_unit", 
-                                options_from_collection_for_select(Unit.all, :id, :description),
-                                class: "form-control" %>
-                </div>
+      <hr style="border: 1px solid black;">
 
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label>Ancho del Material (cm):</label>
-                      <input type="number" 
-                             id="manual_material_width" 
-                             class="form-control" 
-                             step="0.01" 
-                             min="0">
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label>Largo del Material (cm):</label>
-                      <input type="number" 
-                             id="manual_material_length" 
-                             class="form-control" 
-                             step="0.01" 
-                             min="0">
-                    </div>
-                  </div>
+      <%# Procesos %>
+      <div class="row">
+        <div class="col-12">
+          <div class="form-group">
+            <label class="font-weight-bold mb-2">Procesos:</label>
+            <div class="row">
+              <div class="col">
+                <%= select_tag "process-select",
+                  options_for_select(
+                    ManufacturingProcess.all.map { |mp|
+                      [mp.name, mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
+                    }
+                  ),
+                  { include_blank: 'Select one', class: "form-control", data: { action: 'change->quotes#showManufactureProcessInfo' } }
+                %>
+              </div>
+              <div class="col-2">
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="manufacturing_process_price_display">
+                  <span class="input-group-text" id="manufacturing_process_unit_display"></span>
                 </div>
-
-                <div class="form-group mb-3">
-                  <label>Precio:</label>
-                  <input type="number" id="manual_material_price" class="form-control" step="0.01">
-                </div>
-
-                <button type="button" 
-                        class="btn btn-success"
-                        data-action="click->quotes#addManualMaterial">
+              </div>
+              <div class="col-auto">
+                <button type="button" class="btn btn-green" data-action="quotes#addProcess">
                   Agregar
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <hr style="border: 1px solid black;">
-
-      <%# Processes Section %>
-      <div class="row ml-3">
-        <div class="col-lg-6">
-          <div class="form-group">
-            <%= form.label :manufacturing_process_id, "Procesos:", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.select :manufacturing_process_id,
-                        options_for_select(
-                          ManufacturingProcess.all.map { |mp|
-                            ["#{mp.name} - #{mp.description}", mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
-                          }
-                        ),
-                        { include_blank: 'Select one' },
-                        { class: "form-control",
-                          data: { action: 'change->quotes#showManufactureProcessInfo' }
-                        }
-              %>
-              <div class="input-group-prepend">
-                <span class="input-group-text ml-1" id="manufacturing_process_unit_display"></span>
-                <span class="input-group-text">$</span>
-                <input type="number" 
-                       step="any" 
-                       class="form-control text-right" 
-                       id="manufacturing_process_price_display" 
-                       style="width: 100px;">
-              </div>
-            </div>
-          </div>
-
-          <button type="button" 
-                  data-action="click->quotes#addProcess" 
-                  class="btn btn-green">
-            Agregar proceso
-          </button>
-        </div>
-
-        <div class="col-lg-6">
-          <br>
-          <%# Processes Table %>
-          <div data-quotes-target="processes">
-            <table class="table table-bordered">
-              <thead class="thead-light">
-                <tr>
-                  <th style="width: 100px">Acciones</th>
-                  <th>Proceso</th>
-                  <th>Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% if @quote.persisted? %>
-                  <% @quote.quote_processes.each do |quote_process| %>
-                    <tr>
-                      <td class="text-center align-middle">
-                        <button type="button" 
-                                class="btn btn-sm btn-link text-danger"
-                                data-action="click->quotes#removeProcess">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </td>
-                      <td style="text-align: left !important"><%= quote_process.manufacturing_process.name %> - <%= quote_process.manufacturing_process.description %></td>
-                      <td style="text-align: right !important" class="process-price-total">
-                        $<%= number_with_precision(quote_process.price, precision: 2) %>
-                      </td>
-                      <%= form.fields_for :quote_processes, quote_process do |process_form| %>
-                        <%= process_form.hidden_field :id %>
-                        <%= process_form.hidden_field :manufacturing_process_id %>
-                        <%= process_form.hidden_field :price %>
-                      <% end %>
-                    </tr>
-                  <% end %>
+          <table data-quotes-target="processes" class="table table-bordered"> 
+            <thead class="thead-light"> 
+              <tr>
+                <th style="width: 80px;" class="text-center">Acciones</th>
+                <th style="text-align: left;">Proceso</th>
+                <th style="width: 120px;" class="text-right">Precio</th>
+                <th style="width: 100px;" class="text-right">Unidad</th>
+                <th style="width: 150px;" class="text-right">Precio Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if @quote.persisted? %>
+                <% @quote.quote_processes.each do |quote_process| %>
+                  <tr>
+                    <td class="text-center align-middle">
+                      <button type="button" 
+                              class="btn btn-sm btn-link text-danger"
+                              data-action="click->quotes#removeProcess">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                    <td class="align-middle" style="text-align: left !important;">
+                      <%= quote_process.manufacturing_process.name %> - <%= quote_process.manufacturing_process.description %>
+                    </td>
+                    <td class="text-right align-middle">$<%= number_with_precision(quote_process.manufacturing_process.price, precision: 2) %></td>
+                    <td class="text-right align-middle"><%= quote_process.manufacturing_process.unit.description %></td>
+                    <td class="text-right align-middle process-price-total">$<%= number_with_precision(quote_process.price, precision: 2) %></td>
+                    <%= form.fields_for :quote_processes, quote_process do |process_form| %>
+                      <%= process_form.hidden_field :id %>
+                      <%= process_form.hidden_field :manufacturing_process_id %>
+                      <%= process_form.hidden_field :price %>
+                      <%= process_form.hidden_field :unit_price %>
+                    <% end %>
+                  </tr>
                 <% end %>
-              </tbody>
-            </table>
-            <div>
-              <strong>Subtotal procesos: </strong>
-              <span id="processes-subtotal" class="float-right">$0.00</span>
+              <% end %>
+            </tbody>
+          </table>
+          <div class="d-flex justify-content-end">
+            <div class="text-end" style="min-width: 250px;">
+              <strong>Subtotal procesos:</strong>
+              <span data-quotes-target="processesSubtotal" class="ms-2">$0.00</span>
             </div>
           </div>
         </div>
@@ -403,95 +430,85 @@
 
       <hr style="border: 1px solid black;">
 
-      <%# Extras %>
-      <div class="row ml-3">
-        <div class="col-lg-6">
+      <%# Extras Section %>
+      <div class="row">
+        <div class="col-12">
           <div class="form-group">
-            <%= form.label :extra_id, "Extras: ", class: "font-weight-bold" %>
-            <div class="input-group">
-              <%= form.select :extra_id,
-                        options_for_select(
-                          Extra.all.map { |e|
-                            ["#{e.description}", e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
-                          }
-                        ),
-                        { include_blank: 'Select one' },
-                        { class: "form-control",
-                          id: 'quote_extra_id',
-                          'data-action': 'change->quotes#showExtraInfo'
-                        }
-              %>
-              <div class="input-group-prepend">
-                <span class="input-group-text ml-1" id="extra_unit_display"></span>
-                <span class="input-group-text">$</span>
-                <input type="number" 
-                        step="any" 
-                        class="form-control text-right" 
-                        id="extra_price_display" 
-                        style="width: 100px;">
-                <div class="input-group-append">
-                  <input type="number" 
-                          step="1" 
-                          value="1" 
-                          min="1" 
-                          class="form-control text-right" 
-                          id="quantity" 
-                          style="width: 70px;" 
-                          placeholder="Qty">
+            <label class="font-weight-bold mb-2">Extras:</label>
+            <div class="row">
+              <div class="col">
+                <%= select_tag "extra-select",
+                  options_for_select(
+                    Extra.all.map { |e|
+                      [e.description, e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
+                    }
+                  ),
+                  { include_blank: 'Select one', class: "form-control", data: { action: 'change->quotes#showAdditionalExtraInfo' } }
+                %>
+              </div>
+              <div class="col-2">
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="any" class="form-control" id="extra_price_display">
+                  <span class="input-group-text" id="extra_unit_display"></span>
                 </div>
               </div>
+              <div class="col-2">
+                <div class="input-group">
+                  <input type="number" class="form-control" id="quantity" value="1" min="1">
+                </div>
+              </div>
+              <div class="col-auto">
+                <button type="button" class="btn btn-green" data-action="quotes#addExtra">
+                  Agregar
+                </button>
+              </div>
             </div>
           </div>
 
-          <button type="button"
-                  data-action="click->quotes#addExtra" 
-                  class="btn btn-green">
-            Agregar extra
-          </button>
-        </div>
-
-        <div class="col-lg-6">
-          <br>
-          <%# Extras Table %>
-          <div data-quotes-target="extras">
-            <table class="table table-bordered">
-              <thead class="thead-light">
-                <tr>
-                  <th style="width: 100px" class="text-center">Acciones</th>
-                  <th>Extra</th>
-                  <th class="text-start">Cantidad</th>
-                  <th class="text-start">Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% if @quote.persisted? %>
-                  <% @quote.quote_extras.each do |quote_extra| %>
-                    <tr>
-                      <td class="text-center align-middle">
-                        <button type="button" 
-                                class="btn btn-sm btn-link text-danger"
-                                data-action="click->quotes#removeExtra">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </td>
-                      <td style="text-align: left !important"><%= quote_extra.extra.description %></td>
-                      <td style="text-align: right !important"><%= quote_extra.quantity %></td>
-                      <td style="text-align: right !important" class="extra-price-total">
-                        $<%= number_with_precision(quote_extra.quantity * quote_extra.extra.price, precision: 2) %>
-                      </td>
-                      <%= form.fields_for :quote_extras, quote_extra do |extra_form| %>
-                        <%= extra_form.hidden_field :id %>
-                        <%= extra_form.hidden_field :extra_id %>
-                        <%= extra_form.hidden_field :quantity %>
-                      <% end %>
-                    </tr>
-                  <% end %>
+          <table data-quotes-target="extras" class="table table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 80px;" class="text-center">Acciones</th>
+                <th style="text-align: left;">Extra</th>
+                <th style="width: 120px;" class="text-right">Precio</th>
+                <th style="width: 100px;" class="text-right">Unidad</th>
+                <th style="width: 100px;" class="text-right">Cantidad</th>
+                <th style="width: 150px;" class="text-right">Precio Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if @quote.persisted? %>
+                <% @quote.quote_extras.each do |quote_extra| %>
+                  <tr>
+                    <td class="text-center align-middle">
+                      <button type="button" 
+                              class="btn btn-sm btn-link text-danger"
+                              data-action="click->quotes#removeExtra">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                    <td class="align-middle" style="text-align: left !important;">
+                      <%= quote_extra.extra.description %>
+                    </td>
+                    <td class="text-right align-middle">$<%= number_with_precision(quote_extra.extra.price, precision: 2) %></td>
+                    <td class="text-right align-middle"><%= quote_extra.extra.unit.description %></td>
+                    <td class="text-right align-middle"><%= quote_extra.quantity %></td>
+                    <td class="text-right align-middle extra-price-total">$<%= number_with_precision(quote_extra.quantity * quote_extra.extra.price, precision: 2) %></td>
+                    <%= form.fields_for :quote_extras, quote_extra do |extra_form| %>
+                      <%= extra_form.hidden_field :id %>
+                      <%= extra_form.hidden_field :extra_id %>
+                      <%= extra_form.hidden_field :quantity %>
+                    <% end %>
+                  </tr>
                 <% end %>
-              </tbody>
-            </table>
-            <div>
+              <% end %>
+            </tbody>
+          </table>
+          <div class="d-flex justify-content-end">
+            <div class="text-end" style="min-width: 250px;">
               <strong>Subtotal extras: </strong>
-              <span id="extras-subtotal" class="float-right">$0.00</span>
+              <span data-quotes-target="extrasSubtotal">$0.00</span>
             </div>
           </div>
         </div>
@@ -637,16 +654,18 @@
           
           <div class="form-check ml-3">
             <input type="checkbox" 
-                    class="form-check-input" 
-                    data-quotes-target="includeExtras"
-                    <%= 'checked' if @quote.include_extras %>
-                    id="include_extras">
+                   class="form-check-input" 
+                   data-quotes-target="includeExtras"
+                   data-action="change->quotes#calculateTotals"
+                   name="quote[include_extras]"
+                   <%= 'checked' if @quote.include_extras %>
+                   id="include_extras_checkbox">
             <input type="hidden" 
-                    data-quotes-target="includeExtrasHidden"
-                    name="quote[include_extras]" 
-                    value="<%= @quote.include_extras %>"
-                    id="include_extras">
-            <label class="form-check-label" for="include_extras">
+                   data-quotes-target="includeExtrasHidden"
+                   name="quote[include_extras]" 
+                   value="<%= @quote.include_extras %>"
+                   id="include_extras_hidden">
+            <label class="form-check-label" for="include_extras_checkbox">
               Incluir extras en el cálculo
             </label>
           </div>

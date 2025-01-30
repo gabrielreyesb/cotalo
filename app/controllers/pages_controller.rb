@@ -5,8 +5,8 @@ class PagesController < ApplicationController
     end
     
     def home
-      Rails.logger.info "====== Loading Home Page ======"
-      @quotes = Quote.all.order(created_at: :desc)
+      Rails.logger.debug "====== Loading Home Page ======"
+      @quotes = current_user.quotes.order(created_at: :desc)
 
       # Apply date filters if present
       if params[:start_date].present?
@@ -22,11 +22,14 @@ class PagesController < ApplicationController
         @quotes = @quotes.where("LOWER(customer_name) LIKE ?", "%#{params[:customer_name].downcase}%")
       end
 
-      Rails.logger.info "Quotes found: #{@quotes.count}"
-      Rails.logger.info "Quotes: #{@quotes.inspect}"
+      @quotes_count = @quotes.count
+      Rails.logger.debug "Quotes found: #{@quotes_count}"
+      @quotes = @quotes.limit(10)
+      Rails.logger.debug "Quotes: #{@quotes.inspect}"
     end
 
     def send_quote
+      @quote = current_user.quotes.find(params[:id])
       customer_email = 'gabriel@handy.la'
       QuoteMailer.send_quote(customer_email).deliver_later 
       redirect_to root_path, notice: 'Quote sent successfully!'

@@ -3,7 +3,7 @@ class MaterialsController < ApplicationController
 
   # GET /materials or /materials.json
   def index
-    @materials = Material.order(:description)
+    @materials = current_user.materials.includes(:unit).order(:description)
   end
 
   # GET /materials/1 or /materials/1.json
@@ -22,7 +22,7 @@ class MaterialsController < ApplicationController
 
   # GET /materials/new
   def new
-    @material = Material.new
+    @material = current_user.materials.build
   end
 
   # GET /materials/1/edit
@@ -31,38 +31,34 @@ class MaterialsController < ApplicationController
 
   # POST /materials or /materials.json
   def create
-    @material = Material.new(material_params)
+    @material = current_user.materials.build(material_params)
 
-    respond_to do |format|
-      if @material.save
-        format.html { redirect_to materials_path, notice: "Material was successfully created." } 
-        format.json { render :show, status: :created, location: @material }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @material.errors, status: :unprocessable_entity }
-      end
+    if @material.save
+      redirect_to materials_path, notice: 'Material was successfully created.'
+    else
+      render :new
     end
   end
 
   # PATCH/PUT /materials/1 or /materials/1.json
   def update
     if @material.update(material_params)
-      redirect_to materials_path, notice: 'Material actualizado exitosamente.'
+      redirect_to materials_path, notice: 'Material was successfully updated.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit
     end
   end
 
   # DELETE /materials/1 or /materials/1.json
   def destroy
-    @material.destroy!
-    redirect_to materials_path, notice: "Material eliminado exitosamente."
+    @material.destroy
+    redirect_to materials_url, notice: 'Material was successfully destroyed.'
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_material
-      @material = Material.find(params[:id])
+      @material = current_user.materials.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.

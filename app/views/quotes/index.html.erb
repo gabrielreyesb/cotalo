@@ -1,4 +1,49 @@
-<tr data-controller="row-click" 
-    data-action="click->row-click#click" 
-    data-url="<%= quote_path(quote) %>">
-</tr> 
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Cotizaciones</h3>
+          <div class="card-tools">
+            <%= link_to 'Nueva cotización', calculate_quotes_path, class: 'btn btn-primary' %>
+          </div>
+        </div>
+        <div class="card-body table-responsive p-0">
+          <table class="table table-hover text-nowrap">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Proyecto</th>
+                <th>Fecha</th>
+                <th class="text-right">Valor Total</th>
+                <th class="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @quotes.each do |quote| %>
+                <tr>
+                  <td><%= quote.customer_name %></td>
+                  <td><%= quote.projects_name %></td>
+                  <td><%= quote.created_at.strftime("%d/%m/%Y") %></td>
+                  <td class="text-right">
+                    <%= number_to_currency(quote.total_quote_value, precision: 0, delimiter: ".", separator: ",") %>
+                  </td>
+                  <td class="text-right">
+                    <div class="btn-group">
+                      <%= link_to quote_path(quote), class: 'btn btn-default btn-sm', title: 'Ver' do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+                      <%= link_to edit_quote_path(quote), class: 'btn btn-default btn-sm', title: 'Editar' do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

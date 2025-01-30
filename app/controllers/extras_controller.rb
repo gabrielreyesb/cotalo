@@ -3,7 +3,7 @@ class ExtrasController < ApplicationController
 
     # GET /extras or /extras.json
     def index
-      @extras = Extra.order(:description)
+      @extras = current_user.extras.includes(:unit).order(:description)
     end
   
     # GET /extras/1 or /extras/1.json
@@ -12,7 +12,7 @@ class ExtrasController < ApplicationController
   
     # GET /extras/new
     def new
-      @extra = Extra.new
+      @extra = current_user.extras.build
     end
   
     # GET /extras/1/edit
@@ -21,7 +21,7 @@ class ExtrasController < ApplicationController
   
     # POST /toolings or /toolings.json
     def create
-      @extra = Extra.new(extra_params)
+      @extra = current_user.extras.build(extra_params)
   
       if @extra.save
         redirect_to extras_path, notice: 'Extra creado exitosamente.'
@@ -48,7 +48,7 @@ class ExtrasController < ApplicationController
     private
       # Use callbacks to share common setup or constraints between actions.
       def set_extra
-        @extra = Extra.find(params[:id])
+        @extra = current_user.extras.find(params[:id])
       end
   
       # Only allow a list of trusted parameters through.

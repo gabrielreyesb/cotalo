@@ -1,9 +1,11 @@
 class QuoteMaterial < ApplicationRecord
   belongs_to :quote
-  belongs_to :material
+  belongs_to :material, optional: true
 
   validates :total_price, presence: true
-  validates :material_id, presence: true
+  validates :material_id, presence: true, unless: :is_manual?
+  validates :manual_description, presence: true, if: :is_manual?
+  validates :manual_unit, presence: true, if: :is_manual?
   validate :only_one_main_material_per_quote
 
   private

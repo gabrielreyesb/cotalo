@@ -30,7 +30,7 @@
 
           <div class="form-group"> <%# Added class for Bootstrap styling %>
             <%= form.label :unit_id, "Unidad:", style: "display: block" %>
-            <%= form.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-control" %> <%# Added class for Bootstrap styling %>
+            <%= form.collection_select :unit_id, current_user.units.order(:description), :id, :description, {}, class: "form-control" %> <%# Added class for Bootstrap styling %>
           </div>
 
           <div class="form-group"> <%# Added class for Bootstrap styling %>

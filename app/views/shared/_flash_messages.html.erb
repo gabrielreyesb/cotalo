@@ -1,0 +1,19 @@
+<%# Flash messages %>
+<div id="flash-messages" class="flash-messages-container">
+  <% flash.each do |type, message| %>
+    <% alert_class = case type
+         when 'notice' then 'alert-success'
+         when 'alert', 'error' then 'alert-danger'
+         else 'alert-info'
+         end %>
+    <div class="alert <%= alert_class %> alert-dismissible fade show" role="alert">
+      <%= message %>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  <% end %>
+</div>
+
+<%# Dynamic messages container %>
+<div id="dynamic-messages"></div> 

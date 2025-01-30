@@ -3,4 +3,20 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
+
+  has_many :materials, dependent: :destroy
+  has_many :manufacturing_processes, dependent: :destroy
+  has_many :extras, dependent: :destroy
+  has_many :units, dependent: :destroy
+  has_many :unit_equivalences, dependent: :destroy
+  has_many :general_configurations, dependent: :destroy
+  has_many :quotes, dependent: :destroy
+
+  after_create :setup_initial_data
+
+  private
+
+  def setup_initial_data
+    UserSetupService.new(self).setup_initial_data
+  end
 end

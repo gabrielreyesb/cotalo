@@ -4,19 +4,22 @@ require 'json'
 
 class QuotesController < ApplicationController
   protect_from_forgery with: :exception
+  before_action :authenticate_user!
+  before_action :set_quote, only: [:show, :edit, :update, :destroy]
 
   def calculate
     @quote = if params[:quote_id]
-              Quote.includes(:quote_materials, :quote_processes, :manufacturing_processes,
+              current_user.quotes.includes(:quote_materials, :quote_processes, :manufacturing_processes,
                            quote_extras: :extra).find(params[:quote_id])
             else
-              Quote.new
+              current_user.quotes.build
             end
     
-    @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount) 
-    @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount) 
-    @waste_config = GeneralConfiguration.find_by(description: 'merma')
-    @margin_config = GeneralConfiguration.find_by(description: 'margen')
+    # Set default values if configurations are missing
+    @configuration_margin_width = current_user.general_configurations.find_by(description: 'Margen ancho').try(:amount) || 0
+    @configuration_margin_length = current_user.general_configurations.find_by(description: 'Margen largo').try(:amount) || 0
+    @waste_config = current_user.general_configurations.find_by(description: 'merma') || current_user.general_configurations.build(description: 'merma', amount: 0)
+    @margin_config = current_user.general_configurations.find_by(description: 'margen') || current_user.general_configurations.build(description: 'margen', amount: 0)
 
     respond_to do |format|
       format.html { 
@@ -40,24 +43,30 @@ class QuotesController < ApplicationController
   end
 
   def new
-    @quote = Quote.new
+    @quote = current_user.quotes.build
     @quote.quote_processes.build
+    @materials = Material.all
   end
 
   def create
-    @quote = Quote.new(quote_params)
-    
+    @quote = current_user.quotes.build(quote_params)
+    @materials = Material.all
+
     if @quote.save
-      redirect_to root_path, notice: "Cotización creada exitosamente."
+      redirect_to root_path, notice: 'Quote was successfully created.'
     else
-      # Load necessary configurations for the form
-      @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
-      @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
-      @waste_config = GeneralConfiguration.find_by(description: 'merma')
-      @margin_config = GeneralConfiguration.find_by(description: 'margen')
-      
-      # Re-render the form with the submitted data
-      render :calculate, status: :unprocessable_entity
+      respond_to do |format|
+        format.turbo_stream do
+          error_messages = format_error_messages(@quote.errors)
+          render turbo_stream: turbo_stream.update(
+            "dynamic-messages",
+            "<div data-controller='alert' 
+                  data-alert-message-value='#{ERB::Util.html_escape(error_messages)}' 
+                  data-alert-type-value='error'></div>".html_safe
+          )
+        end
+        format.html { render :new, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -126,11 +135,15 @@ class QuotesController < ApplicationController
   end
 
   def show
-    @quote = Quote.includes(:quote_processes, :manufacturing_processes, 
-                           quote_extras: :extra).find(params[:id])
-    
     respond_to do |format|
       format.html
+      format.json {
+        render json: @quote.to_json(include: { 
+          quote_processes: { include: { manufacturing_process: { include: :unit } } },
+          quote_materials: { include: { material: { include: :unit } } },
+          quote_extras: { include: { extra: { include: :unit } } }
+        })
+      }
       format.pdf do
         pdf = QuotePdfGenerator.new(@quote).generate
         send_data pdf.render,
@@ -142,26 +155,46 @@ class QuotesController < ApplicationController
   end
 
   def index
-    @quotes = Quote.order(created_at: :desc)
+    Rails.logger.debug "Current user ID: #{current_user.id}"
+    Rails.logger.debug "Current user email: #{current_user.email}"
+    @quotes = current_user.quotes.order(created_at: :desc)
+    Rails.logger.debug "Found #{@quotes.length} quotes for user"
   end
 
   def update
-    @quote = Quote.find(params[:id])
-    Rails.logger.debug "Quote params: #{quote_params.inspect}"
-    Rails.logger.debug "Quote processes params: #{quote_params[:quote_processes_attributes]&.inspect}"
-    
-    if @quote.update(quote_params)
-      redirect_to root_path, notice: "Cotización actualizada exitosamente."
-    else
-      @configuration_margin_width = GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
-      @configuration_margin_length = GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
-      @waste_config = GeneralConfiguration.find_by(description: 'merma')
-      @margin_config = GeneralConfiguration.find_by(description: 'margen')
-      render :calculate, status: :unprocessable_entity
+    respond_to do |format|
+      if @quote.update(quote_params)
+        format.html { redirect_to root_path, notice: 'Quote was successfully updated.' }
+        format.json { render json: { success: true, redirect_url: root_path } }
+        format.turbo_stream { redirect_to root_path, notice: 'Quote was successfully updated.' }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: { success: false, errors: @quote.errors }, status: :unprocessable_entity }
+        format.turbo_stream { 
+          render turbo_stream: turbo_stream.update("quote-form", 
+            partial: "quotes/form", 
+            locals: { quote: @quote }
+          ), 
+          status: :unprocessable_entity 
+        }
+      end
     end
   end
 
+  def destroy
+    @quote.destroy
+    redirect_to quotes_url, notice: 'Quote was successfully destroyed.'
+  end
+
+  def edit
+    redirect_to calculate_quotes_path(quote_id: @quote.id)
+  end
+
   private
+
+  def set_quote
+    @quote = current_user.quotes.find(params[:id])
+  end
 
   def quote_params
     params.require(:quote).permit(
@@ -182,22 +215,68 @@ class QuotesController < ApplicationController
       :comments,
       :product_name,
       :include_extras,
-      quote_processes_attributes: [:id, :manufacturing_process_id, :price, :_destroy],
-      quote_extras_attributes: [:id, :extra_id, :quantity, :_destroy],
+      quote_processes_attributes: [:id, :manufacturing_process_id, :price, :unit_price, :_destroy],
+      quote_extras_attributes: [:id, :extra_id, :quantity, :price, :_destroy],
       quote_materials_attributes: [
         :id, :material_id, :products_per_sheet, :sheets_needed, 
         :square_meters, :total_price, :_destroy,
-        :is_manual, :manual_description, :manual_unit, :is_main
+        :is_manual, :manual_description, :manual_unit, :is_main,
+        :price_per_unit, :width, :length
       ]
     )
   end
 
   def configuration_margin_width
-    @configuration_margin_width ||= GeneralConfiguration.find_by(description: 'Margen ancho').try(:amount)
+    @configuration_margin_width ||= current_user.general_configurations.find_by(description: 'Margen ancho').try(:amount)
   end
 
   def configuration_margin_length
-    @configuration_margin_length ||= GeneralConfiguration.find_by(description: 'Margen largo').try(:amount)
+    @configuration_margin_length ||= current_user.general_configurations.find_by(description: 'Margen largo').try(:amount)
+  end
+
+  def format_error_messages(errors)
+    # Get only the first error message
+    error = errors.first
+    
+    # Translate common error messages
+    translated_message = case error.message
+      when "can't be blank"
+        "es requerido"
+      when "is not a number"
+        "debe ser un número"
+      when "must be greater than 0"
+        "debe ser mayor que 0"
+      when "is invalid"
+        "no es válido"
+      when "material_required"
+        "Debe seleccionar un material del catálogo o agregar uno manual"
+      else
+        error.message
+    end
+
+    # Format field-specific message
+    case error.attribute.to_s
+    when 'customer_name'
+      "El nombre del cliente #{translated_message}"
+    when 'customer_organization'
+      "La organización del cliente #{translated_message}"
+    when 'customer_email'
+      "El correo electrónico #{translated_message}"
+    when 'projects_name'
+      "El nombre del proyecto #{translated_message}"
+    when 'product_name'
+      "El nombre del producto #{translated_message}"
+    when 'product_quantity'
+      "La cantidad de productos #{translated_message}"
+    when 'product_width'
+      "El ancho del producto #{translated_message}"
+    when 'product_length'
+      "El largo del producto #{translated_message}"
+    when 'base'
+      translated_message
+    else
+      "#{error.attribute.to_s.humanize} #{translated_message}"
+    end
   end
 
 end

@@ -5,6 +5,7 @@ class CreateQuotes < ActiveRecord::Migration[7.1]
       t.decimal :length
       t.integer :pieces
       t.references :material, null: false, foreign_key: true
+      t.references :user, null: false, foreign_key: true
 
       t.timestamps
     end
