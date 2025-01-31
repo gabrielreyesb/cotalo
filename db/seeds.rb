@@ -18,20 +18,29 @@ Material.destroy_all
 ManufacturingProcess.destroy_all
 Extra.destroy_all
 GeneralConfiguration.destroy_all
-UnitEquivalence.destroy_all  # Delete unit equivalences before units
+UnitEquivalence.destroy_all
 Unit.destroy_all
+User.destroy_all  # Move this to the end of the destroy_all section
+
+# Create default user
+puts "Creating default user..."
+user = User.create!(
+  email: 'admin@example.com',
+  password: 'password123',
+  password_confirmation: 'password123'
+)
 
 # Create Units
 puts "Creating units..."
 units = [
-  { description: '%' },
-  { description: 'aplicación' },
-  { description: 'pieza' },
-  { description: 'cms' },
-  { description: 'mt2' },
-  { description: 'pliego' },
-  { description: 'mts' },
-  { description: 'producto' }
+  { description: '%', user: user },
+  { description: 'aplicación', user: user },
+  { description: 'pieza', user: user },
+  { description: 'cms', user: user },
+  { description: 'mt2', user: user },
+  { description: 'pliego', user: user },
+  { description: 'mts', user: user },
+  { description: 'producto', user: user }
 ]
 
 units.each do |unit|
@@ -47,7 +56,8 @@ materials = [
     width: 70,
     length: 50,
     price: 2.20,
-    comments: 'Datos para pruebas'  
+    comments: 'Datos para pruebas',
+    user: user  # Add user association
   },
   { 
     description: 'Pleca 90x70', 
@@ -55,7 +65,8 @@ materials = [
     width: 90,
     length: 70,
     price: 2.75,
-    comments: 'Datos para pruebas'
+    comments: 'Datos para pruebas',
+    user: user  # Add user association
   }
 ]
 
@@ -74,7 +85,8 @@ processes = [
     maximum_length: 71,
     maximum_width: 53,
     minimum_length: 40,
-    minimum_width: 30
+    minimum_width: 30,
+    user: user  # Add user association
   },
   {
     name: 'Impresión 4 oficios',
@@ -84,7 +96,8 @@ processes = [
     maximum_length: 85,
     maximum_width: 65,
     minimum_length: 20,
-    minimum_width: 10
+    minimum_width: 10,
+    user: user  # Add user association
   }
 ]
 
@@ -98,7 +111,8 @@ extras = [
   {
     description: 'MADERA PARA SUAJE',
     unit: Unit.find_by(description: 'mt2'),
-    price: 0.12
+    price: 0.12,
+    user: user  # Add user association
   }
 ]
 
@@ -112,50 +126,45 @@ configs = [
   {
     description: 'margen',
     amount: '25',
-    unit: Unit.find_by(description: '%')
+    unit: Unit.find_by(description: '%'),
+    user: user  # Add user association
   },
   {
     description: 'merma',
     amount: '5',
-    unit: Unit.find_by(description: '%')
+    unit: Unit.find_by(description: '%'),
+    user: user  # Add user association
   },
   {
     description: 'Margen ancho',
     amount: '2',
-    unit: Unit.find_by(description: 'cms')
+    unit: Unit.find_by(description: 'cms'),
+    user: user  # Add user association
   },
   {
     description: 'Margen largo',
     amount: '2',
-    unit: Unit.find_by(description: 'cms')
+    unit: Unit.find_by(description: 'cms'),
+    user: user  # Add user association
   }
 ]
 
 puts "Creating unit equivalences..."
 unit_equivalences = [
   {
-    unit_one_id: Unit.find_by(id: 1),
-    unit_two_id: Unit.find_by(description: 'mts'),
-    conversion_factor: 0.01  # 1 cm = 0.01 meters
+    unit_one: Unit.find_by(description: 'cms'),
+    unit_two: Unit.find_by(description: 'mts'),
+    conversion_factor: 0.01,  # 1 cm = 0.01 meters
+    user: user
   }
 ]
+
+unit_equivalences.each do |equivalence|
+  UnitEquivalence.create!(equivalence)
+end
 
 configs.each do |config|
   GeneralConfiguration.create!(config)
 end
-
-# First find the units (using the exact descriptions from your database)
-cms_unit = Unit.find_by(description: 'cms')  # adjust this to match your database
-mts_unit = Unit.find_by(description: 'mts')  # adjust this to match your database
-
-puts "Found CMS unit: #{cms_unit.inspect}"  # Debug output
-puts "Found MTS unit: #{mts_unit.inspect}"  # Debug output
-
-# Create unit equivalence for centimeters to meters
-UnitEquivalence.create!(
-  unit_one_id: cms_unit.id,
-  unit_two_id: mts_unit.id,
-  conversion_factor: 0.01  # 1 cm = 0.01 meters
-)
 
 puts "Seed completed successfully!"

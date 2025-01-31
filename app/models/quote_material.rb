@@ -8,7 +8,13 @@ class QuoteMaterial < ApplicationRecord
   validates :manual_unit, presence: true, if: :is_manual?
   validate :only_one_main_material_per_quote
 
+  before_validation :clear_material_id_if_manual
+
   private
+
+  def clear_material_id_if_manual
+    self.material_id = nil if is_manual?
+  end
 
   def only_one_main_material_per_quote
     return unless is_main?

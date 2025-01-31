@@ -1,9 +1,6 @@
 <%= turbo_frame_tag "main-content" do %>
   <div class="container mt-4">
     <h1 class="text-center mb-4">Nuevo Proceso</h1>
-    
-    <%= form_with(model: @manufacturing_process, data: { turbo_frame: '_top' }) do |f| %>
-      <%= render 'form', form: f %>
-    <% end %>
+    <%= render 'form', manufacturing_process: @manufacturing_process %>
   </div>
 <% end %>

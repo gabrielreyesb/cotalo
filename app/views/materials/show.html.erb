@@ -1,10 +1,12 @@
-<p style="color: green"><%= notice %></p>
+<%= turbo_frame_tag "main-content" do %>
+  <p style="color: green"><%= notice %></p>
 
-<%= render @material %>
+  <%= render @material %>
 
-<div>
-  <%= link_to "Edit this material", edit_material_path(@material) %> |
-  <%= link_to "Back to materials", materials_path %>
+  <div>
+    <%= link_to "Edit this material", edit_material_path(@material) %> |
+    <%= link_to "Back to materials", materials_path %>
 
-  <%= button_to "Destroy this material", @material, method: :delete %>
-</div>
+    <%= button_to "Destroy this material", @material, method: :delete %>
+  </div>
+<% end %>

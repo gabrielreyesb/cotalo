@@ -111,6 +111,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
   end
 
   create_table "quotes", force: :cascade do |t|
+    t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "customer_name"
@@ -130,7 +131,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
     t.text "comments"
     t.string "product_name"
     t.boolean "include_extras", default: false
-    t.integer "user_id", null: false
     t.index ["user_id"], name: "index_quotes_on_user_id"
   end
 
@@ -177,6 +177,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
   add_foreign_key "materials", "users"
   add_foreign_key "quote_extras", "extras"
   add_foreign_key "quote_extras", "quotes"
+  add_foreign_key "quote_materials", "materials", on_delete: :nullify
   add_foreign_key "quote_materials", "quotes"
   add_foreign_key "quote_processes", "manufacturing_processes"
   add_foreign_key "quote_processes", "quotes"

@@ -52,6 +52,33 @@ class QuotesController < ApplicationController
     @quote = current_user.quotes.build(quote_params)
     @materials = Material.all
 
+    # Add debugging
+    Rails.logger.debug "==== Quote Creation Debug ===="
+    Rails.logger.debug "Quote params after permit: #{quote_params.inspect}"
+    Rails.logger.debug "Quote valid? #{@quote.valid?}"
+    
+    # Debug associations - Add nil checks
+    if quote_params[:quote_processes_attributes].present?
+      ids = quote_params[:quote_processes_attributes].map do |_, attrs|
+        attrs[:manufacturing_process_id] if attrs
+      end.compact
+      Rails.logger.debug "Manufacturing Process IDs: #{ids}"
+    end
+
+    if quote_params[:quote_materials_attributes].present?
+      ids = quote_params[:quote_materials_attributes].map do |_, attrs|
+        attrs[:material_id] if attrs
+      end.compact
+      Rails.logger.debug "Material IDs: #{ids}"
+    end
+
+    if quote_params[:quote_extras_attributes].present?
+      ids = quote_params[:quote_extras_attributes].map do |_, attrs|
+        attrs[:extra_id] if attrs
+      end.compact
+      Rails.logger.debug "Extra IDs: #{ids}"
+    end
+
     if @quote.save
       redirect_to root_path, notice: 'Quote was successfully created.'
     else
@@ -75,9 +102,14 @@ class QuotesController < ApplicationController
       customer_name = params[:quote][:customer_name]
       Rails.logger.debug "Starting customer search for: #{customer_name}"
       
-      Rails.logger.debug "Environment variables:"
+      # Add more detailed debugging
+      Rails.logger.debug "==== Environment Variables Debug ===="
+      Rails.logger.debug "PIPEDRIVE_API_KEY raw value: #{ENV['PIPEDRIVE_API_KEY']}"
       Rails.logger.debug "PIPEDRIVE_API_KEY present?: #{ENV['PIPEDRIVE_API_KEY'].present?}"
-      Rails.logger.debug "All ENV keys: #{ENV.keys}"
+      Rails.logger.debug "PIPEDRIVE_API_KEY nil?: #{ENV['PIPEDRIVE_API_KEY'].nil?}"
+      Rails.logger.debug "PIPEDRIVE_API_KEY empty?: #{ENV['PIPEDRIVE_API_KEY'].empty?}"
+      Rails.logger.debug "All ENV keys: #{ENV.keys.sort}"
+      Rails.logger.debug "=================================="
       
       unless ENV['PIPEDRIVE_API_KEY']
         Rails.logger.error "PIPEDRIVE_API_KEY not found in environment variables"
@@ -215,13 +247,37 @@ class QuotesController < ApplicationController
       :comments,
       :product_name,
       :include_extras,
-      quote_processes_attributes: [:id, :manufacturing_process_id, :price, :unit_price, :_destroy],
-      quote_extras_attributes: [:id, :extra_id, :quantity, :price, :_destroy],
+      quote_processes_attributes: [
+        :id, 
+        :manufacturing_process_id, 
+        :price, 
+        :unit_price, 
+        :_destroy
+      ],
       quote_materials_attributes: [
-        :id, :material_id, :products_per_sheet, :sheets_needed, 
-        :square_meters, :total_price, :_destroy,
-        :is_manual, :manual_description, :manual_unit, :is_main,
-        :price_per_unit, :width, :length
+        :id, 
+        :material_id,
+        :products_per_sheet, 
+        :sheets_needed,
+        :square_meters, 
+        :total_price, 
+        :_destroy,
+        :is_manual, 
+        :manual_description, 
+        :manual_unit, 
+        :is_main,
+        :price_per_unit, 
+        :width, 
+        :length,
+        :manual_width,
+        :manual_length
+      ],
+      quote_extras_attributes: [
+        :id, 
+        :extra_id, 
+        :quantity, 
+        :price, 
+        :_destroy
       ]
     )
   end

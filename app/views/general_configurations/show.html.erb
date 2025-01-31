@@ -1,10 +1,12 @@
-<p style="color: green"><%= notice %></p>
+<%= turbo_frame_tag "main-content" do %>
+  <p style="color: green"><%= notice %></p>
 
-<%= render @general_configuration %>
+  <%= render @general_configuration %>
 
-<div>
-  <%= link_to "Edit this general configuration", edit_general_configuration_path(@general_configuration) %> |
-  <%= link_to "Back to general configurations", general_configurations_path %>
+  <div>
+    <%= link_to "Edit this general configuration", edit_general_configuration_path(@general_configuration) %> |
+    <%= link_to "Back to general configurations", general_configurations_path %>
 
-  <%= button_to "Destroy this general configuration", @general_configuration, method: :delete %>
-</div>
+    <%= button_to "Destroy this general configuration", @general_configuration, method: :delete %>
+  </div>
+<% end %>

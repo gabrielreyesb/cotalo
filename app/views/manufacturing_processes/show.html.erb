@@ -1,10 +1,41 @@
-<p style="color: green"><%= notice %></p>
+<%= turbo_frame_tag "main-content" do %>
+  <div class="container mt-4">
+    <h1><%= @manufacturing_process.name %></h1>
+    
+    <div class="card">
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-3">Descripción:</dt>
+          <dd class="col-sm-9"><%= @manufacturing_process.description %></dd>
 
-<%= render @manufacturing_process %>
+          <dt class="col-sm-3">Precio:</dt>
+          <dd class="col-sm-9">$<%= number_with_precision(@manufacturing_process.price, precision: 2) %></dd>
 
-<div>
-  <%= link_to "Edit this manufacturing process", edit_manufacturing_process_path(@manufacturing_process) %> |
-  <%= link_to "Back to manufacturing processes", manufacturing_processes_path %>
+          <dt class="col-sm-3">Unidad:</dt>
+          <dd class="col-sm-9"><%= @manufacturing_process.unit.description %></dd>
 
-  <%= button_to "Destroy this manufacturing process", @manufacturing_process, method: :delete %>
-</div>
+          <dt class="col-sm-3">Especificaciones:</dt>
+          <dd class="col-sm-9"><%= @manufacturing_process.specifications %></dd>
+
+          <dt class="col-sm-3">Comentarios:</dt>
+          <dd class="col-sm-9"><%= @manufacturing_process.comments %></dd>
+
+          <dt class="col-sm-3">Dimensiones máximas:</dt>
+          <dd class="col-sm-9">
+            <%= @manufacturing_process.maximum_length %> x <%= @manufacturing_process.maximum_width %> cm
+          </dd>
+
+          <dt class="col-sm-3">Dimensiones mínimas:</dt>
+          <dd class="col-sm-9">
+            <%= @manufacturing_process.minimum_length %> x <%= @manufacturing_process.minimum_width %> cm
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <%= link_to 'Editar', edit_manufacturing_process_path(@manufacturing_process), class: 'btn btn-primary' %>
+      <%= link_to 'Volver', manufacturing_processes_path, class: 'btn btn-secondary' %>
+    </div>
+  </div>
+<% end %>

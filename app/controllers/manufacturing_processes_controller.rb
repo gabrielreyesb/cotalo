@@ -1,4 +1,5 @@
 class ManufacturingProcessesController < ApplicationController
+  include ActionView::RecordIdentifier
   before_action :set_manufacturing_process, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -7,9 +8,10 @@ class ManufacturingProcessesController < ApplicationController
 
   def show
     respond_to do |format|
+      format.html
       format.json { 
         render json: @manufacturing_process.as_json(include: :unit) 
-      } 
+      }
     end
   end
 
@@ -22,19 +24,43 @@ class ManufacturingProcessesController < ApplicationController
 
   def create
     @manufacturing_process = current_user.manufacturing_processes.build(manufacturing_process_params)
+    
+    Rails.logger.debug "Attempting to save manufacturing process with params: #{manufacturing_process_params.inspect}"
 
-    if @manufacturing_process.save
-      redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully created.'
-    else
-      render :new
+    respond_to do |format|
+      if @manufacturing_process.save
+        Rails.logger.debug "Successfully saved manufacturing process"
+        format.html { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully created.' }
+        format.turbo_stream { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully created.' }
+      else
+        Rails.logger.debug "Failed to save manufacturing process. Errors: #{@manufacturing_process.errors.full_messages}"
+        format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { 
+          render turbo_stream: turbo_stream.replace(
+            'new_manufacturing_process_form',
+            partial: 'form',
+            locals: { manufacturing_process: @manufacturing_process }
+          )
+        }
+      end
     end
   end
 
   def update
-    if @manufacturing_process.update(manufacturing_process_params)
-      redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully updated.'
-    else
-      render :edit
+    respond_to do |format|
+      if @manufacturing_process.update(manufacturing_process_params)
+        format.html { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully updated.' }
+        format.turbo_stream { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully updated.' }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.turbo_stream { 
+          render turbo_stream: turbo_stream.update(
+            dom_id(@manufacturing_process, :form),
+            partial: 'form',
+            locals: { manufacturing_process: @manufacturing_process }
+          )
+        }
+      end
     end
   end
 
@@ -59,6 +85,17 @@ class ManufacturingProcessesController < ApplicationController
   end
 
   def manufacturing_process_params
-    params.require(:manufacturing_process).permit(:name, :description, :price, :unit_id)
+    params.require(:manufacturing_process).permit(
+      :name, 
+      :description, 
+      :price, 
+      :unit_id,
+      :specifications,
+      :comments,
+      :maximum_width,
+      :maximum_length,
+      :minimum_width,
+      :minimum_length
+    )
   end
 end
