@@ -1,26 +1,45 @@
 <%= turbo_frame_tag "main-content" do %>
-  <div class="container">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Extra</h5>
-        
-        <p>
-          <strong>Descripción:</strong>
-          <%= @extra.description %>
-        </p>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow border-0 mb-4">
+          <div class="card-header bg-transparent">
+            <h1 class="text-center mb-0"><%= @extra.description %></h1>
+          </div>
 
-        <p>
-          <strong>Precio:</strong>
-          <%= number_to_currency(@extra.price) %>
-        </p>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Detalles:</strong></label>
+                <div class="mb-2">
+                  <strong>Descripción:</strong> <%= @extra.description %>
+                </div>
+              </div>
 
-        <p>
-          <strong>Unidad:</strong>
-          <%= @extra.unit.description %>
-        </p>
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Información de precio:</strong></label>
+                <div class="mb-2">
+                  <strong>Precio:</strong> <%= number_to_currency(@extra.price) %>
+                </div>
+                <div class="mb-2">
+                  <strong>Unidad de medida:</strong> <%= @extra.unit.description %>
+                </div>
+              </div>
+            </div>
 
-        <%= link_to 'Editar', edit_extra_path(@extra), class: "btn btn-primary" %>
-        <%= link_to 'Volver', extras_path, class: "btn btn-secondary" %>
+            <% if @extra.comments.present? %>
+              <div class="mb-4">
+                <label class="form-label"><strong>Comentarios:</strong></label>
+                <div><%= @extra.comments %></div>
+              </div>
+            <% end %>
+
+            <div class="text-center mt-4">
+              <%= link_to 'Editar', edit_extra_path(@extra), class: 'btn btn-green me-2' %>
+              <%= link_to 'Volver', extras_path, class: 'btn btn-secondary' %>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

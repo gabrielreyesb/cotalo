@@ -1,12 +1,53 @@
 <%= turbo_frame_tag "main-content" do %>
-  <p style="color: green"><%= notice %></p>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow border-0 mb-4">
+          <div class="card-header bg-transparent">
+            <h1 class="text-center mb-0"><%= @general_configuration.description %></h1>
+          </div>
 
-  <%= render @general_configuration %>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Detalles:</strong></label>
+                <div class="mb-2">
+                  <strong>Descripción:</strong> <%= @general_configuration.description %>
+                </div>
+              </div>
 
-  <div>
-    <%= link_to "Edit this general configuration", edit_general_configuration_path(@general_configuration) %> |
-    <%= link_to "Back to general configurations", general_configurations_path %>
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Información de valor:</strong></label>
+                <div class="mb-2">
+                  <strong>Cantidad:</strong> <%= @general_configuration.amount %>
+                </div>
+                <div class="mb-2">
+                  <strong>Unidad de medida:</strong> <%= @general_configuration.unit.description %>
+                </div>
+              </div>
 
-    <%= button_to "Destroy this general configuration", @general_configuration, method: :delete %>
+              <% if @general_configuration.key == "pipedrive_api_key" %>
+                <div class="col-12 mb-3">
+                  <div class="alert alert-info">
+                    <i class="fas fa-key me-2"></i>
+                    La clave API de Pipedrive está configurada. Por razones de seguridad, la clave no se muestra.
+                  </div>
+                  <div class="text-center">
+                    <%= link_to 'Actualizar Clave API', 
+                        edit_general_configuration_path(@general_configuration, show_api: true), 
+                        class: 'btn btn-warning' %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="text-center mt-4">
+              <%= link_to 'Editar', edit_general_configuration_path(@general_configuration), class: 'btn btn-green me-2' %>
+              <%= link_to 'Volver', general_configurations_path, class: 'btn btn-secondary' %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 <% end %>

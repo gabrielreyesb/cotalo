@@ -1,9 +1,58 @@
 <%= turbo_frame_tag "main-content" do %>
-  <div class="container mt-4">
-    <h1 class="text-center mb-4">Editar configuración</h1>
-    
-    <%= form_with(model: @general_configuration, data: { turbo_frame: '_top' }) do |f| %>
-      <%= render 'form', form: f %>
-    <% end %>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow border-0">
+          <div class="card-header bg-transparent">
+            <h1 class="text-center mb-0">Editar Configuración</h1>
+          </div>
+
+          <div class="card-body">
+            <%= form_with(model: @general_configuration, local: true) do |f| %>
+              <% if @general_configuration.errors.any? %>
+                <div class="alert alert-danger">
+                  <h4><%= pluralize(@general_configuration.errors.count, "error") %> prohibited this configuration from being saved:</h4>
+                  <ul>
+                    <% @general_configuration.errors.full_messages.each do |msg| %>
+                      <li><%= msg %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <% if @general_configuration.key == "pipedrive_api_key" %>
+                <div class="mb-3">
+                  <%= f.label :amount, "Nueva Clave API de Pipedrive", class: "form-label" %>
+                  <%= f.password_field :amount, class: "form-control", placeholder: "Ingrese la nueva clave API" %>
+                  <div class="form-text">
+                    La clave API se almacenará de forma segura y no será visible después de guardarla.
+                  </div>
+                </div>
+              <% else %>
+                <div class="mb-3">
+                  <%= f.label :description, "Descripción", class: "form-label" %>
+                  <%= f.text_field :description, class: "form-control" %>
+                </div>
+
+                <div class="mb-3">
+                  <%= f.label :amount, "Cantidad", class: "form-label" %>
+                  <%= f.text_field :amount, class: "form-control" %>
+                </div>
+
+                <div class="mb-3">
+                  <%= f.label :unit_id, "Unidad", class: "form-label" %>
+                  <%= f.collection_select :unit_id, Unit.all, :id, :description, {}, class: "form-select" %>
+                </div>
+              <% end %>
+
+              <div class="text-center mt-4">
+                <%= f.submit "Guardar", class: "btn btn-green me-2" %>
+                <%= link_to "Cancelar", general_configuration_path(@general_configuration), class: "btn btn-secondary" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 <% end %>

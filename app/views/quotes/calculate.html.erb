@@ -22,18 +22,6 @@
         <%= hidden_field_tag 'config_margin_length', @configuration_margin_length %> 
       </div>
 
-      <%# Debug info %>
-      <% if Rails.env.development? %>
-        <script>
-          console.log('Quote ID:', <%= @quote.id if @quote.persisted? %>);
-          console.log('Quote Data:', <%= raw @quote.to_json(include: { 
-            quote_processes: { include: { manufacturing_process: { include: :unit } } },
-            quote_materials: { include: { material: { include: :unit } } },
-            quote_extras: { include: { extra: { include: :unit } } }
-          }) %>);
-        </script>
-      <% end %>
-
       <%# Error handling %>
       <% if @quote.errors.any? %>
         <div style="color: red">
@@ -201,13 +189,10 @@
                 </div>
 
                 <%# Manual Materials Link %>
-                <div class="mt-2">
-                  <a href="javascript:void(0);" 
-                     class="text-primary text-decoration-underline" 
-                     style="cursor: pointer;"
-                     data-action="click->quotes#toggleManualMaterial prevent">
-                    Agregar material manual
-                  </a>
+                <div>
+                  <%= link_to "#", class: "text-secondary text-decoration-none ms-2", style: "font-size: 0.9rem;", data: { action: "click->quotes#toggleManualMaterial" } do %>
+                    <i class="fas fa-plus me-1"></i> Agregar material manual
+                  <% end %>
                 </div>
 
                 <%# Manual Materials Form %>
@@ -269,7 +254,7 @@
         </div>
       </div>
 
-      <div class="row mt-4">
+      <div class="row mt-2">
         <div class="col-12">
           <table data-quotes-target="materialsTable" class="table table-bordered">
             <thead class="thead-light">

@@ -9,7 +9,6 @@ export default class extends Controller {
                    "processesSubtotal", "extrasSubtotal"]; 
 
   connect() {
-    console.log('=== QUOTES CONTROLLER CONNECTED ===');
     this.newProcessId = 0; 
     this.newExtraId = 0;
     this.manualMaterialId = document.getElementById('manual-material-config')?.dataset.manualMaterialId;
@@ -108,8 +107,6 @@ export default class extends Controller {
         .catch(error => {
           console.error('Error loading quote:', error.message);
         });
-    } else {
-      console.log('No quote ID found - this might be a new quote');
     }
 
     // Add event listener for extras checkbox
@@ -662,7 +659,6 @@ export default class extends Controller {
       return response.json();
     })
     .then(data => {
-      console.log('Received data:', data);
       if (data.results && data.results.length > 0) {
         this.searchResults = data.results;
         

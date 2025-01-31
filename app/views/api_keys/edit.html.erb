@@ -1,0 +1,30 @@
+<%= turbo_frame_tag "main-content" do %>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow border-0">
+          <div class="card-header bg-transparent">
+            <h1 class="text-center mb-0">Configurar Clave API de Pipedrive</h1>
+          </div>
+
+          <div class="card-body">
+            <%= form_with(url: api_keys_path, method: :patch, local: true, data: { turbo: false }) do |f| %>
+              <div class="mb-3">
+                <%= label_tag :pipedrive_api_key, "Nueva Clave API de Pipedrive", class: "form-label" %>
+                <%= password_field_tag :pipedrive_api_key, nil, class: "form-control", placeholder: "Ingrese la nueva clave API" %>
+                <div class="form-text">
+                  La clave API se almacenará de forma segura en el archivo de configuración.
+                </div>
+              </div>
+
+              <div class="text-center mt-4">
+                <%= submit_tag "Guardar", class: "btn btn-green me-2" %>
+                <%= link_to "Cancelar", root_path, class: "btn btn-secondary" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %> 

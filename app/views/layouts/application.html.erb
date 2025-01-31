@@ -23,7 +23,7 @@
       background-color: #f5fffa;
     }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 
 <body>
@@ -43,7 +43,9 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <%= link_to 'Nueva cotización', calculate_quotes_path, class: "nav-link" %> 
+              <%= link_to calculate_quotes_path, class: "nav-link" do %>
+                <i class="fas fa-calculator me-1"></i> Nueva cotización
+              <% end %>
             </li>
             <li class="nav-item divider"></li>
             <li class="nav-item dropdown"> 
@@ -55,16 +57,32 @@
                  data-toggle="dropdown" 
                  aria-haspopup="true"
                  aria-expanded="false">
-                Catálogos 
+                <i class="fas fa-book me-1"></i> Catálogos 
               </a>
               <div class="dropdown-menu" aria-labelledby="catalogsDropdown"> 
-                <a class="dropdown-item" href="<%= materials_path %>" data-turbo-frame="main-content">Materiales</a> 
-                <a class="dropdown-item" href="<%= manufacturing_processes_path %>" data-turbo-frame="main-content">Procesos</a> 
-                <a class="dropdown-item" href="<%= extras_path %>" data-turbo-frame="main-content">Extras</a> 
+                <%= link_to materials_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-box me-2"></i> Materiales
+                <% end %>
+                <%= link_to manufacturing_processes_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-industry me-2"></i> Procesos
+                <% end %>
+                <%= link_to extras_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-plus-circle me-2"></i> Extras
+                <% end %>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="<%= units_path %>" data-turbo-frame="main-content">Unidades de medida</a> 
-                <a class="dropdown-item" href="<%= unit_equivalences_path %>" data-turbo-frame="main-content">Equivalencias de unidades</a> 
-                <a class="dropdown-item" href="<%= general_configurations_path %>" data-turbo-frame="main-content">Configuraciones generales</a> 
+                <%= link_to units_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-ruler me-2"></i> Unidades de medida
+                <% end %>
+                <%= link_to unit_equivalences_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-exchange-alt me-2"></i> Equivalencias de unidades
+                <% end %>
+                <%= link_to general_configurations_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-cog me-2"></i> Configuraciones generales
+                <% end %>
+                <div class="dropdown-divider"></div>
+                <%= link_to edit_api_keys_path, class: "dropdown-item", data: { turbo_frame: "main-content" } do %>
+                  <i class="fas fa-key me-2"></i> Configurar API Pipedrive
+                <% end %>
               </div>
             </li>
             <li class="nav-item divider"></li> 
@@ -77,11 +95,15 @@
                  data-toggle="dropdown" 
                  aria-haspopup="true"
                  aria-expanded="false">
-                <%= current_user.email %> 
+                <i class="fas fa-user me-1"></i> <%= current_user.email %> 
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown"> 
-                <%= link_to 'Edit profile', edit_user_registration_path, class: "dropdown-item" %>
-                <%= button_to 'Logout', destroy_user_session_path, method: :delete, class: "dropdown-item" %>
+                <%= link_to edit_user_registration_path, class: "dropdown-item" do %>
+                  <i class="fas fa-user-edit me-2"></i> Edit profile
+                <% end %>
+                <%= button_to destroy_user_session_path, method: :delete, class: "dropdown-item" do %>
+                  <i class="fas fa-sign-out-alt me-2"></i> Logout
+                <% end %>
               </div>
             </li>
           </ul>

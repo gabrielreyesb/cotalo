@@ -28,4 +28,6 @@ Rails.application.routes.draw do
   root 'pages#home'
 
   post 'send_quote/:id', to: 'pages#send_quote', as: :send_quote 
+
+  resource :api_keys, only: [:edit, :update]
 end

@@ -1,17 +1,12 @@
 <%# Flash messages %>
 <div id="flash-messages" class="flash-messages-container">
-  <% flash.each do |type, message| %>
-    <% alert_class = case type
-         when 'notice' then 'alert-success'
-         when 'alert', 'error' then 'alert-danger'
-         else 'alert-info'
-         end %>
-    <div class="alert <%= alert_class %> alert-dismissible fade show" role="alert">
-      <%= message %>
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
+  <% flash.each do |name, msg| %>
+    <% unless msg == "Signed in successfully." %>
+      <div class="alert alert-<%= name == 'notice' ? 'success' : 'danger' %> alert-dismissible fade show">
+        <%= msg %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% end %>
   <% end %>
 </div>
 

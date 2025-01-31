@@ -1,4 +1,69 @@
 <% if user_signed_in? %>
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <%= link_to root_path, class: "navbar-brand" do %>
+        <%= image_tag "logo.png", height: 40 %>
+      <% end %>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <%= link_to calculate_quotes_path, class: "nav-link" do %>
+              <i class="fas fa-calculator me-1"></i> Nueva Cotización
+            <% end %>
+          </li>
+          
+          <li class="nav-item">
+            <%= link_to root_path, class: "nav-link" do %>
+              <i class="fas fa-list me-1"></i> Cotizaciones
+            <% end %>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="fas fa-cog me-1"></i> Configuración
+            </a>
+            <div class="dropdown-menu dropdown-menu-end">
+              <%= link_to edit_api_key_path, class: "dropdown-item" do %>
+                <i class="fas fa-key me-2"></i> API Key Pipedrive
+              <% end %>
+              
+              <%= link_to general_configurations_path, class: "dropdown-item" do %>
+                <i class="fas fa-sliders-h me-2"></i> Configuración General
+              <% end %>
+              
+              <%= link_to materials_path, class: "dropdown-item" do %>
+                <i class="fas fa-box me-2"></i> Materiales
+              <% end %>
+              
+              <%= link_to manufacturing_processes_path, class: "dropdown-item" do %>
+                <i class="fas fa-industry me-2"></i> Procesos
+              <% end %>
+              
+              <%= link_to extras_path, class: "dropdown-item" do %>
+                <i class="fas fa-plus-circle me-2"></i> Extras
+              <% end %>
+              
+              <%= link_to units_path, class: "dropdown-item" do %>
+                <i class="fas fa-ruler me-2"></i> Unidades
+              <% end %>
+            </div>
+          </li>
+
+          <li class="nav-item">
+            <%= button_to destroy_user_session_path, method: :delete, class: "nav-link border-0 bg-transparent" do %>
+              <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+            <% end %>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+<% else %>
   <nav class="navbar navbar-expand-lg navbar-light">
     <a class="navbar-brand" href="<%= root_path %>"> 
       <%= image_tag("logo.png", alt: "Surtibox Logo", width: 250) %> 

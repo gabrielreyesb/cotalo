@@ -1,12 +1,49 @@
 <%= turbo_frame_tag "main-content" do %>
-  <p style="color: green"><%= notice %></p>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow border-0 mb-4">
+          <div class="card-header bg-transparent">
+            <h1 class="text-center mb-0"><%= @material.description %></h1>
+          </div>
 
-  <%= render @material %>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Dimensiones:</strong></label>
+                <div class="mb-2">
+                  <strong>Ancho:</strong> <%= @material.width %>
+                </div>
+                <div>
+                  <strong>Largo:</strong> <%= @material.length %>
+                </div>
+              </div>
 
-  <div>
-    <%= link_to "Edit this material", edit_material_path(@material) %> |
-    <%= link_to "Back to materials", materials_path %>
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Detalles:</strong></label>
+                <div class="mb-2">
+                  <strong>Precio:</strong> <%= number_to_currency(@material.price) %>
+                </div>
+                <div>
+                  <strong>Unidad de medida:</strong> <%= @material.unit.try(:description) || @material.unit.try(:name) %>
+                </div>
+              </div>
+            </div>
 
-    <%= button_to "Destroy this material", @material, method: :delete %>
+            <% if @material.comments.present? %>
+              <div class="mb-4">
+                <label class="form-label"><strong>Comentarios:</strong></label>
+                <div><%= @material.comments %></div>
+              </div>
+            <% end %>
+
+            <div class="text-center mt-4">
+              <%= link_to 'Editar', edit_material_path(@material), class: 'btn btn-green me-2' %>
+              <%= link_to 'Volver', materials_path, class: 'btn btn-secondary' %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 <% end %>
