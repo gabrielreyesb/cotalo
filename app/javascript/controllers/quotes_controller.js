@@ -8,6 +8,15 @@ export default class extends Controller {
                    "includeExtras", "includeExtrasHidden",
                    "processesSubtotal", "extrasSubtotal"]; 
 
+  // Add this property to store the current material row
+  currentMaterialRow = null;
+
+  // Add this property to store the current process row
+  currentProcessRow = null;
+
+  // Add this property to store the current extra row
+  currentExtraRow = null;
+
   connect() {
     this.newProcessId = 0; 
     this.newExtraId = 0;
@@ -96,6 +105,9 @@ export default class extends Controller {
           return response.json();
         })
         .then(data => {
+          console.log('Quote data:', data);
+          console.log('Quote materials:', data.quote_materials);
+          
           // Initialize arrays if they don't exist
           data.quote_materials = data.quote_materials || [];
           data.quote_processes = data.quote_processes || [];
@@ -138,6 +150,9 @@ export default class extends Controller {
   }
 
   async loadExistingData(data) {
+    console.log('Quote data:', data);
+    console.log('Quote materials:', data.quote_materials);
+    
     // Basic quote information
     document.querySelector('input[name="quote[projects_name]"]').value = data.projects_name || '';
     document.querySelector('input[name="quote[product_name]"]').value = data.product_name || '';
@@ -176,22 +191,29 @@ export default class extends Controller {
 
     // Load materials
     data.quote_materials.forEach((material, index) => {
+      console.log('Material comments:', material.comments);
       const row = document.createElement('tr');
       row.innerHTML = `
           <td class="align-middle text-center">
-            <div class="d-flex align-items-center justify-content-center" style="min-width: 80px; margin: 0 auto;">
-              <div class="form-check d-flex align-items-center m-0" style="margin-right: 35px !important;">
+            <div class="d-flex align-items-center justify-content-between" style="min-width: 60px; margin: 0 auto; max-width: 80px;">
+              <div class="form-check mb-0">
                 <input type="radio" 
                        name="main_material" 
-                       class="form-check-input m-0" 
+                       class="form-check-input" 
                        data-action="change->quotes#updateMainMaterial"
                        ${material.is_main ? 'checked' : ''}>
               </div>
               <button type="button" 
-                      class="btn btn-sm btn-link text-danger p-0 d-flex align-items-center"
+                      class="btn btn-sm btn-link text-primary p-0"
+                      data-action="click->quotes#openMaterialComments"
+                      title="Agregar comentarios">
+                <i class="fas fa-comments" style="color: ${material.comments ? '#0d6efd' : ''}"></i>
+              </button>
+              <button type="button" 
+                      class="btn btn-sm btn-link text-danger p-0"
                       data-action="click->quotes#removeMaterial">
-              <i class="fas fa-trash"></i>
-            </button>
+                <i class="fas fa-trash"></i>
+              </button>
             </div>
           </td>
           <td style="text-align: left !important; vertical-align: middle;">${material.is_manual ? material.manual_description : material.material.description}</td>
@@ -214,6 +236,7 @@ export default class extends Controller {
           <input type="hidden" name="quote[quote_materials_attributes][${index}][square_meters]" value="${material.square_meters}">
           <input type="hidden" name="quote[quote_materials_attributes][${index}][total_price]" value="${material.total_price}">
           <input type="hidden" name="quote[quote_materials_attributes][${index}][is_main]" value="${material.is_main}" class="is-main-input">
+          <input type="hidden" name="quote[quote_materials_attributes][${index}][comments]" value="${material.comments || ''}">
           ${material.is_manual ? `
             <input type="hidden" name="quote[quote_materials_attributes][${index}][is_manual]" value="true">
             <input type="hidden" name="quote[quote_materials_attributes][${index}][manual_description]" value="${material.manual_description}">
@@ -224,52 +247,95 @@ export default class extends Controller {
     });
 
     // Load processes
-    data.quote_processes.forEach(process => {
+    data.quote_processes.forEach((process, index) => {
+      // Skip if manufacturing process is missing
+      if (!process.manufacturing_process) {
+        console.warn('Process missing manufacturing_process:', process);
+        return;
+      }
+
       const row = document.createElement('tr');
       row.innerHTML = `
-          <td class="text-center align-middle">
+        <td class="align-middle text-center">
+          <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
             <button type="button" 
-                    class="btn btn-sm btn-link text-danger"
-                    data-action="click->quotes#removeProcess">
+                    class="btn btn-sm btn-link text-primary p-0"
+                    data-action="click->quotes#openProcessComments"
+                    title="Agregar comentarios"
+                    style="width: 20px;">
+              <i class="fas fa-comments" style="color: ${process.comments ? '#0d6efd' : ''}"></i>
+            </button>
+            <button type="button" 
+                    class="btn btn-sm btn-link text-danger p-0"
+                    data-action="click->quotes#removeProcess"
+                    style="width: 20px;">
               <i class="fas fa-trash"></i>
             </button>
-          </td>
-          <td class="align-middle" style="text-align: left !important;">${process.manufacturing_process.name} - ${process.manufacturing_process.description}</td>
-          <td class="text-right align-middle">$${this.formatPrice(parseFloat(process.unit_price))}</td>
-          <td class="text-right align-middle">${process.manufacturing_process.unit.description}</td>
-          <td class="text-right align-middle process-price-total">$${this.formatPrice(parseFloat(process.price))}</td>
-          <input type="hidden" name="quote[quote_processes_attributes][][id]" value="${process.id}">
-          <input type="hidden" name="quote[quote_processes_attributes][][manufacturing_process_id]" value="${process.manufacturing_process_id}">
-          <input type="hidden" name="quote[quote_processes_attributes][][price]" value="${parseFloat(process.price).toFixed(2)}">
-          <input type="hidden" name="quote[quote_processes_attributes][][unit_price]" value="${parseFloat(process.unit_price).toFixed(2)}">
+          </div>
+        </td>
+        <td style="text-align: left !important; vertical-align: middle;">
+          ${process.manufacturing_process?.name || process.manufacturing_process?.description || 'Proceso no encontrado'}
+        </td>
+        <td style="text-align: right !important; vertical-align: middle;">
+          <input type="number" 
+                 class="form-control form-control-sm text-end" 
+                 value="${process.unit_price}" 
+                 step="0.01"
+                 data-action="change->quotes#updateProcessPrice"
+                 style="width: 100px; display: inline-block;">
+        </td>
+        <td style="text-align: right !important; vertical-align: middle;">${process.manufacturing_process?.unit?.description || ''}</td>
+        <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(process.price)}</td>
+        <input type="hidden" name="quote[quote_processes_attributes][${index}][id]" value="${process.id}">
+        <input type="hidden" name="quote[quote_processes_attributes][${index}][manufacturing_process_id]" value="${process.manufacturing_process_id}">
+        <input type="hidden" name="quote[quote_processes_attributes][${index}][unit_price]" value="${process.unit_price}">
+        <input type="hidden" name="quote[quote_processes_attributes][${index}][price]" value="${process.price}">
+        <input type="hidden" name="quote[quote_processes_attributes][${index}][comments]" value="${process.comments || ''}">
       `;
       processesTable.querySelector('tbody').appendChild(row);
     });
 
     // Load extras
     data.quote_extras.forEach(extra => {
-      const price = parseFloat(extra.price || extra.extra.price).toFixed(2);
+      // Skip if extra is missing
+      if (!extra.extra) {
+        console.warn('Extra missing extra reference:', extra);
+        return;
+      }
+
+      const price = parseFloat(extra.price || extra.extra?.price || 0).toFixed(2);
       const quantity = parseInt(extra.quantity, 10);
       const totalPrice = (parseFloat(price) * quantity).toFixed(2);
       
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td class="text-center align-middle">
-          <button type="button" 
-                  class="btn btn-sm btn-link text-danger"
-                  data-action="click->quotes#removeExtra">
+        <td class="align-middle text-center">
+          <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
+            <button type="button" 
+                    class="btn btn-sm btn-link text-primary p-0"
+                    data-action="click->quotes#openExtraComments"
+                    title="Agregar comentarios"
+                    style="width: 20px;">
+              <i class="fas fa-comments" style="color: ${extra.comments ? '#0d6efd' : ''}"></i>
+            </button>
+            <button type="button" 
+                    class="btn btn-sm btn-link text-danger p-0"
+                    data-action="click->quotes#removeExtra"
+                    style="width: 20px;">
               <i class="fas fa-trash"></i>
             </button>
+          </div>
         </td>
-        <td style="text-align: left !important">${extra.extra.description}</td>
-        <td style="text-align: right !important">$${this.formatPrice(parseFloat(price))}</td>
-        <td style="text-align: right !important">${extra.extra.unit.description}</td>
-        <td style="text-align: right !important">${quantity}</td>
-        <td style="text-align: right !important" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
+        <td style="text-align: left !important; vertical-align: middle;">${extra.extra?.description || 'Extra no encontrado'}</td>
+        <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(price))}</td>
+        <td style="text-align: right !important; vertical-align: middle;">${extra.extra?.unit?.description || ''}</td>
+        <td style="text-align: right !important; vertical-align: middle;">${quantity}</td>
+        <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
         <input type="hidden" name="quote[quote_extras_attributes][][id]" value="${extra.id}">
         <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extra.extra_id}">
         <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${quantity}">
         <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${price}">
+        <input type="hidden" name="quote[quote_extras_attributes][][comments]" value="${extra.comments || ''}">
       `;
       extrasTable.querySelector('tbody').appendChild(row);
     });
@@ -349,7 +415,6 @@ export default class extends Controller {
     const processId = selectedOption.value;
     const processName = selectedOption.text;
     const price = parseFloat(document.getElementById('manufacturing_process_price_display').value);
-    
     const unit = document.getElementById('manufacturing_process_unit_display').textContent;
 
     // Calculate total price based on unit type
@@ -371,20 +436,40 @@ export default class extends Controller {
 
     const newRow = document.createElement('tr');
     newRow.innerHTML = `
-      <td class="text-center align-middle">
-        <button type="button" 
-                class="btn btn-sm btn-link text-danger"
-                data-action="click->quotes#removeProcess">
-          <i class="fas fa-trash"></i>
-        </button>
+      <td class="align-middle text-center">
+        <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
+          <button type="button" 
+                  class="btn btn-sm btn-link text-primary p-0"
+                  data-action="click->quotes#openProcessComments"
+                  title="Agregar comentarios"
+                  style="width: 20px;">
+            <i class="fas fa-comments"></i>
+          </button>
+          <button type="button" 
+                  class="btn btn-sm btn-link text-danger p-0"
+                  data-action="click->quotes#removeProcess"
+                  style="width: 20px;">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
       </td>
-      <td class="align-middle" style="text-align: left !important;">${processName}</td>
-      <td class="text-right align-middle">$${this.formatPrice(price)}</td>
-      <td class="text-right align-middle">${unit}</td>
-      <td class="text-right align-middle process-price-total">$${this.formatPrice(totalPrice)}</td>
+      <td style="text-align: left !important; vertical-align: middle;">
+        ${processName}
+      </td>
+      <td style="text-align: right !important; vertical-align: middle;">
+        <input type="number" 
+               class="form-control form-control-sm text-end" 
+               value="${price}" 
+               step="0.01"
+               data-action="change->quotes#updateProcessPrice"
+               style="width: 100px; display: inline-block;">
+      </td>
+      <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
+      <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(totalPrice)}</td>
       <input type="hidden" name="quote[quote_processes_attributes][][manufacturing_process_id]" value="${processId}">
       <input type="hidden" name="quote[quote_processes_attributes][][price]" value="${totalPrice.toFixed(2)}">
       <input type="hidden" name="quote[quote_processes_attributes][][unit_price]" value="${price.toFixed(2)}">
+      <input type="hidden" name="quote[quote_processes_attributes][][comments]" value="">
     `;
 
     tbody.appendChild(newRow);
@@ -454,21 +539,32 @@ export default class extends Controller {
         // Create a new row for the extra
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
-          <td class="text-center align-middle">
-            <button type="button" 
-                    class="btn btn-sm btn-link text-danger" 
-                    data-action="click->quotes#removeExtra">
-              <i class="fas fa-trash"></i>
-            </button>
+          <td class="align-middle text-center">
+            <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
+              <button type="button" 
+                      class="btn btn-sm btn-link text-primary p-0"
+                      data-action="click->quotes#openExtraComments"
+                      title="Agregar comentarios"
+                      style="width: 20px;">
+                <i class="fas fa-comments"></i>
+              </button>
+              <button type="button" 
+                      class="btn btn-sm btn-link text-danger p-0"
+                      data-action="click->quotes#removeExtra"
+                      style="width: 20px;">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </td>
-          <td class="align-middle" style="text-align: left !important;">${extraDescription}</td>
-          <td style="text-align: right !important">$${this.formatPrice(parseFloat(extraPrice))}</td>
-          <td style="text-align: right !important">${unit}</td>
-          <td class="text-right align-middle">${extraQuantity}</td>
-          <td class="text-right align-middle extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
+          <td style="text-align: left !important; vertical-align: middle;">${extraDescription}</td>
+          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(extraPrice))}</td>
+          <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
+          <td style="text-align: right !important; vertical-align: middle;">${extraQuantity}</td>
+          <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
           <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extraId}">
           <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${extraQuantity}">
           <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${extraPrice}">
+          <input type="hidden" name="quote[quote_extras_attributes][][comments]" value="">
         `;
 
         const tbody = this.extrasTarget.querySelector('tbody');
@@ -577,14 +673,21 @@ export default class extends Controller {
     const marginPercentage = marginElement ? (parseFloat(marginElement.value) || 0) : 0;
     
     const wasteAmount = (subtotal * wastePercentage) / 100;
-    const marginAmount = (subtotal * marginPercentage) / 100;
-    
-    // Calculate final total
-    const total = subtotal + wasteAmount + marginAmount;
 
-    // Get product quantity for price per piece
+    // Get product quantity for calculations
     const quantityElement = document.getElementById('quote_product_quantity');
     const productQuantity = quantityElement ? (parseInt(quantityElement.value) || 0) : 0;
+
+    // Calculate price per piece before margin
+    const pricePerPieceBeforeMargin = productQuantity > 0 ? (subtotal + wasteAmount) / productQuantity : 0;
+    
+    // New margin calculation: (Subtotal + Merma) * margen%
+    const marginAmount = ((subtotal + wasteAmount) * marginPercentage) / 100;
+    
+    // Calculate final total: Subtotal + Merma + Margen
+    const total = subtotal + wasteAmount + marginAmount;
+
+    // Calculate final price per piece
     const pricePerPiece = productQuantity > 0 ? total / productQuantity : 0;
 
     // Store raw values in hidden fields
@@ -594,11 +697,13 @@ export default class extends Controller {
       marginPrice: document.getElementById('quote_margin_price'),
       totalQuoteValue: document.getElementById('quote_total_quote_value'),
       productValuePerPiece: document.getElementById('quote_product_value_per_piece'),
+      pricePerPieceBeforeMargin: document.getElementById('quote_price_per_piece_before_margin'),
       subtotalDisplay: document.getElementById('subtotal-display'),
       wastePriceDisplay: document.getElementById('waste-price-display'),
       marginPriceDisplay: document.getElementById('margin-price-display'),
       totalQuoteValueDisplay: document.getElementById('total-quote-value-display'),
-      pricePerPieceDisplay: document.getElementById('price-per-piece-display')
+      pricePerPieceDisplay: document.getElementById('price-per-piece-display'),
+      pricePerPieceBeforeMarginDisplay: document.getElementById('price-per-piece-before-margin-display')
     };
 
     // Update values only if elements exist
@@ -614,6 +719,7 @@ export default class extends Controller {
     if (elements.marginPriceDisplay) elements.marginPriceDisplay.textContent = `$${this.formatPrice(marginAmount)}`;
     if (elements.totalQuoteValueDisplay) elements.totalQuoteValueDisplay.textContent = `$${this.formatPrice(total)}`;
     if (elements.pricePerPieceDisplay) elements.pricePerPieceDisplay.textContent = `$${this.formatPrice(pricePerPiece)}`;
+    if (elements.pricePerPieceBeforeMarginDisplay) elements.pricePerPieceBeforeMarginDisplay.textContent = `$${this.formatPrice(pricePerPieceBeforeMargin)}`;
   }
 
   searchCustomer(event) {
@@ -746,17 +852,25 @@ export default class extends Controller {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="align-middle text-center">
-        <div class="d-flex align-items-center justify-content-center" style="min-width: 80px; margin: 0 auto;">
-          <div class="form-check d-flex align-items-center m-0" style="margin-right: 35px !important;">
+        <div style="display: flex; justify-content: space-between; width: 100px; margin: 0 auto;">
+          <div class="form-check" style="width: 20px;">
             <input type="radio" 
                    name="main_material" 
-                   class="form-check-input m-0" 
+                   class="form-check-input" 
                    data-action="change->quotes#updateMainMaterial"
                    ${isFirstMaterial ? 'checked' : ''}>
           </div>
           <button type="button" 
-                  class="btn btn-sm btn-link text-danger p-0 d-flex align-items-center"
-                  data-action="click->quotes#removeMaterial">
+                  class="btn btn-sm btn-link text-primary p-0"
+                  data-action="click->quotes#openMaterialComments"
+                  title="Agregar comentarios"
+                  style="width: 20px;">
+            <i class="fas fa-comments"></i>
+          </button>
+          <button type="button" 
+                  class="btn btn-sm btn-link text-danger p-0"
+                  data-action="click->quotes#removeMaterial"
+                  style="width: 20px;">
             <i class="fas fa-trash"></i>
           </button>
         </div>
@@ -783,6 +897,7 @@ export default class extends Controller {
       <input type="hidden" name="quote[quote_materials_attributes][][width]" value="${width}">
       <input type="hidden" name="quote[quote_materials_attributes][][length]" value="${length}">
       <input type="hidden" name="quote[quote_materials_attributes][][is_main]" value="${isFirstMaterial}" class="is-main-input">
+      <input type="hidden" name="quote[quote_materials_attributes][][comments]" value="">
     `;
     
     tbody.appendChild(tr);
@@ -837,7 +952,7 @@ export default class extends Controller {
         
         // Calculate how many products fit in each dimension
         const productsInWidth = Math.floor(materialWidth / totalProductWidth);
-        const productsInLength = Math.floor(materialLength / totalProductLength);
+        const productsInLength = Math.floor(materialLength / productLength);
         
         // Total products that fit in one sheet
         const productsPerSheet = productsInWidth * productsInLength;
@@ -858,17 +973,25 @@ export default class extends Controller {
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
           <td class="align-middle text-center">
-            <div class="d-flex align-items-center justify-content-center" style="min-width: 80px; margin: 0 auto;">
-              <div class="form-check d-flex align-items-center m-0" style="margin-right: 35px !important;">
+            <div style="display: flex; justify-content: space-between; width: 100px; margin: 0 auto;">
+              <div class="form-check" style="width: 20px;">
                 <input type="radio" 
                        name="main_material" 
-                       class="form-check-input m-0" 
+                       class="form-check-input" 
                        data-action="change->quotes#updateMainMaterial"
                        ${isFirstMaterial ? 'checked' : ''}>
               </div>
               <button type="button" 
-                      class="btn btn-sm btn-link text-danger p-0 d-flex align-items-center"
-                      data-action="click->quotes#removeMaterial">
+                      class="btn btn-sm btn-link text-primary p-0"
+                      data-action="click->quotes#openMaterialComments"
+                      title="Agregar comentarios"
+                      style="width: 20px;">
+                <i class="fas fa-comments"></i>
+              </button>
+              <button type="button" 
+                      class="btn btn-sm btn-link text-danger p-0"
+                      data-action="click->quotes#removeMaterial"
+                      style="width: 20px;">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -901,6 +1024,7 @@ export default class extends Controller {
           <input type="hidden" name="quote[quote_materials_attributes][][square_meters]" value="${squareMeters.toFixed(2)}">
           <input type="hidden" name="quote[quote_materials_attributes][][total_price]" value="${totalPrice.toFixed(2)}">
           <input type="hidden" name="quote[quote_materials_attributes][][is_main]" value="${isFirstMaterial}" class="is-main-input">
+          <input type="hidden" name="quote[quote_materials_attributes][][comments]" value="">
         `;
         
         tbody.appendChild(newRow);
@@ -1048,23 +1172,53 @@ export default class extends Controller {
     const tr = document.createElement('tr');
     
     tr.innerHTML = `
-      <td>${material.description}</td>
-      <td class="text-end align-middle">${productsPerSheet}</td>
-      <td class="text-end align-middle">${sheetsNeeded}</td>
-      <td class="text-end align-middle">${squareMeters.toFixed(2)}</td>
-      <td class="text-end align-middle">$${totalPrice.toFixed(2)}</td>
-      <td class="text-center">
-        <button type="button"
-                class="btn btn-sm btn-link text-danger"
-                data-action="click->quotes#removeMaterial">
-          <i class="fas fa-trash"></i>
-        </button>
-        <input type="hidden" name="quote[quote_materials_attributes][][material_id]" value="${material.id}">
-        <input type="hidden" name="quote[quote_materials_attributes][][products_per_sheet]" value="${productsPerSheet}">
-        <input type="hidden" name="quote[quote_materials_attributes][][sheets_needed]" value="${sheetsNeeded}">
-        <input type="hidden" name="quote[quote_materials_attributes][][square_meters]" value="${squareMeters.toFixed(2)}">
-        <input type="hidden" name="quote[quote_materials_attributes][][total_price]" value="${totalPrice.toFixed(2)}">
+      <td class="align-middle text-center">
+        <div class="d-flex align-items-center justify-content-between" style="min-width: 80px; margin: 0 auto;">
+          <div class="form-check d-flex align-items-center m-0">
+            <input type="radio" 
+                   name="main_material" 
+                   class="form-check-input m-0" 
+                   data-action="change->quotes#updateMainMaterial"
+                   ${material.is_main ? 'checked' : ''}>
+          </div>
+          <button type="button" 
+                  class="btn btn-sm btn-link text-primary p-0"
+                  data-action="click->quotes#openMaterialComments"
+                  title="Agregar comentarios">
+            <i class="fas fa-comments"></i>
+          </button>
+          <button type="button" 
+                  class="btn btn-sm btn-link text-danger p-0"
+                  data-action="click->quotes#removeMaterial">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
       </td>
+      <td style="text-align: left !important; vertical-align: middle;">${material.is_manual ? material.manual_description : material.material.description}</td>
+      <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(material.price_per_unit)}</td>
+      <td style="text-align: right !important; vertical-align: middle;">${material.width} cm</td>
+      <td style="text-align: right !important; vertical-align: middle;">${material.length} cm</td>
+      <td style="text-align: right !important; vertical-align: middle;">
+        <input type="number" class="form-control form-control-sm text-end products-per-sheet" value="${productsPerSheet}" min="1" data-material-price="${material.price_per_unit}" data-material-width="${material.width}" data-material-length="${material.length}" data-action="change->quotes#updateMaterialCalculations" style="width: 80px; display: inline-block;">
+      </td>
+      <td style="text-align: right !important; vertical-align: middle;">${sheetsNeeded}</td>
+      <td style="text-align: right !important; vertical-align: middle;">${squareMeters.toFixed(2)}</td>
+      <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(totalPrice)}</td>
+      <input type="hidden" name="quote[quote_materials_attributes][][material_id]" value="${material.id}">
+      <input type="hidden" name="quote[quote_materials_attributes][][price_per_unit]" value="${material.price_per_unit}">
+      <input type="hidden" name="quote[quote_materials_attributes][][width]" value="${material.width}">
+      <input type="hidden" name="quote[quote_materials_attributes][][length]" value="${material.length}">
+      <input type="hidden" name="quote[quote_materials_attributes][][products_per_sheet]" value="${productsPerSheet}">
+      <input type="hidden" name="quote[quote_materials_attributes][][sheets_needed]" value="${sheetsNeeded}">
+      <input type="hidden" name="quote[quote_materials_attributes][][square_meters]" value="${squareMeters.toFixed(2)}">
+      <input type="hidden" name="quote[quote_materials_attributes][][total_price]" value="${totalPrice.toFixed(2)}">
+      <input type="hidden" name="quote[quote_materials_attributes][][is_main]" value="${material.is_main}" class="is-main-input">
+      <input type="hidden" name="quote[quote_materials_attributes][][comments]" value="${material.comments || ''}">
+      ${material.is_manual ? `
+        <input type="hidden" name="quote[quote_materials_attributes][][is_manual]" value="true">
+        <input type="hidden" name="quote[quote_materials_attributes][][manual_description]" value="${material.manual_description}">
+        <input type="hidden" name="quote[quote_materials_attributes][][manual_unit]" value="${material.manual_unit}">
+      ` : ''}
     `;
     
     tbody.appendChild(tr);
@@ -1186,5 +1340,142 @@ export default class extends Controller {
     // If we get here, there was an error
     // The error modal will be rendered by the server through Turbo Stream
     // and automatically shown
+  }
+
+  openMaterialComments(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const commentsBox = document.getElementById('materialCommentsBox');
+    const textarea = commentsBox.querySelector('textarea');
+    
+    // Store reference to current material row
+    this.currentMaterialRow = button.closest('tr');
+    
+    // Load existing comments if any
+    const existingComments = this.currentMaterialRow.querySelector('input[name*="[comments]"]');
+    if (existingComments) {
+      textarea.value = existingComments.value;
+    } else {
+      textarea.value = '';
+    }
+    
+    // Position the box near the clicked button
+    const buttonRect = button.getBoundingClientRect();
+    commentsBox.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+    commentsBox.style.left = `${buttonRect.left}px`;
+    
+    commentsBox.style.display = 'block';
+  }
+
+  saveMaterialComments(event) {
+    event.preventDefault();
+    const commentsBox = document.getElementById('materialCommentsBox');
+    const comments = commentsBox.querySelector('textarea').value;
+    
+    if (this.currentMaterialRow) {
+      // Handle material comments
+      let commentsInput = this.currentMaterialRow.querySelector('input[name*="[comments]"]');
+      if (!commentsInput) {
+        commentsInput = document.createElement('input');
+        commentsInput.type = 'hidden';
+        commentsInput.name = 'quote[quote_materials_attributes][][comments]';
+        this.currentMaterialRow.appendChild(commentsInput);
+      }
+      commentsInput.value = comments;
+
+      // Update icon color
+      const commentIcon = this.currentMaterialRow.querySelector('.fa-comments');
+      if (commentIcon) {
+        commentIcon.style.color = comments.trim() ? '#0d6efd' : '';
+      }
+    } else if (this.currentProcessRow) {
+      // Handle process comments
+      let commentsInput = this.currentProcessRow.querySelector('input[name*="[comments]"]');
+      if (!commentsInput) {
+        commentsInput = document.createElement('input');
+        commentsInput.type = 'hidden';
+        commentsInput.name = 'quote[quote_processes_attributes][][comments]';
+        this.currentProcessRow.appendChild(commentsInput);
+      }
+      commentsInput.value = comments;
+
+      // Update icon color
+      const commentIcon = this.currentProcessRow.querySelector('.fa-comments');
+      if (commentIcon) {
+        commentIcon.style.color = comments.trim() ? '#0d6efd' : '';
+      }
+    } else if (this.currentExtraRow) {
+      // Handle extra comments
+      let commentsInput = this.currentExtraRow.querySelector('input[name*="[comments]"]');
+      if (!commentsInput) {
+        commentsInput = document.createElement('input');
+        commentsInput.type = 'hidden';
+        commentsInput.name = 'quote[quote_extras_attributes][][comments]';
+        this.currentExtraRow.appendChild(commentsInput);
+      }
+      commentsInput.value = comments;
+
+      // Update icon color
+      const commentIcon = this.currentExtraRow.querySelector('.fa-comments');
+      if (commentIcon) {
+        commentIcon.style.color = comments.trim() ? '#0d6efd' : '';
+      }
+    }
+    
+    // Hide the comments box
+    commentsBox.style.display = 'none';
+  }
+
+  openProcessComments(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const commentsBox = document.getElementById('materialCommentsBox');
+    const textarea = commentsBox.querySelector('textarea');
+    
+    // Store reference to current process row
+    this.currentProcessRow = button.closest('tr');
+    this.currentMaterialRow = null; // Clear material row reference
+    
+    // Load existing comments if any
+    const existingComments = this.currentProcessRow.querySelector('input[name*="[comments]"]');
+    if (existingComments) {
+      textarea.value = existingComments.value;
+    } else {
+      textarea.value = '';
+    }
+    
+    // Position the box near the clicked button
+    const buttonRect = button.getBoundingClientRect();
+    commentsBox.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+    commentsBox.style.left = `${buttonRect.left}px`;
+    
+    commentsBox.style.display = 'block';
+  }
+
+  openExtraComments(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const commentsBox = document.getElementById('materialCommentsBox');
+    const textarea = commentsBox.querySelector('textarea');
+    
+    // Store reference to current extra row and clear others
+    this.currentExtraRow = button.closest('tr');
+    this.currentMaterialRow = null;
+    this.currentProcessRow = null;
+    
+    // Load existing comments if any
+    const existingComments = this.currentExtraRow.querySelector('input[name*="[comments]"]');
+    if (existingComments) {
+      textarea.value = existingComments.value;
+    } else {
+      textarea.value = '';
+    }
+    
+    // Position the box near the clicked button
+    const buttonRect = button.getBoundingClientRect();
+    commentsBox.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+    commentsBox.style.left = `${buttonRect.left}px`;
+    
+    commentsBox.style.display = 'block';
   }
 }

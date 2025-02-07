@@ -14,6 +14,11 @@ class User < ApplicationRecord
 
   after_create :setup_initial_data
 
+  def admin?
+    # Implement your admin check logic here
+    # For example: role == 'admin' or admin == true
+  end
+
   private
 
   def setup_initial_data

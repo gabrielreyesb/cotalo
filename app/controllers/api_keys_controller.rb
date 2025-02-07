@@ -1,4 +1,10 @@
+require 'dotenv'
+require 'platform-api'
+
 class ApiKeysController < ApplicationController
+  before_action :authenticate_user!
+  before_action :require_admin_user
+
   def edit
     Rails.logger.info "==== Rendering API Keys edit form ===="
   end
@@ -10,52 +16,67 @@ class ApiKeysController < ApplicationController
     if params[:pipedrive_api_key].present?
       begin
         Rails.logger.info "Attempting to update API key"
-        update_env_file(params[:pipedrive_api_key])
+        new_api_key = params[:pipedrive_api_key]
+
+        unless valid_pipedrive_api_key?(new_api_key)
+          redirect_to edit_api_keys_path, alert: 'Invalid API key format'
+          return
+        end
+
+        if Rails.env.production?
+          update_heroku_config(new_api_key)
+        else
+          update_env_file(new_api_key)
+        end
+        
+        # Update environment variable for current session
+        ENV['PIPEDRIVE_API_KEY'] = new_api_key
+        
         Rails.logger.info "API key updated successfully"
-        redirect_to root_path, notice: 'Clave API de Pipedrive actualizada exitosamente.'
+        redirect_to root_path, notice: 'Pipedrive API key updated successfully.'
       rescue => e
         Rails.logger.error "Error updating API key: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
-        redirect_to edit_api_keys_path, alert: 'Error al actualizar la clave API.'
+        redirect_to edit_api_keys_path, alert: 'Error updating API key.'
       end
     else
       Rails.logger.warn "No API key provided in params"
-      redirect_to edit_api_keys_path, alert: 'La clave API no puede estar vacía.'
+      redirect_to edit_api_keys_path, alert: 'API key cannot be empty.'
     end
   end
 
   private
 
-  def update_env_file(new_api_key)
-    Rails.logger.info "==== Starting ENV file update ===="
-    env_file_path = Rails.root.join('.env')
-    
-    unless File.exist?(env_file_path)
-      Rails.logger.info "Creating new .env file"
-      FileUtils.touch(env_file_path)
+  def require_admin_user
+    unless current_user.admin?
+      redirect_to root_path, alert: 'Unauthorized access'
     end
-    
+  end
+
+  def update_heroku_config(new_api_key)
+    heroku = PlatformAPI.connect_oauth(ENV['HEROKU_API_TOKEN'])
+    heroku.config_var.update(ENV['HEROKU_APP_NAME'], {
+      'PIPEDRIVE_API_KEY' => new_api_key
+    })
+  rescue => e
+    Rails.logger.error "Heroku API Error: #{e.message}"
+    raise "Failed to update Heroku config"
+  end
+
+  def valid_pipedrive_api_key?(key)
+    key.present? && key.length >= 32 && key =~ /^[a-f0-9]+$/
+  end
+
+  def update_env_file(new_api_key)
     begin
-      env_contents = File.read(env_file_path)
-      Rails.logger.info "Successfully read .env file"
-      
-      if env_contents.match?(/^PIPEDRIVE_API_KEY=/)
-        Rails.logger.info "Updating existing API key"
-        updated_contents = env_contents.gsub(/^PIPEDRIVE_API_KEY=.*$/, "PIPEDRIVE_API_KEY=#{new_api_key}")
-      else
-        Rails.logger.info "Adding new API key"
-        updated_contents = env_contents.present? ? env_contents + "\n" : ""
-        updated_contents += "PIPEDRIVE_API_KEY=#{new_api_key}"
-      end
-      
-      File.write(env_file_path, updated_contents)
-      Rails.logger.info "Successfully wrote to .env file"
-      
       Dotenv.load
-      Rails.logger.info "Reloaded environment variables"
+      File.open('.env', 'w') do |f|
+        f.puts "PIPEDRIVE_API_KEY=#{new_api_key}"
+      end
+      true
     rescue => e
       Rails.logger.error "Error in update_env_file: #{e.message}"
-      raise e
+      false
     end
   end
 end 

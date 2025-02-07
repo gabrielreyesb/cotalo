@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_06_220930) do
   create_table "extras", force: :cascade do |t|
     t.string "description"
     t.decimal "price", precision: 10, scale: 2
@@ -73,6 +73,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
     t.datetime "updated_at", null: false
     t.integer "quantity"
     t.decimal "price", precision: 10, scale: 2
+    t.text "comments"
     t.index ["extra_id"], name: "index_quote_extras_on_extra_id"
     t.index ["quote_id"], name: "index_quote_extras_on_quote_id"
   end
@@ -95,6 +96,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
     t.decimal "price_per_unit", precision: 10, scale: 2
     t.decimal "width", precision: 10, scale: 2
     t.decimal "length", precision: 10, scale: 2
+    t.text "comments"
     t.index ["material_id"], name: "index_quote_materials_on_material_id"
     t.index ["quote_id"], name: "index_quote_materials_on_quote_id"
   end
@@ -106,6 +108,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
     t.datetime "updated_at", null: false
     t.decimal "price", precision: 10, scale: 2
     t.decimal "unit_price", precision: 10, scale: 2
+    t.text "comments"
     t.index ["manufacturing_process_id"], name: "index_quote_processes_on_manufacturing_process_id"
     t.index ["quote_id"], name: "index_quote_processes_on_quote_id"
   end
@@ -131,6 +134,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_30_003007) do
     t.text "comments"
     t.string "product_name"
     t.boolean "include_extras", default: false
+    t.decimal "subtotal_before_margin", precision: 10, scale: 2
+    t.decimal "price_per_piece_before_margin"
     t.index ["user_id"], name: "index_quotes_on_user_id"
   end
 

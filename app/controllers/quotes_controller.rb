@@ -169,12 +169,30 @@ class QuotesController < ApplicationController
   def show
     respond_to do |format|
       format.html
-      format.json {
-        render json: @quote.to_json(include: { 
-          quote_processes: { include: { manufacturing_process: { include: :unit } } },
-          quote_materials: { include: { material: { include: :unit } } },
-          quote_extras: { include: { extra: { include: :unit } } }
-        })
+      format.json { 
+        render json: @quote.to_json(
+          include: {
+            quote_materials: {
+              methods: [:material],
+              only: [:id, :material_id, :products_per_sheet, :sheets_needed, 
+                    :square_meters, :total_price, :is_manual, :manual_description, 
+                    :manual_unit, :is_main, :price_per_unit, :width, :length, 
+                    :comments]
+            },
+            quote_processes: {
+              include: {
+                manufacturing_process: {
+                  include: :unit
+                }
+              },
+              only: [:id, :manufacturing_process_id, :price, :unit_price, :comments]
+            },
+            quote_extras: {
+              methods: [:extra],
+              only: [:id, :extra_id, :quantity, :price, :comments]
+            }
+          }
+        )
       }
       format.pdf do
         pdf = QuotePdfGenerator.new(@quote).generate
@@ -247,12 +265,14 @@ class QuotesController < ApplicationController
       :comments,
       :product_name,
       :include_extras,
+      :price_per_piece_before_margin,
       quote_processes_attributes: [
         :id, 
         :manufacturing_process_id, 
         :price, 
         :unit_price, 
-        :_destroy
+        :_destroy,
+        :comments
       ],
       quote_materials_attributes: [
         :id, 
@@ -270,14 +290,16 @@ class QuotesController < ApplicationController
         :width, 
         :length,
         :manual_width,
-        :manual_length
+        :manual_length,
+        :comments
       ],
       quote_extras_attributes: [
         :id, 
         :extra_id, 
         :quantity, 
         :price, 
-        :_destroy
+        :_destroy,
+        :comments
       ]
     )
   end
