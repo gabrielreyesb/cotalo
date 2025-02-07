@@ -1,4 +1,3 @@
-require 'dotenv'
 require 'platform-api'
 
 class ApiKeysController < ApplicationController
@@ -69,7 +68,6 @@ class ApiKeysController < ApplicationController
 
   def update_env_file(new_api_key)
     begin
-      Dotenv.load
       File.open('.env', 'w') do |f|
         f.puts "PIPEDRIVE_API_KEY=#{new_api_key}"
       end
