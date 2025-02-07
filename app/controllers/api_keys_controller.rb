@@ -1,5 +1,3 @@
-require 'platform-api'
-
 class ApiKeysController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin_user
@@ -22,11 +20,7 @@ class ApiKeysController < ApplicationController
           return
         end
 
-        if Rails.env.production?
-          update_heroku_config(new_api_key)
-        else
-          update_env_file(new_api_key)
-        end
+        update_env_file(new_api_key)
         
         # Update environment variable for current session
         ENV['PIPEDRIVE_API_KEY'] = new_api_key
@@ -50,16 +44,6 @@ class ApiKeysController < ApplicationController
     unless current_user.admin?
       redirect_to root_path, alert: 'Unauthorized access'
     end
-  end
-
-  def update_heroku_config(new_api_key)
-    heroku = PlatformAPI.connect_oauth(ENV['HEROKU_API_TOKEN'])
-    heroku.config_var.update(ENV['HEROKU_APP_NAME'], {
-      'PIPEDRIVE_API_KEY' => new_api_key
-    })
-  rescue => e
-    Rails.logger.error "Heroku API Error: #{e.message}"
-    raise "Failed to update Heroku config"
   end
 
   def valid_pipedrive_api_key?(key)
