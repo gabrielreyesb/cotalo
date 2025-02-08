@@ -8,13 +8,15 @@ class MaterialsController < ApplicationController
 
   # GET /materials/1 or /materials/1.json
   def show
-    @material = Material.find(params[:id])
+    Rails.logger.debug "Material full inspect: #{@material.inspect}"
+    Rails.logger.debug "Material attributes: #{@material.attributes}"
+    Rails.logger.debug "Material comments: #{@material.comments.inspect}"
     
     respond_to do |format|
       format.html
       format.json { 
         render json: @material.as_json(
-          only: [:id, :description, :width, :length, :price, :unit_id]
+          only: [:id, :description, :width, :length, :price, :unit_id, :specifications, :name, :comments]
         ) 
       }
     end
@@ -27,6 +29,9 @@ class MaterialsController < ApplicationController
 
   # GET /materials/1/edit
   def edit
+    Rails.logger.debug "Material full inspect: #{@material.inspect}"
+    Rails.logger.debug "Material attributes: #{@material.attributes}"
+    Rails.logger.debug "Material comments for edit: #{@material.comments.inspect}"
   end
 
   # POST /materials or /materials.json
@@ -63,6 +68,15 @@ class MaterialsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def material_params
-      params.require(:material).permit(:description, :width, :length, :comments, :price, :unit_id)
+      params.require(:material).permit(
+        :description,
+        :price,
+        :width,
+        :length,
+        :unit_id,
+        :specifications,
+        :name,
+        :comments
+      )
     end
 end

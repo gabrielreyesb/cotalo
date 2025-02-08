@@ -266,6 +266,7 @@ class QuotesController < ApplicationController
       :product_name,
       :include_extras,
       :price_per_piece_before_margin,
+      :internal_measures,
       quote_processes_attributes: [
         :id, 
         :manufacturing_process_id, 

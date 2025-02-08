@@ -2,14 +2,11 @@
   <div class="container mt-4"> 
     <h1 class="text-center mb-4"><%= material.new_record? ? 'Nuevo material' : 'Editar material' %></h1> 
     <div class="row justify-content-center">
-      <div class="col-md-6"> 
-
+      <div class="col-md-8"> 
         <%= form_with(model: material) do |form| %>
-
           <% if material.errors.any? %>
             <div style="color: red">
               <h2><%= pluralize(material.errors.count, "error") %> prohibited this material from being saved:</h2>
-
               <ul>
                 <% material.errors.each do |error| %>
                   <li><%= error.full_message %></li>
@@ -19,8 +16,18 @@
           <% end %>
 
           <div class="form-group">
-            <%= form.label :description, "Descripción:", style: "display: block" %> 
-            <%= form.text_field :description, class: "form-control" %> 
+            <%= form.label :description, "Descripción:", style: "display: block" %>
+            <%= form.text_field :description, class: "form-control" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :name, "Nombre para cliente:", style: "display: block" %>
+            <%= form.text_field :name, class: "form-control" %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :specifications, "Especificaciones:", style: "display: block" %>
+            <%= form.text_area :specifications, class: "form-control", rows: 3 %>
           </div>
 
           <div class="form-group">
@@ -39,22 +46,21 @@
           </div>
 
           <div class="form-group">
-            <%= form.label :unit_id, "Unidad de medida:", style: "display: block" %> 
-            <%= form.collection_select :unit_id, current_user.units.order(:description), :id, :description, {}, class: "form-control" %> 
+            <%= form.label :unit_id, "Unidad de medida:", style: "display: block" %>
+            <%= form.collection_select :unit_id, current_user.units.order(:description), :id, :description, {}, class: "form-control" %>
           </div>
 
           <div class="form-group">
             <%= form.label :comments, "Comentarios:", style: "display: block" %>
-            <%= form.text_field :comments, class: "form-control" %>
+            <%= form.text_area :comments, class: "form-control", rows: 3 %>
           </div>
 
-          <div class="text-center mt-3"> 
-            <%= form.submit "Crear material", class: "btn surtibox-green" %> 
+          <div class="text-center mt-3">
+            <%= form.submit material.new_record? ? "Crear material" : "Guardar cambios", class: "btn btn-green" %>
             <%= link_to 'Volver a la página principal', root_path, class: 'btn btn-green' %>
           </div>
-
         <% end %>
       </div>
     </div>
-  </div>  
+  </div>
 </turbo-frame>

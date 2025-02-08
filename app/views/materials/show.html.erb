@@ -4,11 +4,28 @@
       <div class="col-lg-8">
         <div class="card shadow border-0 mb-4">
           <div class="card-header bg-transparent">
-            <h1 class="text-center mb-0"><%= @material.description %></h1>
+            <h1 class="text-center mb-0">Material</h1>
           </div>
 
           <div class="card-body">
             <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><strong>Nombre para cliente:</strong></label>
+                <div class="mb-2">
+                  <%= @material.name %>
+                </div>
+
+                <label class="form-label"><strong>Descripción:</strong></label>
+                <div class="mb-2">
+                  <%= @material.description %>
+                </div>
+
+                <label class="form-label"><strong>Especificaciones:</strong></label>
+                <div class="mb-2">
+                  <%= @material.specifications %>
+                </div>
+              </div>
+
               <div class="col-md-6 mb-3">
                 <label class="form-label"><strong>Dimensiones:</strong></label>
                 <div class="mb-2">
@@ -30,12 +47,10 @@
               </div>
             </div>
 
-            <% if @material.comments.present? %>
-              <div class="mb-4">
-                <label class="form-label"><strong>Comentarios:</strong></label>
-                <div><%= @material.comments %></div>
-              </div>
-            <% end %>
+            <div class="mb-4">
+              <label class="form-label"><strong>Comentarios:</strong></label>
+              <div><%= @material.comments %></div>
+            </div>
 
             <div class="text-center mt-4">
               <%= link_to 'Editar', edit_material_path(@material), class: 'btn btn-green me-2' %>

@@ -162,6 +162,7 @@ export default class extends Controller {
     document.querySelector('input[name="quote[product_quantity]"]').value = data.product_quantity || '';
     document.querySelector('input[name="quote[product_width]"]').value = data.product_width || '';
     document.querySelector('input[name="quote[product_length]"]').value = data.product_length || '';
+    document.querySelector('input[name="quote[internal_measures]"]').value = data.internal_measures || '';
     
     // Pricing information
     document.querySelector('input[name="quote[subtotal]"]').value = data.subtotal || '';
