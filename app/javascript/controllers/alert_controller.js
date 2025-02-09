@@ -18,11 +18,11 @@ export default class extends Controller {
       html: this.messageValue,
       icon: this.typeValue,
       confirmButtonText: 'Ok',
-      confirmButtonColor: '#28a745',
+      confirmButtonColor: '#8BC34A',
       customClass: {
         popup: 'swal2-show',
         htmlContainer: 'text-center',
-        confirmButton: 'btn btn-success'
+        confirmButton: 'btn btn-green'
       },
       width: '40rem',
       didClose: () => {

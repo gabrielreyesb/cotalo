@@ -8,6 +8,8 @@ class QuotesController < ApplicationController
   before_action :set_quote, only: [:show, :edit, :update, :destroy]
 
   def calculate
+    @processes = ManufacturingProcess.where(user_id: current_user.id)  # This ensures we only get processes for the current user
+    
     @quote = if params[:quote_id]
               current_user.quotes.includes(:quote_materials, :quote_processes, :manufacturing_processes,
                            quote_extras: :extra).find(params[:quote_id])
@@ -100,16 +102,6 @@ class QuotesController < ApplicationController
   def search_customer
     begin
       customer_name = params[:quote][:customer_name]
-      Rails.logger.debug "Starting customer search for: #{customer_name}"
-      
-      # Add more detailed debugging
-      Rails.logger.debug "==== Environment Variables Debug ===="
-      Rails.logger.debug "PIPEDRIVE_API_KEY raw value: #{ENV['PIPEDRIVE_API_KEY']}"
-      Rails.logger.debug "PIPEDRIVE_API_KEY present?: #{ENV['PIPEDRIVE_API_KEY'].present?}"
-      Rails.logger.debug "PIPEDRIVE_API_KEY nil?: #{ENV['PIPEDRIVE_API_KEY'].nil?}"
-      Rails.logger.debug "PIPEDRIVE_API_KEY empty?: #{ENV['PIPEDRIVE_API_KEY'].empty?}"
-      Rails.logger.debug "All ENV keys: #{ENV.keys.sort}"
-      Rails.logger.debug "=================================="
       
       unless ENV['PIPEDRIVE_API_KEY']
         Rails.logger.error "PIPEDRIVE_API_KEY not found in environment variables"
@@ -118,22 +110,16 @@ class QuotesController < ApplicationController
         return
       end
 
-      Rails.logger.debug "PIPEDRIVE_API_KEY is present"
       api_token = ENV['PIPEDRIVE_API_KEY']
       url = URI("https://api.pipedrive.com/v1/persons/search?term=#{CGI.escape(customer_name)}&api_token=#{api_token}")
-      Rails.logger.debug "Making request to Pipedrive URL: #{url.to_s.gsub(api_token, '[REDACTED]')}"
       
       response = Net::HTTP.get_response(url)
-      Rails.logger.debug "Pipedrive response code: #{response.code}"
-      Rails.logger.debug "Pipedrive response body: #{response.body}"
       
       if response.code == '200'
         data = JSON.parse(response.body)
-        Rails.logger.debug "Successfully parsed JSON response"
         results = []
 
         if data['data'] && data['data']['items']
-          Rails.logger.debug "Found #{data['data']['items'].length} results"
           data['data']['items'].each do |item|
             person = item['item']
             
@@ -143,9 +129,16 @@ class QuotesController < ApplicationController
                      person['emails'].is_a?(Array) ? person['emails'].first : person['emails']
                    end
 
+            phone = if person['phone']
+                     person['phone'].is_a?(Array) ? person['phone'].first['value'] : person['phone']
+                   elsif person['phones']
+                     person['phones'].is_a?(Array) ? person['phones'].first : person['phones']
+                   end
+
             results << {
               name: person['name'],
               email: email,
+              phone: phone,
               organization: person.dig('organization', 'name'),
               organization_id: person.dig('organization', 'value'),
               person_id: person['id']
@@ -155,13 +148,10 @@ class QuotesController < ApplicationController
 
         render json: { results: results }
       else
-        Rails.logger.error "Pipedrive API error. Response code: #{response.code}, Body: #{response.body}"
         render json: { error: "Pipedrive API error" }, status: :unprocessable_entity
       end
       
     rescue StandardError => e
-      Rails.logger.error "Error in search_customer: #{e.class} - #{e.message}"
-      Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
       render json: { error: "Internal server error", message: e.message }, status: :internal_server_error
     end
   end
@@ -205,10 +195,7 @@ class QuotesController < ApplicationController
   end
 
   def index
-    Rails.logger.debug "Current user ID: #{current_user.id}"
-    Rails.logger.debug "Current user email: #{current_user.email}"
     @quotes = current_user.quotes.order(created_at: :desc)
-    Rails.logger.debug "Found #{@quotes.length} quotes for user"
   end
 
   def update
@@ -252,6 +239,7 @@ class QuotesController < ApplicationController
       :projects_name,
       :customer_organization,
       :customer_email,
+      :customer_phone,
       :product_quantity,
       :product_width,
       :product_length,

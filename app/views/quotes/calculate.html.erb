@@ -13,6 +13,8 @@
                 }) do |form| %>
     <%= form.hidden_field :id if @quote.persisted? %>
     
+    <div id="dynamic-messages"></div>
+    
     <div data-controller="quotes">
       
       <%# Hidden fields %>
@@ -74,6 +76,12 @@
           <div class="form-group">
             <%= form.label :customer_email, "Correo del cliente:", class: "font-weight-bold" %>
             <%= form.email_field :customer_email, class: "form-control", value: @quote.customer_email %> 
+          </div>
+
+          <%# Add the new phone field right after email %>
+          <div class="form-group">
+            <%= form.label :customer_phone, "Teléfono del cliente:", class: "font-weight-bold" %>
+            <%= form.text_field :customer_phone, class: "form-control", value: @quote.customer_phone %>
           </div>
         </div>
 
@@ -247,7 +255,7 @@
                       </div>
 
                       <button type="button" 
-                              class="btn btn-success"
+                              class="btn btn-green"
                               data-action="click->quotes#addManualMaterial">
                         Agregar
                       </button>
@@ -338,8 +346,8 @@
         </div>
       </div>
 
-      <div class="d-flex justify-content-end">
-        <div class="text-end" style="min-width: 250px;">
+      <div class="d-flex">
+        <div style="margin-left: auto;">
           <strong>Subtotal materiales:</strong>
           <span data-quotes-target="materialsSubtotal" class="ms-2">$0.00</span>
         </div>
@@ -356,7 +364,7 @@
               <div class="col">
                 <%= select_tag "process-select",
                   options_for_select(
-                    ManufacturingProcess.all.map { |mp|
+                    ManufacturingProcess.for_user(current_user).map { |mp|
                       [mp.name, mp.id, { 'data-price' => mp.price, 'data-unit' => mp.unit.description }]
                     }
                   ),
@@ -416,8 +424,8 @@
               <% end %>
             </tbody>
           </table>
-          <div class="d-flex justify-content-end">
-            <div class="text-end" style="min-width: 250px;">
+          <div class="d-flex">
+            <div style="margin-left: auto;">
               <strong>Subtotal procesos:</strong>
               <span data-quotes-target="processesSubtotal" class="ms-2">$0.00</span>
             </div>
@@ -436,7 +444,7 @@
               <div class="col">
                 <%= select_tag "extra-select",
                   options_for_select(
-                    Extra.all.map { |e|
+                    current_user.extras.map { |e|
                       [e.description, e.id, { 'data-price' => e.price, 'data-unit' => e.unit.description }]
                     }
                   ),
@@ -502,8 +510,8 @@
               <% end %>
             </tbody>
           </table>
-          <div class="d-flex justify-content-end">
-            <div class="text-end" style="min-width: 250px;">
+          <div class="d-flex">
+            <div style="margin-left: auto;">
               <strong>Subtotal extras: </strong>
               <span data-quotes-target="extrasSubtotal">$0.00</span>
             </div>

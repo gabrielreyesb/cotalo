@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_08_101800) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_09_195330) do
   create_table "extras", force: :cascade do |t|
     t.string "description"
     t.decimal "price", precision: 10, scale: 2
@@ -136,9 +136,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_08_101800) do
     t.text "comments"
     t.string "product_name"
     t.boolean "include_extras", default: false
-    t.decimal "subtotal_before_margin", precision: 10, scale: 2
-    t.decimal "price_per_piece_before_margin"
+    t.decimal "price_per_piece_before_margin", precision: 10, scale: 2
     t.string "internal_measures"
+    t.string "customer_phone"
     t.index ["user_id"], name: "index_quotes_on_user_id"
   end
 

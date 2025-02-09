@@ -6,7 +6,10 @@ export default class extends Controller {
                    "materialTotalPrice", "materialSquareMeters",
                    "materialsTable", "materialsSubtotal",
                    "includeExtras", "includeExtrasHidden",
-                   "processesSubtotal", "extrasSubtotal"]; 
+                   "processesSubtotal", "extrasSubtotal",
+                   "quantity",
+                   "width", 
+                   "length"]; 
 
   // Add this property to store the current material row
   currentMaterialRow = null;
@@ -407,6 +410,19 @@ export default class extends Controller {
 
   addProcess(event) {
     const processSelect = document.getElementById('process-select');
+    const materialsTable = this.materialsTableTarget.querySelector('tbody');
+    
+    // Check if there are any materials added (visible rows)
+    const visibleMaterials = Array.from(materialsTable.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
+    
+    if (visibleMaterials.length === 0) {
+      const errorHtml = `<div data-controller='alert' 
+                              data-alert-message-value='Debe agregar al menos un material antes de agregar procesos' 
+                              data-alert-type-value='error'></div>`;
+      document.getElementById("dynamic-messages").innerHTML = errorHtml;
+      return;
+    }
+
     const selectedOption = processSelect.selectedOptions[0];
     
     if (!selectedOption || selectedOption.value === '') {
@@ -522,6 +538,15 @@ export default class extends Controller {
     event.preventDefault();
 
     const selectElement = document.getElementById('extra-select');
+    
+    if (!selectElement.value) {
+      const errorHtml = `<div data-controller='alert' 
+                              data-alert-message-value='Debe seleccionar un extra' 
+                              data-alert-type-value='error'></div>`;
+      document.getElementById("dynamic-messages").innerHTML = errorHtml;
+      return;
+    }
+
     const priceInput = document.getElementById('extra_price_display');
     const quantityInput = document.getElementById('quantity');
     const unitDisplay = document.getElementById('extra_unit_display');
@@ -786,6 +811,8 @@ export default class extends Controller {
             organizationField.value = selectedResult.organization || '';
             emailField.value = selectedResult.email || '';
             customerNameField.value = selectedResult.name || '';
+            // Add this line to handle phone number
+            document.getElementById('quote_customer_phone').value = selectedResult.phone || '';
             // Show the organization field again and remove the select
             organizationField.style.display = '';
             organizationSelect.remove();
@@ -919,127 +946,102 @@ export default class extends Controller {
     event.preventDefault();
     
     const materialSelect = document.getElementById('material-select');
-    const priceInput = document.getElementById('additional_material_price_display');
-    const widthInput = document.getElementById('additional_material_width_display');
-    const lengthInput = document.getElementById('additional_material_length_display');
-    
-    if (materialSelect && priceInput && widthInput && lengthInput) {
-      const selectedOption = materialSelect.selectedOptions[0];
-      
-      if (selectedOption) {
-        const materialId = selectedOption.value;
-        const materialDescription = selectedOption.text;
-        const materialPrice = parseFloat(priceInput.value);
-        const materialWidth = parseFloat(widthInput.value);
-        const materialLength = parseFloat(lengthInput.value);
-        
-        if (!materialWidth || !materialLength) {
-          alert('Por favor ingrese dimensiones válidas para el material');
+    if (!materialSelect.value) {
+      const errorHtml = `<div data-controller='alert' 
+                              data-alert-message-value='Debe seleccionar un material' 
+                              data-alert-type-value='error'></div>`;
+      document.getElementById("dynamic-messages").innerHTML = errorHtml;
       return;
     }
 
-        // Get product dimensions and quantity
-      const productWidth = parseFloat(document.getElementById('quote_product_width').value);
-      const productLength = parseFloat(document.getElementById('quote_product_length').value);
-      const productQuantity = parseInt(document.getElementById('quote_product_quantity').value);
+    // Get values from the form fields
+    const quantity = document.getElementById('quote_product_quantity').value;
+    const width = document.getElementById('quote_product_width').value;
+    const length = document.getElementById('quote_product_length').value;
 
-        // Get margins from configuration
-        const marginWidth = parseFloat(document.getElementById('config_margin_width').value) || 0;
-        const marginLength = parseFloat(document.getElementById('config_margin_length').value) || 0;
-        
-        // Add margins to product dimensions
-        const totalProductWidth = productWidth + marginWidth;
-        const totalProductLength = productLength + marginLength;
-        
-        // Calculate how many products fit in each dimension
-        const productsInWidth = Math.floor(materialWidth / totalProductWidth);
-        const productsInLength = Math.floor(materialLength / productLength);
-        
-        // Total products that fit in one sheet
-        const productsPerSheet = productsInWidth * productsInLength;
-        
-        // Calculate sheets needed and round up
-        const sheetsNeeded = Math.ceil(productQuantity / productsPerSheet);
-        
-        // Calculate square meters (convert from cm² to m²)
-        const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
-        const totalPrice = materialPrice * squareMeters;
-
-        // Draw the visualization
-        this.drawMaterialVisualization(materialWidth, materialLength, totalProductWidth, totalProductLength);
-        
-        const tbody = this.materialsTableTarget.querySelector('tbody');
-        const isFirstMaterial = tbody.querySelectorAll('tr').length === 0;
-        
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-          <td class="align-middle text-center">
-            <div style="display: flex; justify-content: space-between; width: 100px; margin: 0 auto;">
-              <div class="form-check" style="width: 20px;">
-                <input type="radio" 
-                       name="main_material" 
-                       class="form-check-input" 
-                       data-action="change->quotes#updateMainMaterial"
-                       ${isFirstMaterial ? 'checked' : ''}>
-              </div>
-              <button type="button" 
-                      class="btn btn-sm btn-link text-primary p-0"
-                      data-action="click->quotes#openMaterialComments"
-                      title="Agregar comentarios"
-                      style="width: 20px;">
-                <i class="fas fa-comments"></i>
-              </button>
-              <button type="button" 
-                      class="btn btn-sm btn-link text-danger p-0"
-                      data-action="click->quotes#removeMaterial"
-                      style="width: 20px;">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-          <td style="text-align: left !important; vertical-align: middle;">${materialDescription}</td>
-          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(materialPrice)}</td>
-          <td style="text-align: right !important; vertical-align: middle;">${materialWidth} cm</td>
-          <td style="text-align: right !important; vertical-align: middle;">${materialLength} cm</td>
-          <td style="text-align: right !important; vertical-align: middle;">
-            <input type="number" 
-                   class="form-control form-control-sm text-end products-per-sheet" 
-                   value="${productsPerSheet}" 
-                   min="1" 
-                   step="0.01"
-                   data-material-price="${materialPrice.toFixed(2)}" 
-                   data-material-width="${materialWidth}" 
-                   data-material-length="${materialLength}" 
-                   data-action="change->quotes#updateMaterialCalculations" 
-                   style="width: 80px; display: inline-block;">
-          </td>
-          <td style="text-align: right !important; vertical-align: middle;">${sheetsNeeded}</td>
-          <td style="text-align: right !important; vertical-align: middle;">${squareMeters.toFixed(2)}</td>
-          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(totalPrice)}</td>
-          <input type="hidden" name="quote[quote_materials_attributes][][material_id]" value="${materialId}">
-          <input type="hidden" name="quote[quote_materials_attributes][][price_per_unit]" value="${materialPrice.toFixed(2)}">
-          <input type="hidden" name="quote[quote_materials_attributes][][width]" value="${materialWidth}">
-          <input type="hidden" name="quote[quote_materials_attributes][][length]" value="${materialLength}">
-          <input type="hidden" name="quote[quote_materials_attributes][][products_per_sheet]" value="${productsPerSheet}">
-          <input type="hidden" name="quote[quote_materials_attributes][][sheets_needed]" value="${sheetsNeeded}">
-          <input type="hidden" name="quote[quote_materials_attributes][][square_meters]" value="${squareMeters.toFixed(2)}">
-          <input type="hidden" name="quote[quote_materials_attributes][][total_price]" value="${totalPrice.toFixed(2)}">
-          <input type="hidden" name="quote[quote_materials_attributes][][is_main]" value="${isFirstMaterial}" class="is-main-input">
-          <input type="hidden" name="quote[quote_materials_attributes][][comments]" value="">
-        `;
-        
-        tbody.appendChild(newRow);
-        
-      this.updateMaterialsSubtotal();
-      
-        // Reset the form
-      materialSelect.value = '';
-        priceInput.value = '';
-        widthInput.value = '';
-        lengthInput.value = '';
-        document.getElementById('additional_material_unit_display').textContent = '';
-      }
+    // Validate required fields
+    let errors = [];
+    
+    if (!quantity || isNaN(quantity) || quantity <= 0) {
+      errors.push("La cantidad de productos es requerida y debe ser mayor a 0");
     }
+    
+    if (!width || isNaN(width) || width <= 0) {
+      errors.push("El ancho del producto es requerido y debe ser mayor a 0");
+    }
+    
+    if (!length || isNaN(length) || length <= 0) {
+      errors.push("El largo del producto es requerido y debe ser mayor a 0");
+    }
+
+    if (errors.length > 0) {
+      const errorMessage = errors.join("<br>");
+      const errorHtml = `<div data-controller='alert' 
+                              data-alert-message-value='${errorMessage}' 
+                              data-alert-type-value='error'></div>`;
+      
+      document.getElementById("dynamic-messages").innerHTML = errorHtml;
+      return;
+    }
+
+    // If validation passes, continue with material addition
+    const selectedOption = materialSelect.options[materialSelect.selectedIndex];
+    const priceInput = document.getElementById('additional_material_price_display');
+    const widthInput = document.getElementById('additional_material_width_display');
+    const lengthInput = document.getElementById('additional_material_length_display');
+
+    const materialPrice = parseFloat(priceInput.value);
+    const materialWidth = parseFloat(widthInput.value);
+    const materialLength = parseFloat(lengthInput.value);
+
+    // Get margins from configuration
+    const marginWidth = parseFloat(document.getElementById('config_margin_width').value) || 0;
+    const marginLength = parseFloat(document.getElementById('config_margin_length').value) || 0;
+    
+    // Add margins to product dimensions
+    const totalProductWidth = parseFloat(width) + marginWidth;
+    const totalProductLength = parseFloat(length) + marginLength;
+    
+    // Calculate how many products fit in each dimension
+    const productsInWidth = Math.floor(materialWidth / totalProductWidth);
+    const productsInLength = Math.floor(materialLength / totalProductLength);
+    
+    // Total products that fit in one sheet
+    const productsPerSheet = productsInWidth * productsInLength;
+    
+    // Calculate sheets needed and round up
+    const sheetsNeeded = Math.ceil(quantity / productsPerSheet);
+    
+    // Calculate square meters (convert from cm² to m²)
+    const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
+    const totalPrice = materialPrice * squareMeters;
+
+    // Draw the visualization
+    this.drawMaterialVisualization(materialWidth, materialLength, totalProductWidth, totalProductLength);
+
+    const tbody = this.materialsTableTarget.querySelector('tbody');
+    const isFirstMaterial = tbody.querySelectorAll('tr').length === 0;
+
+    // Add to table
+    this.addMaterialToTable({
+      id: materialSelect.value,
+      material: { description: selectedOption.text },
+      price_per_unit: materialPrice,
+      width: materialWidth,
+      length: materialLength,
+      is_manual: false,
+      is_main: isFirstMaterial
+    }, productsPerSheet, sheetsNeeded, squareMeters, totalPrice);
+
+    // Reset the form
+    materialSelect.value = '';
+    priceInput.value = '';
+    widthInput.value = '';
+    lengthInput.value = '';
+    document.getElementById('additional_material_unit_display').textContent = '';
+
+    // Update totals
+    this.updateMaterialsSubtotal();
   }
 
   updateMaterialCalculations(event) {
@@ -1174,23 +1176,25 @@ export default class extends Controller {
     
     tr.innerHTML = `
       <td class="align-middle text-center">
-        <div class="d-flex align-items-center justify-content-between" style="min-width: 80px; margin: 0 auto;">
-          <div class="form-check d-flex align-items-center m-0">
+        <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
+          <div class="form-check" style="width: 20px;">
             <input type="radio" 
                    name="main_material" 
-                   class="form-check-input m-0" 
+                   class="form-check-input" 
                    data-action="change->quotes#updateMainMaterial"
                    ${material.is_main ? 'checked' : ''}>
           </div>
           <button type="button" 
                   class="btn btn-sm btn-link text-primary p-0"
                   data-action="click->quotes#openMaterialComments"
-                  title="Agregar comentarios">
+                  title="Agregar comentarios"
+                  style="width: 20px;">
             <i class="fas fa-comments"></i>
           </button>
           <button type="button" 
                   class="btn btn-sm btn-link text-danger p-0"
-                  data-action="click->quotes#removeMaterial">
+                  data-action="click->quotes#removeMaterial"
+                  style="width: 20px;">
             <i class="fas fa-trash"></i>
           </button>
         </div>

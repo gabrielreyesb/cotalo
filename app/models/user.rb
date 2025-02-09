@@ -11,6 +11,7 @@ class User < ApplicationRecord
   has_many :unit_equivalences, dependent: :destroy
   has_many :general_configurations, dependent: :destroy
   has_many :quotes, dependent: :destroy
+  has_many :manufacturing_processes
 
   after_create :setup_initial_data
 
