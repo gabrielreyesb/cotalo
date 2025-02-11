@@ -30,9 +30,24 @@ class QuotePdfGenerator
       end
 
       # Client Info
-      pdf.text "CLIENTE: #{@quote.customer_name.upcase}", style: :bold, size: 9
-      pdf.text "COTIZACIÓN PROYECTO: #{@quote.projects_name.upcase}", size: 9
-      pdf.text "PRODUCTOS: #{@quote.quote_materials.count}", size: 9
+      customer_info = [
+        ["CLIENTE:", @quote.customer_name.upcase],
+        ["EMPRESA:", (@quote.customer_organization || "Sin organización").upcase],
+        ["CORREO:", @quote.customer_email],
+        ["TELÉFONO:", @quote.customer_phone || "No especificado"],
+        ["PROYECTO:", @quote.projects_name.upcase]
+      ]
+
+      pdf.table(customer_info, width: 300, cell_style: { 
+        borders: [], 
+        padding: [2, 5], 
+        size: 9,
+      }) do |t|
+        t.cells.style do |c|
+          c.font_style = c.column == 0 ? :bold : :normal
+        end
+      end
+
       pdf.move_down 10
 
       # Main table
@@ -42,33 +57,29 @@ class QuotePdfGenerator
           { content: "MEDIDA\nINTERNAS MM\n(L, A, AL)", background_color: "EEEEEE" },
           { content: "RESISTENCIA", background_color: "EEEEEE" },
           { content: "PAPEL", background_color: "EEEEEE" },
-          { content: "PEGUE", background_color: "EEEEEE" },
-          { content: "IMPRESIÓN", background_color: "EEEEEE" },
-          { content: "IMPRESIÓN\nINTERIOR", background_color: "EEEEEE" },
-          { content: "TERMINADO", background_color: "EEEEEE" },
+          { content: "ACABADOS", background_color: "EEEEEE" },
           { content: "CANTIDAD", background_color: "EEEEEE" },
           { content: "PRECIO", background_color: "EEEEEE" }
         ]
       ]
 
-      # Add product rows
-      @quote.quote_materials.each do |material|
-        items << [
-          "Caja regular individual 750 ml",
-          "75 x 75 x 335",
-          "22 PUNTOS",
-          "CARTULINA METALIZADA",
-          "Lineal + Fondo Automático",
-          "3 Pantones",
-          "NO APLICA",
-          "Plástico Mate y\nBarniz UV",
-          material.products_per_sheet,
-          number_to_currency(material.total_price, unit: "$")
-        ]
-      end
+      # Get the main material
+      main_material = @quote.quote_materials.find_by(is_main: true)
+      processes = @quote.quote_processes.map { |qp| qp.manufacturing_process.name.upcase }.join(", ")
+
+      # Add single row with main material info
+      items << [
+        @quote.product_name.upcase,
+        @quote.internal_measures&.upcase || "N/A",
+        main_material&.material&.specifications&.upcase || "N/A",
+        main_material&.material&.description&.upcase || "N/A",
+        processes,
+        number_with_delimiter(@quote.product_quantity, delimiter: ","),
+        number_to_currency(@quote.product_value_per_piece, unit: "$", precision: 2, delimiter: ",")
+      ]
 
       # Add IVA NO INCLUIDO row
-      items << [{ content: "IVA NO INCLUIDO", colspan: 10, align: :right }]
+      items << [{ content: "IVA NO INCLUIDO", colspan: 7, align: :right }]
 
       pdf.table(items, width: pdf.bounds.width) do |t|
         t.cells.padding = 3
@@ -77,18 +88,15 @@ class QuotePdfGenerator
         t.cells.align = :center
         t.cells.size = 8
         
-        # Wider column widths due to smaller side margins
+        # Update column widths to accommodate the combined column
         t.column_widths = {
           0 => 110,  # Producto
           1 => 65,   # Medidas
           2 => 65,   # Resistencia
           3 => 85,   # Papel
-          4 => 85,   # Pegue
-          5 => 65,   # Impresión
-          6 => 65,   # Imp. Int.
-          7 => 85,   # Terminado
-          8 => 50,   # Cantidad
-          9 => 65    # Precio
+          4 => 300,  # Acabados (combined width of previous 4 columns)
+          5 => 50,   # Cantidad
+          6 => 65    # Precio
         }
       end
 
@@ -96,17 +104,33 @@ class QuotePdfGenerator
 
       # Additional costs table
       costs = [
-        ["HERRAMENTALES", "Calado Laser", number_to_currency(7000, unit: "$")],
-        ["SUAJE", "", number_to_currency(7000, unit: "$")],
-        ["PLACAS DE IMPRESIÓN", "$ 250 x color", ""],
-        ["REALCE", "", number_to_currency(4000, unit: "$")]
+        [
+          { content: "HERRAMENTALES", background_color: "EEEEEE" },
+          { content: "PRECIO", background_color: "EEEEEE" }
+        ]
       ]
+
+      # Add each extra from the quote
+      @quote.quote_extras.each do |extra|
+        costs << [
+          extra.extra.description.upcase,
+          number_to_currency(extra.price, unit: "$", precision: 2, delimiter: ",")
+        ]
+      end
 
       pdf.table(costs, width: 280) do |t|
         t.cells.padding = 3
         t.cells.borders = [:bottom, :top, :left, :right]
         t.cells.border_width = 0.5
         t.cells.size = 8
+        t.cells.align = :left  # Align text left in first column
+        t.column(1).align = :right  # Align prices right in second column
+        
+        # Set specific column widths
+        t.column_widths = {
+          0 => 180,  # Herramentales column
+          1 => 100   # Precio column
+        }
       end
 
       pdf.move_down 15
