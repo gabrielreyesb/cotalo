@@ -30,4 +30,5 @@ Rails.application.routes.draw do
   post 'send_quote/:id', to: 'pages#send_quote', as: :send_quote 
 
   resource :api_keys, only: [:edit, :update]
+  resource :app_settings, only: [:edit, :update]
 end

@@ -137,21 +137,23 @@ class QuotePdfGenerator
 
       # Terms and conditions
       pdf.text "CONDICIONES DE VENTA", style: :bold, size: 8
-      pdf.text "• LAS ENTREGAS PUEDE VARIAR +/- 10% DE LA CANTIDAD SOLICITADA.", size: 8
-      pdf.text "• TIEMPO DE ENTREGA: DESPUÉS AUTORIZAR LA PRINT CARD SE ENTREGARÁ EL PRODUCTO EN UN MÁXIMO DE 30 DÍAS Y 21 DÍAS EN REPETICIONES.", size: 8
-      pdf.text "• CONDICIÓN DE PAGO: CONTADO", size: 8
-      pdf.text "• COTIZACIÓN CON VALIDEZ DE 30 DÍAS.", size: 8
+      GeneralConfiguration.sale_conditions.each do |condition|
+        pdf.text "• #{condition}", size: 8
+      end
 
       pdf.move_down 15
 
       # Contact info with clickable email
-      pdf.text "Jonathan Gabriel Rubio Huerta", style: :bold, size: 8
-      pdf.fill_color "0000FF"
-      pdf.text "CORREO: jonathanrubio@surtibox.com", 
-               size: 8, 
-               link: "mailto:jonathanrubio@surtibox.com"
-      pdf.fill_color "000000"
-      pdf.text "CEL/TEL: 3311764022 / 33 2484 9954  WHATSAPP: 3311764022", size: 8
+      signature = GeneralConfiguration.signature_info
+      if signature
+        pdf.text signature.signature_name, style: :bold, size: 8
+        pdf.fill_color "0000FF"
+        pdf.text "CORREO: #{signature.signature_email}", 
+                 size: 8, 
+                 link: "mailto:#{signature.signature_email}"
+        pdf.fill_color "000000"
+        pdf.text "CEL/TEL: #{signature.signature_phone}  WHATSAPP: #{signature.signature_whatsapp}", size: 8
+      end
 
       # Add horizontal line
       pdf.stroke_horizontal_rule

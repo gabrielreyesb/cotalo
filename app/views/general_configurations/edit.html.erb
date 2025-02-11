@@ -56,3 +56,76 @@
     </div>
   </div>
 <% end %>
+
+<div class="container">
+  <h2>Configuraciones Generales</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Condiciones de Venta</h3>
+    </div>
+    <div class="card-body">
+      <%= form_with(model: @sale_conditions, local: true) do |f| %>
+        <div class="form-group">
+          <% @sale_conditions.sale_conditions.each_with_index do |condition, index| %>
+            <div class="mb-3">
+              <%= f.text_field "sale_conditions[]", 
+                             value: condition, 
+                             class: "form-control",
+                             placeholder: "Condición #{index + 1}" %>
+            </div>
+          <% end %>
+          <button type="button" class="btn btn-secondary" onclick="addConditionField()">
+            Agregar Condición
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3>Información de Firma</h3>
+    </div>
+    <div class="card-body">
+      <%= form_with(model: @signature, local: true) do |f| %>
+        <div class="form-group">
+          <%= f.label :signature_name, "Nombre" %>
+          <%= f.text_field :signature_name, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :signature_email, "Correo" %>
+          <%= f.email_field :signature_email, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :signature_phone, "Teléfono" %>
+          <%= f.text_field :signature_phone, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :signature_whatsapp, "WhatsApp" %>
+          <%= f.text_field :signature_whatsapp, class: "form-control" %>
+        </div>
+
+        <%= f.submit "Guardar", class: "btn btn-primary mt-3" %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+function addConditionField() {
+  const container = document.querySelector('.form-group');
+  const newField = document.createElement('div');
+  newField.className = 'mb-3';
+  newField.innerHTML = `
+    <input type="text" 
+           name="general_configuration[sale_conditions][]" 
+           class="form-control" 
+           placeholder="Nueva condición">
+  `;
+  container.insertBefore(newField, container.lastElementChild);
+}
+</script>

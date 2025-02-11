@@ -12,6 +12,7 @@ class User < ApplicationRecord
   has_many :general_configurations, dependent: :destroy
   has_many :quotes, dependent: :destroy
   has_many :manufacturing_processes
+  has_many :app_settings
 
   after_create :setup_initial_data
 

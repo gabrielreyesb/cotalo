@@ -13,6 +13,8 @@ class GeneralConfigurationsController < ApplicationController
   end
 
   def edit
+    @sale_conditions = GeneralConfiguration.find_by(description: 'Condiciones de venta')
+    @signature = GeneralConfiguration.find_by(description: 'Firma')
   end
 
   def create
@@ -26,15 +28,11 @@ class GeneralConfigurationsController < ApplicationController
   end
 
   def update
-    if @general_configuration.update(general_configuration_params)
-      if @general_configuration.key == "pipedrive_api_key"
-        update_env_file(@general_configuration.amount)
-        # Clear the amount after updating the .env file for security
-        @general_configuration.update_column(:amount, "[PROTECTED]")
-      end
-      redirect_to @general_configuration, notice: 'Configuración actualizada exitosamente.'
+    @config = GeneralConfiguration.find(params[:id])
+    if @config.update(config_params)
+      redirect_to edit_general_configurations_path, notice: 'Configuración actualizada exitosamente.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit
     end
   end
 
@@ -51,6 +49,16 @@ class GeneralConfigurationsController < ApplicationController
 
   def general_configuration_params
     params.require(:general_configuration).permit(:description, :amount, :unit_id)
+  end
+
+  def config_params
+    params.require(:general_configuration).permit(
+      :signature_name, 
+      :signature_email, 
+      :signature_phone, 
+      :signature_whatsapp,
+      sale_conditions: []
+    )
   end
 
   def update_env_file(new_api_key)

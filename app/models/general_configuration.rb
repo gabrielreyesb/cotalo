@@ -7,7 +7,17 @@ class GeneralConfiguration < ApplicationRecord
     validates :description, presence: true
     validates :amount, presence: true
     validates :user, presence: true
+    validates :signature_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
 
     # Scope to find configurations belonging to a specific user
     scope :for_user, ->(user) { where(user: user) }
+
+    # Helper methods to get specific configurations
+    def self.sale_conditions
+        find_by(description: 'Condiciones de venta')&.sale_conditions || []
+    end
+    
+    def self.signature_info
+        find_by(description: 'Firma')
+    end
 end

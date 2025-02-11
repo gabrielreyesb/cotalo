@@ -150,6 +150,12 @@ export default class extends Controller {
         }
       });
     }
+
+    // Get the configuration values
+    this.wastePercentage = parseFloat(this.element.dataset.quotesWastePercentageValue) || 0;
+    this.marginPercentage = parseFloat(this.element.dataset.quotesMarginPercentageValue) || 0;
+    this.widthMargin = parseFloat(this.element.dataset.quotesWidthMarginValue) || 0;
+    this.lengthMargin = parseFloat(this.element.dataset.quotesLengthMarginValue) || 0;
   }
 
   async loadExistingData(data) {

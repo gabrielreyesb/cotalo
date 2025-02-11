@@ -3,25 +3,37 @@
     <%= @quote.persisted? ? "Editar cotización ##{@quote.id}" : "Nueva cotización" %>
   </h1>
 
-  <%= form_with(model: @quote, 
-                url: @quote.persisted? ? quote_path(@quote) : quotes_path,
-                method: @quote.persisted? ? :patch : :post,
-                local: true, 
-                novalidate: true,
-                data: { 
-                  turbo_frame: '_top'
-                }) do |form| %>
-    <%= form.hidden_field :id if @quote.persisted? %>
+  <%
+    # Get configuration values from AppSettings
+    waste_percentage = AppSetting.get(:waste_percentage, current_user)
+    margin_percentage = AppSetting.get(:margin_percentage, current_user)
+    width_margin = AppSetting.get(:width_margin, current_user)
+    length_margin = AppSetting.get(:length_margin, current_user)
+  %>
+
+  <div data-controller="quotes"
+       data-quotes-waste-percentage-value="<%= waste_percentage %>"
+       data-quotes-margin-percentage-value="<%= margin_percentage %>"
+       data-quotes-width-margin-value="<%= width_margin %>"
+       data-quotes-length-margin-value="<%= length_margin %>">
     
-    <div id="dynamic-messages"></div>
-    
-    <div data-controller="quotes">
+    <%= form_with(model: @quote, 
+                  url: @quote.persisted? ? quote_path(@quote) : quotes_path,
+                  method: @quote.persisted? ? :patch : :post,
+                  local: true, 
+                  novalidate: true,
+                  data: { 
+                    turbo_frame: '_top'
+                  }) do |form| %>
+      
+      <%= form.hidden_field :id if @quote.persisted? %>
+      <div id="dynamic-messages"></div>
       
       <%# Hidden fields %>
       <div>
         <%= hidden_field_tag 'quote_id', @quote.id if @quote.persisted? %>
-        <%= hidden_field_tag 'config_margin_width', @configuration_margin_width %> 
-        <%= hidden_field_tag 'config_margin_length', @configuration_margin_length %> 
+        <%= hidden_field_tag 'config_margin_width', AppSetting.get(:width_margin, current_user) %> 
+        <%= hidden_field_tag 'config_margin_length', AppSetting.get(:length_margin, current_user) %> 
       </div>
 
       <%# Error handling %>
@@ -554,7 +566,7 @@
                 <input type="number" 
                        id="waste" 
                        name="quote[waste_percentage]"
-                       value="<%= @quote.persisted? ? @quote.waste_percentage : @waste_config&.amount %>"
+                       value="<%= @quote.persisted? ? @quote.waste_percentage : AppSetting.get(:waste_percentage, current_user) %>"
                        class="form-control text-right"
                        style="width: 80px;"
                        data-action="change->quotes#calculateTotals">
@@ -610,7 +622,7 @@
                 <input type="number" 
                        id="margin" 
                        name="quote[margin_percentage]"
-                       value="<%= @quote.persisted? ? @quote.margin_percentage : @margin_config&.amount %>"
+                       value="<%= @quote.persisted? ? @quote.margin_percentage : AppSetting.get(:margin_percentage, current_user) %>"
                        class="form-control text-right"
                        style="width: 80px;"
                        data-action="change->quotes#calculateTotals">
@@ -753,6 +765,20 @@
         </div>
       </div>
 
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 </div>
+
+<%= javascript_tag do %>
+  document.addEventListener("turbo:load", function() {
+    const quotesController = document.querySelector("[data-controller='quotes']");
+    if (quotesController) {
+      window.appSettings = {
+        wastePercentage: <%= waste_percentage %>,
+        marginPercentage: <%= margin_percentage %>,
+        widthMargin: <%= width_margin %>,
+        lengthMargin: <%= length_margin %>
+      };
+    }
+  });
+<% end %>

@@ -1,1 +1,108 @@
- 
+<%= turbo_frame_tag "main-content" do %>
+  <div class="container">
+    <h2>Configuraciones de la Aplicación</h2>
+    
+    <%= form_with(url: app_settings_path, method: :patch) do |f| %>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Configuraciones Financieras</h3>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <%= f.label "Porcentaje de Merma" %>
+            <%= f.number_field "settings[waste_percentage]", 
+                             value: AppSetting.get(:waste_percentage, current_user),
+                             class: "form-control",
+                             step: "0.01" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label "Porcentaje de Margen" %>
+            <%= f.number_field "settings[margin_percentage]",
+                             value: AppSetting.get(:margin_percentage, current_user),
+                             class: "form-control",
+                             step: "0.01" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label "Margen de Ancho (mm)" %>
+            <%= f.number_field "settings[width_margin]",
+                             value: AppSetting.get(:width_margin, current_user),
+                             class: "form-control",
+                             step: "0.01" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label "Margen de Largo (mm)" %>
+            <%= f.number_field "settings[length_margin]",
+                             value: AppSetting.get(:length_margin, current_user),
+                             class: "form-control",
+                             step: "0.01" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Configuraciones PDF</h3>
+        </div>
+        <div class="card-body">
+          <h4>Condiciones de Venta</h4>
+          <div id="sale-conditions">
+            <% AppSetting.get(:sale_conditions, current_user).each_with_index do |condition, index| %>
+              <div class="mb-3">
+                <%= f.text_field "settings[sale_conditions][]",
+                               value: condition,
+                               class: "form-control" %>
+              </div>
+            <% end %>
+            <button type="button" class="btn btn-secondary" onclick="addConditionField()">
+              Agregar Condición
+            </button>
+          </div>
+          
+          <h4 class="mt-4">Información de Firma</h4>
+          <% signature = AppSetting.get(:signature_info, current_user) %>
+          <div class="mb-3">
+            <%= f.label "Nombre" %>
+            <%= f.text_field "settings[signature_info][name]",
+                           value: signature[:name],
+                           class: "form-control" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label "Correo" %>
+            <%= f.email_field "settings[signature_info][email]",
+                           value: signature[:email],
+                           class: "form-control" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label "Teléfono" %>
+            <%= f.text_field "settings[signature_info][phone]",
+                           value: signature[:phone],
+                           class: "form-control" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label "WhatsApp" %>
+            <%= f.text_field "settings[signature_info][whatsapp]",
+                           value: signature[:whatsapp],
+                           class: "form-control" %>
+          </div>
+        </div>
+      </div>
+
+      <%= f.submit "Guardar", class: "btn btn-primary mt-3" %>
+    <% end %>
+  </div>
+
+  <script>
+    function addConditionField() {
+      const container = document.getElementById('sale-conditions');
+      const newField = document.createElement('div');
+      newField.className = 'mb-3';
+      newField.innerHTML = `
+        <input type="text" 
+               name="settings[sale_conditions][]" 
+               class="form-control" 
+               placeholder="Nueva condición">
+      `;
+      container.insertBefore(newField, container.lastElementChild);
+    }
+  </script>
+<% end %> 
