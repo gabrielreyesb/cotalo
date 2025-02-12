@@ -292,6 +292,7 @@ export default class extends Controller {
                  value="${process.unit_price}" 
                  step="0.01"
                  data-action="change->quotes#updateProcessPrice"
+                 data-process-id="${process.id}"
                  style="width: 100px; display: inline-block;">
         </td>
         <td style="text-align: right !important; vertical-align: middle;">${process.manufacturing_process?.unit?.description || ''}</td>
@@ -345,7 +346,7 @@ export default class extends Controller {
         <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extra.extra_id}">
         <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${quantity}">
         <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${price}">
-        <input type="hidden" name="quote[quote_extras_attributes][][comments]" value="${extra.comments || ''}">
+        <input type="hidden" name="quote[quote_extras_attributes][][comments]" value="">
       `;
       extrasTable.querySelector('tbody').appendChild(row);
     });
@@ -449,9 +450,9 @@ export default class extends Controller {
       if (unit.toLowerCase() === 'mt2') {
         const squareMeters = parseFloat(mainMaterialRow.querySelector('td:nth-child(8)').textContent);
         totalPrice = price * squareMeters;
-      } else if (unit.toLowerCase() === 'producto') {
-        const materialRequerido = parseFloat(mainMaterialRow.querySelector('td:nth-child(7)').textContent);
-        totalPrice = price * materialRequerido;
+      } else if (unit.toLowerCase() === 'pliego') {
+        const pliegosRequeridos = parseFloat(mainMaterialRow.querySelector('td:nth-child(7)').textContent);
+        totalPrice = price * pliegosRequeridos;
       }
     }
 
@@ -485,6 +486,7 @@ export default class extends Controller {
                value="${price}" 
                step="0.01"
                data-action="change->quotes#updateProcessPrice"
+               data-process-id="${processId}"
                style="width: 100px; display: inline-block;">
       </td>
       <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
@@ -1488,5 +1490,49 @@ export default class extends Controller {
     commentsBox.style.left = `${buttonRect.left}px`;
     
     commentsBox.style.display = 'block';
+  }
+
+  updateProcessPrice(event) {
+    const processId = event.target.dataset.processId
+    const newPrice = parseFloat(event.target.value)
+    const row = event.target.closest('tr')
+    const totalCell = row.querySelector('.process-price-total')
+    const unit = row.querySelector('td:nth-child(4)').textContent.trim().toLowerCase()
+    
+    // Update the hidden field value for unit price
+    const hiddenUnitPriceField = row.querySelector('input[name*="[unit_price]"]')
+    if (hiddenUnitPriceField) {
+      hiddenUnitPriceField.value = newPrice
+    }
+    
+    // Calculate total price based on unit type
+    let totalPrice = newPrice
+    const mainMaterialRow = this.materialsTableTarget.querySelector('input[name="main_material"]:checked')?.closest('tr')
+    
+    if (mainMaterialRow) {
+      if (unit === 'mt2') {
+        const squareMeters = parseFloat(mainMaterialRow.querySelector('td:nth-child(8)').textContent)
+        totalPrice = newPrice * squareMeters
+      } else if (unit === 'pliego') {
+        const pliegosRequeridos = parseFloat(mainMaterialRow.querySelector('td:nth-child(7)').textContent)
+        totalPrice = newPrice * pliegosRequeridos
+      }
+    }
+    
+    // Update the total price display and hidden field
+    totalCell.textContent = `$${this.formatPrice(totalPrice)}`
+    const hiddenPriceField = row.querySelector('input[name*="[price]"]')
+    if (hiddenPriceField) {
+      hiddenPriceField.value = totalPrice.toFixed(2)
+    }
+    
+    // Recalculate subtotals
+    this.updateProcessesSubtotal()
+    this.calculateTotals()
+  }
+
+  // Helper method to get product quantity
+  getProductQuantity() {
+    return parseFloat(this.quantityTarget.value) || 0
   }
 }

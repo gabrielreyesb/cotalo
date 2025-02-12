@@ -81,20 +81,19 @@ class QuotesController < ApplicationController
       Rails.logger.debug "Extra IDs: #{ids}"
     end
 
-    if @quote.save
-      redirect_to root_path, notice: 'Quote was successfully created.'
-    else
-      respond_to do |format|
-        format.turbo_stream do
-          error_messages = format_error_messages(@quote.errors)
-          render turbo_stream: turbo_stream.update(
-            "dynamic-messages",
-            "<div data-controller='alert' 
-                  data-alert-message-value='#{ERB::Util.html_escape(error_messages)}' 
-                  data-alert-type-value='error'></div>".html_safe
+    respond_to do |format|
+      if @quote.save
+        format.html { redirect_to quotes_path }
+        format.turbo_stream { redirect_to quotes_path }
+      else
+        format.html { render :calculate, status: :unprocessable_entity }
+        format.turbo_stream { 
+          render turbo_stream: turbo_stream.replace(
+            'quote_form',
+            partial: 'form',
+            locals: { quote: @quote }
           )
-        end
-        format.html { render :new, status: :unprocessable_entity }
+        }
       end
     end
   end
@@ -201,18 +200,16 @@ class QuotesController < ApplicationController
   def update
     respond_to do |format|
       if @quote.update(quote_params)
-        format.html { redirect_to root_path, notice: 'Quote was successfully updated.' }
-        format.json { render json: { success: true, redirect_url: root_path } }
-        format.turbo_stream { redirect_to root_path, notice: 'Quote was successfully updated.' }
+        format.html { redirect_to quotes_path }
+        format.turbo_stream { redirect_to quotes_path }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: { success: false, errors: @quote.errors }, status: :unprocessable_entity }
+        format.html { render :calculate, status: :unprocessable_entity }
         format.turbo_stream { 
-          render turbo_stream: turbo_stream.update("quote-form", 
-            partial: "quotes/form", 
+          render turbo_stream: turbo_stream.replace(
+            'quote_form',
+            partial: 'form',
             locals: { quote: @quote }
-          ), 
-          status: :unprocessable_entity 
+          )
         }
       end
     end

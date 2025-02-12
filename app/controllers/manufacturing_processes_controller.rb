@@ -16,7 +16,8 @@ class ManufacturingProcessesController < ApplicationController
   end
 
   def new
-    @manufacturing_process = current_user.manufacturing_processes.build
+    @manufacturing_process = ManufacturingProcess.new(manufacturing_process_params) if params[:manufacturing_process]
+    @manufacturing_process ||= ManufacturingProcess.new
   end
 
   def edit
@@ -24,16 +25,12 @@ class ManufacturingProcessesController < ApplicationController
 
   def create
     @manufacturing_process = current_user.manufacturing_processes.build(manufacturing_process_params)
-    
-    Rails.logger.debug "Attempting to save manufacturing process with params: #{manufacturing_process_params.inspect}"
 
     respond_to do |format|
       if @manufacturing_process.save
-        Rails.logger.debug "Successfully saved manufacturing process"
-        format.html { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully created.' }
-        format.turbo_stream { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully created.' }
+        format.html { redirect_to manufacturing_processes_path }
+        format.turbo_stream { redirect_to manufacturing_processes_path }
       else
-        Rails.logger.debug "Failed to save manufacturing process. Errors: #{@manufacturing_process.errors.full_messages}"
         format.html { render :new, status: :unprocessable_entity }
         format.turbo_stream { 
           render turbo_stream: turbo_stream.replace(
@@ -49,8 +46,8 @@ class ManufacturingProcessesController < ApplicationController
   def update
     respond_to do |format|
       if @manufacturing_process.update(manufacturing_process_params)
-        format.html { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully updated.' }
-        format.turbo_stream { redirect_to manufacturing_processes_path, notice: 'Manufacturing process was successfully updated.' }
+        format.html { redirect_to manufacturing_processes_path }
+        format.turbo_stream { redirect_to manufacturing_processes_path }
       else
         format.html { render :edit, status: :unprocessable_entity }
         format.turbo_stream { 
@@ -66,7 +63,7 @@ class ManufacturingProcessesController < ApplicationController
 
   def destroy
     @manufacturing_process.destroy
-    redirect_to manufacturing_processes_url, notice: 'Manufacturing process was successfully destroyed.'
+    redirect_to manufacturing_processes_url
   end
 
   def copy
@@ -74,8 +71,7 @@ class ManufacturingProcessesController < ApplicationController
     copied_params = original_process.attributes.except('id', 'created_at', 'updated_at')
     copied_params['name'] = "Copia de #{original_process.name}"
     
-    redirect_to new_manufacturing_process_path(manufacturing_process: copied_params), 
-                notice: 'Complete los detalles del nuevo proceso'
+    redirect_to new_manufacturing_process_path(manufacturing_process: copied_params)
   end
 
   private
@@ -85,17 +81,8 @@ class ManufacturingProcessesController < ApplicationController
   end
 
   def manufacturing_process_params
-    params.require(:manufacturing_process).permit(
-      :name, 
-      :description, 
-      :price, 
-      :unit_id,
-      :specifications,
-      :comments,
-      :maximum_width,
-      :maximum_length,
-      :minimum_width,
-      :minimum_length
-    )
+    params.require(:manufacturing_process).permit(:name, :description, :specifications, 
+      :maximum_width, :maximum_length, :minimum_width, :minimum_length, 
+      :price, :unit_id, :comments)
   end
 end

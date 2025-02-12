@@ -24,6 +24,9 @@ gem 'sassc-rails'
 # For JavaScript compression
 gem 'terser'
 
+# New gem
+gem 'fastimage'
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem 'dotenv-rails'

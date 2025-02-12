@@ -112,7 +112,9 @@
                              class: "form-control text-right", 
                              value: @quote.product_width,
                              id: "quote_product_width",
-                             data: { quotes_target: "width" } %>
+                             data: { quotes_target: "width" },
+                             step: "0.01",
+                             min: "0" %>
           </div>
           <div class="form-group">
             <%= form.label :product_length, "Largo del producto:", class: "font-weight-bold" %>
@@ -120,7 +122,9 @@
                              class: "form-control text-right", 
                              value: @quote.product_length,
                              id: "quote_product_length",
-                             data: { quotes_target: "length" } %>
+                             data: { quotes_target: "length" },
+                             step: "0.01",
+                             min: "0" %>
           </div>
           <div class="form-group">
             <%= form.label :internal_measures, "Medidas internas:", class: "font-weight-bold" %>
@@ -291,7 +295,7 @@
                 <th class="align-middle text-end" style="width: 100px;">Ancho</th>
                 <th class="align-middle text-end" style="width: 100px;">Largo</th>
                 <th class="align-middle text-end" style="width: 120px;">Prods. x material</th>
-                <th class="align-middle text-end" style="width: 120px;">Material requerido</th>
+                <th class="align-middle text-end" style="width: 120px;">Pliegos requeridos</th>
                 <th class="align-middle text-end" style="width: 100px;">Mts2</th>
                 <th class="align-middle text-end" style="width: 120px;">Total</th>
               </tr>
@@ -743,7 +747,7 @@
           },
           id: "manual-material-config" %>
 
-      <!-- Move the comments box here, inside the quotes controller div -->
+      <!-- Comments -->
       <div id="materialCommentsBox" style="display: none; position: fixed; background: white; border: 1px solid #ccc; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; width: 300px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
           <h6 style="margin: 0;">Comentarios del Material</h6>

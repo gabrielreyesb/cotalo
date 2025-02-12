@@ -72,7 +72,7 @@ class QuotePdfGenerator
         @quote.product_name.upcase,
         @quote.internal_measures&.upcase || "N/A",
         main_material&.material&.specifications&.upcase || "N/A",
-        main_material&.material&.description&.upcase || "N/A",
+        main_material&.material&.name&.upcase || "N/A",
         processes,
         number_with_delimiter(@quote.product_quantity, delimiter: ","),
         number_to_currency(@quote.product_value_per_piece, unit: "$", precision: 2, delimiter: ",")
@@ -159,22 +159,32 @@ class QuotePdfGenerator
       pdf.stroke_horizontal_rule
       pdf.move_down 8
 
-      # Footer with logos and green text - only add images if they exist
-      footer_y = 40
+      # Footer with logos and green text
       footer_images = {
-        fsc: "#{Rails.root}/app/assets/images/fsc_logo.png",
-        fda: "#{Rails.root}/app/assets/images/fda_logo.png",
-        qr: "#{Rails.root}/app/assets/images/qr_code.png"
+        bosques: "#{Rails.root}/app/assets/images/Bosques.png",
+        fda: "#{Rails.root}/app/assets/images/FDA.jpg",
+        qr: "#{Rails.root}/app/assets/images/qr-code.png"
       }
 
-      x_position = pdf.bounds.width - 180
+      # Calculate positions
+      x_position = pdf.bounds.width - 180  # Start position for the first image
+      footer_y = 35  # Vertical position from bottom
+
+      # Place images with fixed width and adjusted y-positions
       footer_images.each do |key, path|
         if File.exist?(path)
-          pdf.image path, at: [x_position, footer_y], width: 40
-          x_position += 50
+          case key
+          when :bosques
+            pdf.image path, at: [x_position, footer_y + 5], width: 40
+          when :fda
+            pdf.image path, at: [x_position + 60, footer_y + 2], width: 40
+          when :qr
+            pdf.image path, at: [x_position + 120, footer_y], width: 40
+          end
         end
       end
 
+      # Green text
       pdf.text_box "Fabricamos con materiales sustentables que protegen al medio ambiente...", 
                    at: [0, 35],
                    width: pdf.bounds.width - 200,
