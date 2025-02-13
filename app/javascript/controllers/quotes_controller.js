@@ -342,7 +342,6 @@ export default class extends Controller {
         <td style="text-align: right !important; vertical-align: middle;">${extra.extra?.unit?.description || ''}</td>
         <td style="text-align: right !important; vertical-align: middle;">${quantity}</td>
         <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
-        <input type="hidden" name="quote[quote_extras_attributes][][id]" value="${extra.id}">
         <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extra.extra_id}">
         <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${quantity}">
         <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${price}">
@@ -453,6 +452,9 @@ export default class extends Controller {
       } else if (unit.toLowerCase() === 'pliego') {
         const pliegosRequeridos = parseFloat(mainMaterialRow.querySelector('td:nth-child(7)').textContent);
         totalPrice = price * pliegosRequeridos;
+      } else if (unit.toLowerCase() === 'pieza') {
+        const productQuantity = this.getProductQuantity();
+        totalPrice = price * productQuantity;
       }
     }
 
@@ -1516,6 +1518,9 @@ export default class extends Controller {
       } else if (unit === 'pliego') {
         const pliegosRequeridos = parseFloat(mainMaterialRow.querySelector('td:nth-child(7)').textContent)
         totalPrice = newPrice * pliegosRequeridos
+      } else if (unit === 'pieza') {
+        const productQuantity = this.getProductQuantity();
+        totalPrice = newPrice * productQuantity;
       }
     }
     

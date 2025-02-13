@@ -51,49 +51,19 @@ class QuotesController < ApplicationController
   end
 
   def create
-    @quote = current_user.quotes.build(quote_params)
-    @materials = Material.all
-
-    # Add debugging
-    Rails.logger.debug "==== Quote Creation Debug ===="
-    Rails.logger.debug "Quote params after permit: #{quote_params.inspect}"
-    Rails.logger.debug "Quote valid? #{@quote.valid?}"
+    @quote = current_user.quotes.new(quote_params)
     
-    # Debug associations - Add nil checks
-    if quote_params[:quote_processes_attributes].present?
-      ids = quote_params[:quote_processes_attributes].map do |_, attrs|
-        attrs[:manufacturing_process_id] if attrs
-      end.compact
-      Rails.logger.debug "Manufacturing Process IDs: #{ids}"
-    end
-
-    if quote_params[:quote_materials_attributes].present?
-      ids = quote_params[:quote_materials_attributes].map do |_, attrs|
-        attrs[:material_id] if attrs
-      end.compact
-      Rails.logger.debug "Material IDs: #{ids}"
-    end
-
-    if quote_params[:quote_extras_attributes].present?
-      ids = quote_params[:quote_extras_attributes].map do |_, attrs|
-        attrs[:extra_id] if attrs
-      end.compact
-      Rails.logger.debug "Extra IDs: #{ids}"
-    end
-
-    respond_to do |format|
-      if @quote.save
-        format.html { redirect_to quotes_path }
-        format.turbo_stream { redirect_to quotes_path }
-      else
-        format.html { render :calculate, status: :unprocessable_entity }
-        format.turbo_stream { 
-          render turbo_stream: turbo_stream.replace(
-            'quote_form',
-            partial: 'form',
-            locals: { quote: @quote }
-          )
-        }
+    if @quote.save
+      respond_to do |format|
+        format.html { redirect_to root_path }
+        format.turbo_stream { redirect_to root_path }
+        format.json { render json: @quote, status: :created }
+      end
+    else
+      respond_to do |format|
+        format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace("quote_form", partial: "quotes/form", locals: { quote: @quote }) }
+        format.json { render json: @quote.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -232,21 +202,11 @@ class QuotesController < ApplicationController
 
   def quote_params
     params.require(:quote).permit(
-      :customer_name,
-      :projects_name,
-      :customer_organization,
-      :customer_email,
-      :customer_phone,
-      :product_quantity,
-      :product_width,
-      :product_length,
-      :subtotal,
-      :waste_percentage,
-      :margin_percentage,
-      :total_quote_value,
-      :product_value_per_piece,
-      :waste_price,
-      :margin_price,
+      :projects_name, :product_name, :customer_name, :customer_organization,
+      :customer_email, :customer_phone, :product_quantity, :product_width,
+      :product_length, :internal_measures, :subtotal, :waste_percentage,
+      :waste_price, :price_per_piece_before_margin, :margin_percentage,
+      :margin_price, :total_quote_value, :product_value_per_piece, :include_extras,
       :comments,
       :product_name,
       :include_extras,
