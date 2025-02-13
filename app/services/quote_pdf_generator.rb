@@ -135,63 +135,69 @@ class QuotePdfGenerator
 
       pdf.move_down 15
 
-      # Terms and conditions
-      pdf.text "CONDICIONES DE VENTA", style: :bold, size: 8
-      GeneralConfiguration.sale_conditions.each do |condition|
-        pdf.text "• #{condition}", size: 8
+      # Insert Sale Conditions under Extras table using AppSetting
+      sale_conditions_setting = AppSetting.find_by(user_id: @quote.user_id, key: "sale_conditions")
+      sale_conditions = sale_conditions_setting ? sale_conditions_setting.value : []
+      pdf.text "CONDICIONES DE VENTA", style: :bold, size: 10
+      sale_conditions.each do |condition|
+        pdf.text "• #{condition}", size: 9
       end
+      pdf.move_down 10
 
-      pdf.move_down 15
+      # Footer: repeat on all pages, placed at the bottom
+      pdf.repeat(:all) do
+        pdf.bounding_box([pdf.bounds.left, pdf.bounds.bottom + 40], width: pdf.bounds.width, height: 40) do
 
-      # Contact info with clickable email
-      signature = GeneralConfiguration.signature_info
-      if signature
-        pdf.text signature.signature_name, style: :bold, size: 8
-        pdf.fill_color "0000FF"
-        pdf.text "CORREO: #{signature.signature_email}", 
-                 size: 8, 
-                 link: "mailto:#{signature.signature_email}"
-        pdf.fill_color "000000"
-        pdf.text "CEL/TEL: #{signature.signature_phone}  WHATSAPP: #{signature.signature_whatsapp}", size: 8
-      end
+          signature = GeneralConfiguration.signature_info
+          if signature
+            pdf.text signature.signature_name, style: :bold, size: 8
+            pdf.fill_color "0000FF"
+            pdf.text "CORREO: #{signature.signature_email}", 
+                    size: 8, 
+                    link: "mailto:#{signature.signature_email}"
+            pdf.fill_color "000000"
+            pdf.text "CEL/TEL: #{signature.signature_phone}  WHATSAPP: #{signature.signature_whatsapp}", size: 8
+          end
 
-      # Add horizontal line
-      pdf.stroke_horizontal_rule
-      pdf.move_down 8
+          signature_setting = AppSetting.find_by(user_id: @quote.user_id, key: "signature_info")
+          if signature_setting.present?
+            signature = signature_setting.value
+            signature_string = "#{signature['name']}, Correo: #{signature['email']}, Teléfono: #{signature['phone']}, Whatsapp: #{signature['whatsapp']}"
+            pdf.text signature_string, size: 9
+          end
 
-      # Footer with logos and green text
-      footer_images = {
-        bosques: "#{Rails.root}/app/assets/images/Bosques.png",
-        fda: "#{Rails.root}/app/assets/images/FDA.jpg",
-        qr: "#{Rails.root}/app/assets/images/qr-code.png"
-      }
+          pdf.stroke_horizontal_rule
+          
+          pdf.text_box "Fabricamos con materiales sustentables que protegen al medio ambiente...", 
+                       at: [0, 20],
+                       width: pdf.bounds.width - 200,
+                       color: "008000",
+                       align: :left,
+                       style: :italic,
+                       size: 8
 
-      # Calculate positions
-      x_position = pdf.bounds.width - 180  # Start position for the first image
-      footer_y = 35  # Vertical position from bottom
-
-      # Place images with fixed width and adjusted y-positions
-      footer_images.each do |key, path|
-        if File.exist?(path)
-          case key
-          when :bosques
-            pdf.image path, at: [x_position, footer_y + 5], width: 40
-          when :fda
-            pdf.image path, at: [x_position + 60, footer_y + 2], width: 40
-          when :qr
-            pdf.image path, at: [x_position + 120, footer_y], width: 40
+          # Footer images
+          footer_images = {
+            bosques: "#{Rails.root}/app/assets/images/Bosques.png",
+            fda: "#{Rails.root}/app/assets/images/FDA.jpg",
+            qr: "#{Rails.root}/app/assets/images/qr-code.png"
+          }
+          x_position = pdf.bounds.width - 180
+          # Place images with fixed width and adjusted y-positions
+          footer_images.each do |key, path|
+            if File.exist?(path)
+              case key
+              when :bosques
+                pdf.image path, at: [x_position, 20], width: 40
+              when :fda
+                pdf.image path, at: [x_position + 60, 20], width: 40
+              when :qr
+                pdf.image path, at: [x_position + 120, 20], width: 40
+              end
+            end
           end
         end
       end
-
-      # Green text
-      pdf.text_box "Fabricamos con materiales sustentables que protegen al medio ambiente...", 
-                   at: [0, 35],
-                   width: pdf.bounds.width - 200,
-                   color: "008000", 
-                   align: :left,
-                   style: :italic,
-                   size: 8
     end
   end
 end 

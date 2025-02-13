@@ -1,0 +1,11 @@
+/* Apply a thicker border (4px) to the materials table by increasing specificity to override Bootstrap */
+table[data-quotes-target="materialsTable"].table.table-bordered {
+  border: 4px solid #000 !important;
+  border-collapse: collapse !important;
+}
+
+table[data-quotes-target="materialsTable"].table.table-bordered th,
+table[data-quotes-target="materialsTable"].table.table-bordered td {
+  border: 4px solid #000 !important;
+  padding: 5px !important;
+} 
