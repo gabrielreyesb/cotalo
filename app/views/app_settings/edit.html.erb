@@ -59,7 +59,8 @@
           </div>
           
           <h4 class="mt-4">Información de Firma</h4>
-          <% signature = AppSetting.get(:signature_info, current_user) %>
+          <% signature = AppSetting.get(:signature_info, current_user) || {} %>
+          <% signature = signature.with_indifferent_access %>
           <div class="mb-3">
             <%= f.label "Nombre" %>
             <%= f.text_field "settings[signature_info][name]",
