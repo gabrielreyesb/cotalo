@@ -22,6 +22,9 @@ Rails.application.routes.draw do
     member do
       post :generate_pdf
     end
+    member do
+      get :pdf
+    end
   end
   
   get '/home', to: 'pages#home', as: :home
@@ -31,4 +34,5 @@ Rails.application.routes.draw do
 
   resource :api_keys, only: [:edit, :update]
   resource :app_settings, only: [:edit, :update]
+  post 'quotes/generate_multi_pdf', to: 'quotes#generate_multi_pdf', as: :generate_multi_pdf_quotes
 end

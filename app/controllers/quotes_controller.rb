@@ -194,6 +194,35 @@ class QuotesController < ApplicationController
     redirect_to calculate_quotes_path(quote_id: @quote.id)
   end
 
+  def pdf
+    @quote = Quote.find(params[:id])
+    pdf = QuotePdfGenerator.new(@quote).generate
+
+    send_data pdf.render,
+              filename: "quote_#{@quote.id}.pdf",
+              type: "application/pdf",
+              disposition: "inline"  # Or you can change it to "attachment" to force download
+  end
+
+  def generate_multi_pdf
+    quote_ids = params[:selected_quotes]
+    if quote_ids.blank?
+      redirect_to home_path, alert: "No se seleccionaron cotizaciones" and return
+    end
+
+    # Load only the quotes for the current user
+    quotes = current_user.quotes.where(id: quote_ids)
+
+    # Generate a PDF including all selected quotes.
+    # You'll need to implement the MultiQuotePdfGenerator service to combine the quotes.
+    pdf = MultiQuotePdfGenerator.new(quotes).generate
+
+    send_data pdf.render,
+              filename: "cotizaciones.pdf",
+              type: "application/pdf",
+              disposition: "inline"
+  end
+
   private
 
   def set_quote

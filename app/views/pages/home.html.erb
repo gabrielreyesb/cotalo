@@ -57,69 +57,70 @@
           </div>
         </div>
 
-        <%# Quotes Table %>
-        <div class="card">
-          <div class="card-body px-0 pt-0 pb-2">
-            <div class="table-responsive p-0">
-              <table class="table align-items-center mb-0">
-                <thead>
-                  <tr>
-                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
-                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Cliente</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Precio</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">IVA</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Total</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% @quotes.each do |quote| %>
-                    <tr style="cursor: pointer" 
-                        data-controller="row-click" 
-                        data-action="click->row-click#click" 
-                        data-url="<%= quote_path(quote) %>">
-                      <td>
-                        <div class="d-flex px-3 py-1">
+        <%# Quotes Table - wrapped in a form for multi-PDF generation %>
+        <%= form_with url: generate_multi_pdf_quotes_path, method: :post, local: true, html: { target: "_blank", "data-turbo": "false" } do %>
+          <div class="card">
+            <div class="card-body px-0 pt-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                  <thead>
+                    <tr>
+                      <th class=" text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Fecha</th>
+                      <th class=" text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Cliente</th>
+                      <th class=" text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Nombre del proyecto</th>
+                      <th class=" text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Nombre del producto</th>
+                      <th class=" text-secondary text-xxs font-weight-bolder opacity-7">Precio por pieza</th>
+                      <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @quotes.each do |quote| %>
+                      <tr>
+                        <td>
                           <div class="d-flex flex-column justify-content-center">
                             <h6 class="mb-0 text-sm"><%= quote.created_at.strftime("%d/%m/%Y") %></h6>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="d-flex flex-column justify-content-center">
-                          <h6 class="mb-0 text-sm"><%= quote.customer_name %></h6>
-                          <p class="text-xs text-secondary mb-0"><%= quote.customer_organization || "Sin organización" %></p>
-                        </div>
-                      </td>
-                      <td class="align-middle text-center">
-                        <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value, precision: 2) %></h6>
-                        <p class="text-xs text-secondary mb-0">Cotización #<%= quote.id %></p>
-                      </td>
-                      <td class="align-middle text-center">
-                        <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 0.16, precision: 2) %></h6>
-                        <p class="text-xs text-secondary mb-0">16%</p>
-                      </td>
-                      <td class="align-middle text-center">
-                        <h6 class="mb-0 text-sm"><%= number_to_currency(quote.total_quote_value * 1.16, precision: 2) %></h6>
-                        <p class="text-xs text-secondary mb-0">Total con IVA</p>
-                      </td>
-                      <td>
-                        <%= link_to quote_path(quote), class: "btn btn-sm btn-gray" do %>
-                          <i class="fas fa-eye"></i>
-                        <% end %>
-                        <%= link_to calculate_quotes_path(quote_id: quote.id),
-                                    class: "btn btn-sm btn-green ml-2",
-                                    data: { action: "click->row-click#stopPropagation" } do %>
-                          <i class="fas fa-edit"></i>
-                        <% end %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
+                        </td>
+                        <td>
+                          <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 text-sm"><%= quote.customer_name %></h6>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 text-sm"><%= quote.projects_name %></h6>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 text-sm"><%= quote.product_name %></h6>
+                          </div>
+                        </td>
+                        <td class="align-middle text-center">
+                          <h6 class="mb-0 text-sm"><%= number_to_currency(quote.product_value_per_piece, precision: 2) %></h6>
+                        </td>
+                        <td>
+                          <input type="checkbox" name="selected_quotes[]" value="<%= quote.id %>" class="quote-checkbox mr-2" data-action="click->row-click#stopPropagation">
+                          <%= link_to quote_path(quote), class: "btn btn-sm btn-gray" do %>
+                            <i class="fas fa-eye"></i>
+                          <% end %>
+                          <%= link_to calculate_quotes_path(quote_id: quote.id),
+                                      class: "btn btn-sm btn-green ml-2",
+                                      data: { action: "click->row-click#stopPropagation" } do %>
+                            <i class="fas fa-edit"></i>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
+          <div class="mt-3">
+            <%= submit_tag 'Generar PDF de cotizaciones seleccionadas', class: 'btn btn-green' %>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
