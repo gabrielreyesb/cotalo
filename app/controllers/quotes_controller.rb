@@ -8,7 +8,9 @@ class QuotesController < ApplicationController
   before_action :set_quote, only: [:show, :edit, :update, :destroy]
 
   def calculate
-    @processes = ManufacturingProcess.where(user_id: current_user.id)  # This ensures we only get processes for the current user
+    @processes = ManufacturingProcess.where(user_id: current_user.id)
+    @materials = Material.where(user_id: current_user.id)
+    @extras = Extra.where(user_id: current_user.id)
     
     @quote = if params[:quote_id]
               current_user.quotes.includes(:quote_materials, :quote_processes, :manufacturing_processes,
@@ -128,15 +130,15 @@ class QuotesController < ApplicationController
   def show
     respond_to do |format|
       format.html
-      format.json { 
+      format.json {
         render json: @quote.to_json(
           include: {
             quote_materials: {
               methods: [:material],
               only: [:id, :material_id, :products_per_sheet, :sheets_needed, 
-                    :square_meters, :total_price, :is_manual, :manual_description, 
-                    :manual_unit, :is_main, :price_per_unit, :width, :length, 
-                    :comments]
+                     :square_meters, :total_price, :is_manual, :manual_description, 
+                     :manual_unit, :is_main, :price_per_unit, :width, :length, 
+                     :comments]
             },
             quote_processes: {
               include: {
@@ -147,7 +149,11 @@ class QuotesController < ApplicationController
               only: [:id, :manufacturing_process_id, :price, :unit_price, :comments]
             },
             quote_extras: {
-              methods: [:extra],
+              include: {
+                extra: {
+                  include: :unit
+                }
+              },
               only: [:id, :extra_id, :quantity, :price, :comments]
             }
           }
@@ -170,8 +176,8 @@ class QuotesController < ApplicationController
   def update
     respond_to do |format|
       if @quote.update(quote_params)
-        format.html { redirect_to quotes_path }
-        format.turbo_stream { redirect_to quotes_path }
+        format.html { redirect_to root_path }
+        format.turbo_stream { redirect_to root_path }
       else
         format.html { render :calculate, status: :unprocessable_entity }
         format.turbo_stream { 

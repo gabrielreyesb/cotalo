@@ -307,7 +307,7 @@ export default class extends Controller {
     });
 
     // Load extras
-    data.quote_extras.forEach(extra => {
+    data.quote_extras.forEach((extra, index) => {
       // Skip if extra is missing
       if (!extra.extra) {
         console.warn('Extra missing extra reference:', extra);
@@ -342,10 +342,11 @@ export default class extends Controller {
         <td style="text-align: right !important; vertical-align: middle;">${extra.extra?.unit?.description || ''}</td>
         <td style="text-align: right !important; vertical-align: middle;">${quantity}</td>
         <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
-        <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extra.extra_id}">
-        <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${quantity}">
-        <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${price}">
-        <input type="hidden" name="quote[quote_extras_attributes][][comments]" value="">
+        <input type="hidden" name="quote[quote_extras_attributes][${index}][id]" value="${extra.id}">
+        <input type="hidden" name="quote[quote_extras_attributes][${index}][extra_id]" value="${extra.extra_id}">
+        <input type="hidden" name="quote[quote_extras_attributes][${index}][quantity]" value="${quantity}">
+        <input type="hidden" name="quote[quote_extras_attributes][${index}][price]" value="${price}">
+        <input type="hidden" name="quote[quote_extras_attributes][${index}][comments]" value="${extra.comments || ''}">
       `;
       extrasTable.querySelector('tbody').appendChild(row);
     });
