@@ -32,28 +32,29 @@ class MultiQuotePdfGenerator
       # Using data from the first quote (assumes all quotes are for the same customer)
       first_quote = @quotes.first
       customer_info = [
-        ["CLIENTE:", first_quote.customer_name.to_s.upcase],
-        ["EMPRESA:", (first_quote.customer_organization || "Sin organización").upcase],
-        ["CORREO:", first_quote.customer_email.to_s],
-        ["TELÉFONO:", first_quote.customer_phone.present? ? first_quote.customer_phone : "No especificado"],
-        ["PROYECTO:", first_quote.projects_name.to_s.upcase]
+        ["Cliente:", first_quote.customer_name.to_s.upcase],
+        ["Empresa:", (first_quote.customer_organization || "Sin organización").upcase],
+        ["Correo:", first_quote.customer_email.to_s],
+        ["Teléfono:", first_quote.customer_phone.present? ? first_quote.customer_phone : "No especificado"],
+        ["Proyecto:", first_quote.projects_name.to_s.upcase]
       ]
       pdf.table(customer_info, width: 300, cell_style: { borders: [], padding: [2, 5], size: 9 }) do |t|
         t.cells.style { |c| c.font_style = c.column == 0 ? :bold : :normal }
       end
       pdf.move_down 10
 
+      pdf.text "Productos:", style: :bold, size: 10
       # === Main Table Section ===
       # One table that shows the product details for each quote.
       header = [
-        { content: "FECHA", background_color: "EEEEEE" },
-        { content: "PRODUCTO", background_color: "EEEEEE" },
-        { content: "MEDIDA INTERNAS MM\n(L, A, AL)", background_color: "EEEEEE" },
-        { content: "RESISTENCIA", background_color: "EEEEEE" },
-        { content: "PAPEL", background_color: "EEEEEE" },
-        { content: "ACABADOS", background_color: "EEEEEE" },
-        { content: "CANTIDAD", background_color: "EEEEEE" },
-        { content: "PRECIO", background_color: "EEEEEE" }
+        { content: "Fecha", background_color: "EEEEEE" },
+        { content: "Producto", background_color: "EEEEEE" },
+        { content: "Medida Internas MM\n(L, A, AL)", background_color: "EEEEEE" },
+        { content: "Resistencia", background_color: "EEEEEE" },
+        { content: "Papel", background_color: "EEEEEE" },
+        { content: "Acabados", background_color: "EEEEEE" },
+        { content: "Cantidad", background_color: "EEEEEE" },
+        { content: "Precio", background_color: "EEEEEE" }
       ]
       table_data = [ header ]
 
@@ -73,7 +74,7 @@ class MultiQuotePdfGenerator
       end
 
       # Optionally, add a final row for any notice (like IVA)
-      table_data << [{ content: "IVA NO INCLUIDO", colspan: 8, align: :right }]
+      table_data << [{ content: "IVA no incluido", colspan: 8, align: :right }]
 
       pdf.table(table_data, position: :center) do |t|
         t.cells.padding = 3
@@ -98,12 +99,32 @@ class MultiQuotePdfGenerator
         }
       end
 
+      # === Extras Section (Aggregated) ===
+      extras_data = [["Extras", "Precio"]]
+      @quotes.each do |quote|
+        quote.quote_extras.each do |qe|
+          description = qe.extra.present? ? qe.extra.description : "Extra no definido"
+          total_price = (qe.price.to_f * qe.quantity).round(2)
+          extras_data << [description, number_to_currency(total_price, unit: "$", precision: 2)]
+        end
+      end
+      if extras_data.size > 1
+        pdf.move_down 10
+        pdf.text "Herramentales", style: :bold, size: 10
+        pdf.table(extras_data, header: true, width: pdf.bounds.width / 2, position: :left) do |t|
+          t.cells.padding = 3
+          t.cells.size = 8
+          t.cells.font_style = :bold
+        end
+        pdf.move_down 10
+      end
+
       pdf.move_down 15
 
       # === Sale Conditions Section ===
       sale_conditions_setting = AppSetting.find_by(user_id: first_quote.user_id, key: "sale_conditions")
       sale_conditions = sale_conditions_setting ? sale_conditions_setting.value : []
-      pdf.text "CONDICIONES DE VENTA", style: :bold, size: 10
+      pdf.text "Condiciones de venta", style: :bold, size: 10
       sale_conditions.each do |condition|
         pdf.text "• #{condition}", size: 9
       end
