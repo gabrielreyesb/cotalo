@@ -22,6 +22,7 @@
                   method: @quote.persisted? ? :patch : :post,
                   local: true, 
                   novalidate: true,
+                  html: { onsubmit: "return checkFormFields();" },
                   data: { 
                     turbo_frame: '_top'
                   }) do |form| %>
@@ -785,4 +786,157 @@
       };
     }
   });
+
+  function checkFormFields(){
+    var errors = [];
+    
+    // Validate Project Name
+    var projectField = document.getElementById("quote_projects_name");
+    if (!projectField || projectField.value.trim() === ""){
+      errors.push("El nombre del proyecto es requerido");
+    }
+    
+    // Validate Product Name
+    var productField = document.getElementById("quote_product_name");
+    if (!productField || productField.value.trim() === ""){
+      errors.push("El nombre del producto es requerido");
+    }
+    
+    // Validate Customer Name
+    var customerField = document.getElementById("quote_customer_name");
+    if (!customerField || customerField.value.trim() === ""){
+      errors.push("El nombre del cliente es requerido");
+    }
+    
+    // Validate Organization
+    var orgField = document.getElementById("quote_customer_organization");
+    if (!orgField || orgField.value.trim() === ""){
+      errors.push("La organización es requerida");
+    }
+    
+    // Validate Email
+    var emailField = document.getElementById("quote_customer_email");
+    if (!emailField || emailField.value.trim() === ""){
+      errors.push("El correo del cliente es requerido");
+    } else {
+      var email = emailField.value.trim();
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)){
+        errors.push("El correo del cliente no es válido");
+      }
+    }
+    
+    // Validate Phone
+    var phoneField = document.getElementById("quote_customer_phone");
+    if (!phoneField || phoneField.value.trim() === ""){
+      errors.push("El teléfono del cliente es requerido");
+    }
+    
+    // Validate Pieces Desired
+    var quantityField = document.getElementById("quote_product_quantity");
+    if (!quantityField || quantityField.value.trim() === "" || parseFloat(quantityField.value) <= 0){
+      errors.push("Las piezas deseadas son requeridas y deben ser mayores a 0");
+    }
+    
+    // Validate Product Width
+    var widthField = document.getElementById("quote_product_width");
+    if (!widthField || widthField.value.trim() === "" || parseFloat(widthField.value) <= 0){
+      errors.push("El ancho de la pieza es requerido y debe ser mayor a 0");
+    }
+    
+    // Validate Product Length
+    var lengthField = document.getElementById("quote_product_length");
+    if (!lengthField || lengthField.value.trim() === "" || parseFloat(lengthField.value) <= 0){
+      errors.push("El largo de la pieza es requerido y debe ser mayor a 0");
+    }
+    
+    // Validate that at least one material has been added
+    var materialsTable = document.querySelector('[data-quotes-target="materialsTable"]');
+    if (materialsTable) {
+      var tbody = materialsTable.querySelector("tbody");
+      if (!tbody || tbody.querySelectorAll("tr").length === 0) {
+        errors.push("Al menos un material debe ser agregado a la cotización");
+      }
+    }
+    
+    // Validate waste percentage
+    var wasteField = document.getElementById("waste");
+    if (!wasteField || wasteField.value.trim() === "") {
+      errors.push("El porcentaje de merma es requerido y debe ser mayor a 0");
+    } else {
+      var wasteNormalized = wasteField.value.trim().replace(",", ".");
+      var wasteVal = parseFloat(wasteNormalized);
+      if (isNaN(wasteVal) || wasteVal < 0) {
+        errors.push("El porcentaje de merma es requerido y debe ser mayor a 0");
+      }
+    }
+    
+    // Validate margin percentage
+    var marginField = document.getElementById("margin");
+    if (!marginField || marginField.value.trim() === "") {
+      errors.push("El porcentaje de margen es requerido y debe ser mayor a 0");
+    } else {
+      var marginNormalized = marginField.value.trim().replace(",", ".");
+      var marginVal = parseFloat(marginNormalized);
+      if (isNaN(marginVal) || marginVal < 0) {
+        errors.push("El porcentaje de margen es requerido y debe ser mayor a 0");
+      }
+    }
+    
+    // Validate Subtotal
+    var subtotalField = document.getElementById("quote_subtotal");
+    if (!subtotalField || subtotalField.value.trim() === "") {
+      errors.push("El subtotal es requerido y debe ser mayor a 0");
+    } else {
+      var subtotalNormalized = subtotalField.value.trim().replace(",", ".");
+      var subtotalVal = parseFloat(subtotalNormalized);
+      if (isNaN(subtotalVal) || subtotalVal <= 0) {
+        errors.push("El subtotal es requerido y debe ser mayor a 0");
+      }
+    }
+    
+    // Validate Waste Price
+    var wastePriceField = document.getElementById("quote_waste_price");
+    if (!wastePriceField || wastePriceField.value.trim() === "") {
+      errors.push("El precio de merma es requerido y debe ser mayor a 0");
+    } else {
+      var wastePriceNormalized = wastePriceField.value.trim().replace(",", ".");
+      var wastePriceVal = parseFloat(wastePriceNormalized);
+      if (isNaN(wastePriceVal) || wastePriceVal <= 0) {
+         errors.push("El precio de merma es requerido y debe ser mayor a 0");
+      }
+    }
+    
+    // Validate Price per piece before margin
+    var pricePerPieceBeforeField = document.getElementById("price-per-piece-before-margin-display");
+    if (!pricePerPieceBeforeField || pricePerPieceBeforeField.textContent.trim() === "") {
+      errors.push("El precio por pieza antes de margen es requerido y debe ser mayor a 0");
+    } else {
+      var priceText = pricePerPieceBeforeField.textContent.replace('$', '').trim();
+      var pricePerPieceBeforeVal = parseFloat(priceText);
+      if (isNaN(pricePerPieceBeforeVal) || pricePerPieceBeforeVal <= 0) {
+        errors.push("El precio por pieza antes de margen es requerido y debe ser mayor a 0");
+      }
+    }
+    
+    // Validate Price per piece
+    var pricePerPieceField = document.getElementById("quote_product_value_per_piece");
+    if (!pricePerPieceField || pricePerPieceField.value.trim() === "") {
+      errors.push("El precio por pieza es requerido y debe ser mayor a 0");
+    } else {
+      var pricePerPieceNormalized = pricePerPieceField.value.trim().replace(",", ".");
+      var pricePerPieceVal = parseFloat(pricePerPieceNormalized);
+      if (isNaN(pricePerPieceVal) || pricePerPieceVal <= 0) {
+         errors.push("El precio por pieza es requerido y debe ser mayor a 0");
+      }
+    }
+    
+    if (errors.length > 0) {
+      var errorMessage = errors.join("<br>");
+      document.getElementById("dynamic-messages").innerHTML = 
+        "<div data-controller='alert' data-alert-message-value='" + errorMessage + "' data-alert-type-value='error'></div>";
+      return false;
+    }
+    return true;
+  }
 <% end %>
