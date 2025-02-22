@@ -25,6 +25,12 @@ export default class extends Controller {
     this.newExtraId = 0;
     this.manualMaterialId = document.getElementById('manual-material-config')?.dataset.manualMaterialId;
     
+    // Add listener for product quantity changes
+    const quantityField = document.getElementById('quote_product_quantity');
+    if (quantityField) {
+      quantityField.addEventListener('change', () => this.recalculateAllMaterials());
+    }
+    
     // Initialize visualization state
     const showVisualization = document.getElementById('show-visualization');
     if (showVisualization) {
@@ -108,9 +114,6 @@ export default class extends Controller {
           return response.json();
         })
         .then(data => {
-          console.log('Quote data:', data);
-          console.log('Quote materials:', data.quote_materials);
-          
           // Initialize arrays if they don't exist
           data.quote_materials = data.quote_materials || [];
           data.quote_processes = data.quote_processes || [];
@@ -159,9 +162,6 @@ export default class extends Controller {
   }
 
   async loadExistingData(data) {
-    console.log('Quote data:', data);
-    console.log('Quote materials:', data.quote_materials);
-    
     // Basic quote information
     document.querySelector('input[name="quote[projects_name]"]').value = data.projects_name || '';
     document.querySelector('input[name="quote[product_name]"]').value = data.product_name || '';
@@ -201,7 +201,6 @@ export default class extends Controller {
 
     // Load materials
     data.quote_materials.forEach((material, index) => {
-      console.log('Material comments:', material.comments);
       const row = document.createElement('tr');
       row.innerHTML = `
           <td class="align-middle text-center">
@@ -623,14 +622,18 @@ export default class extends Controller {
     const row = event.target.closest('tr');
     if (row) {
       // Add _destroy field if it's an existing extra
-      const extraId = row.querySelector('input[name*="[id]"]')?.value;
-      if (extraId) {
-        const destroyField = document.createElement('input');
-        destroyField.type = 'hidden';
-        destroyField.name = `quote[quote_extras_attributes][${extraId}][_destroy]`;
-        destroyField.value = '1';
-        row.appendChild(destroyField);
-        row.style.display = 'none';
+      const extraIdInput = row.querySelector('input[name*="quote_extras_attributes"][name*="[id]"]');
+      if (extraIdInput) {
+        // Extract the index from the id input's name
+        const extraIndex = extraIdInput.name.match(/quote\[quote_extras_attributes\]\[(\d+)\]/)?.[1];
+        if (extraIndex) {
+          const destroyField = document.createElement('input');
+          destroyField.type = 'hidden';
+          destroyField.name = `quote[quote_extras_attributes][${extraIndex}][_destroy]`;
+          destroyField.value = '1';
+          row.appendChild(destroyField);
+          row.style.display = 'none';
+        }
       } else {
       row.remove();
       }
@@ -1540,5 +1543,84 @@ export default class extends Controller {
   // Helper method to get product quantity
   getProductQuantity() {
     return parseFloat(this.quantityTarget.value) || 0
+  }
+
+  recalculateAllMaterials() {
+    // Existing materials recalculation
+    const tbody = this.materialsTableTarget.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+    const productQuantity = parseInt(document.getElementById('quote_product_quantity').value);
+
+    // Materials recalculation (keep existing code)
+    rows.forEach(row => {
+      const input = row.querySelector('.products-per-sheet');
+      if (input) {
+        const materialPrice = parseFloat(input.dataset.materialPrice);
+        const materialWidth = parseFloat(input.dataset.materialWidth);
+        const materialLength = parseFloat(input.dataset.materialLength);
+        const productsPerSheet = parseInt(input.value);
+        
+        // Recalculate values
+        const sheetsNeeded = Math.ceil(productQuantity / productsPerSheet);
+        const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
+        const totalPrice = materialPrice * squareMeters;
+        
+        // Update displayed values
+        row.querySelector('td:nth-child(7)').textContent = sheetsNeeded;
+        row.querySelector('td:nth-child(8)').textContent = squareMeters.toFixed(2);
+        row.querySelector('td:nth-child(9)').textContent = `$${this.formatPrice(totalPrice)}`;
+        
+        // Update hidden fields
+        const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
+        hiddenInputs.forEach(input => {
+          const name = input.name;
+          if (name.includes('[products_per_sheet]')) {
+            input.value = productsPerSheet;
+          } else if (name.includes('[sheets_needed]')) {
+            input.value = sheetsNeeded;
+          } else if (name.includes('[square_meters]')) {
+            input.value = squareMeters;
+          } else if (name.includes('[total_price]')) {
+            input.value = totalPrice;
+          }
+        });
+      }
+    });
+    
+    // Add processes recalculation
+    const processesTable = this.processesTarget;
+    const processRows = processesTable.querySelectorAll('tbody tr');
+    
+    processRows.forEach(row => {
+      if (row.style.display === 'none') return; // Skip hidden rows
+      
+      const unitCell = row.querySelector('td:nth-child(4)');
+      const unitPriceInput = row.querySelector('input[type="number"]');
+      const totalPriceCell = row.querySelector('.process-price-total');
+            
+      if (unitCell && unitPriceInput && totalPriceCell) {
+        const unit = unitCell.textContent.trim().toLowerCase();
+        
+        if (unit === 'pieza') {
+          const unitPrice = parseFloat(unitPriceInput.value);
+          const totalPrice = unitPrice * productQuantity;
+          
+          // Update displayed total price
+          totalPriceCell.textContent = `$${this.formatPrice(totalPrice)}`;
+          
+          // Update hidden price field
+          const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
+          hiddenInputs.forEach(input => {
+            if (input.name.includes('[price]')) {
+              input.value = totalPrice.toFixed(2);
+            }
+          });
+        }
+      }
+    });
+    
+    this.updateMaterialsSubtotal();
+    this.updateProcessesSubtotal();
+    this.calculateTotals();
   }
 }
