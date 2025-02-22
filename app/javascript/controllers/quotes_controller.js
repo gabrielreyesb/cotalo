@@ -25,8 +25,20 @@ export default class extends Controller {
     this.newExtraId = 0;
     this.manualMaterialId = document.getElementById('manual-material-config')?.dataset.manualMaterialId;
     
-    // Add listener for product quantity changes
+    // Add listeners for product quantity, width, and length changes
     const quantityField = document.getElementById('quote_product_quantity');
+    const widthField = document.getElementById('quote_product_width');
+    const lengthField = document.getElementById('quote_product_length');
+
+    // Set step attribute to allow decimals
+    if (widthField) {
+      widthField.setAttribute('step', '0.1');
+      widthField.addEventListener('change', () => this.recalculateAllMaterials());
+    }
+    if (lengthField) {
+      lengthField.setAttribute('step', '0.1');
+      lengthField.addEventListener('change', () => this.recalculateAllMaterials());
+    }
     if (quantityField) {
       quantityField.addEventListener('change', () => this.recalculateAllMaterials());
     }
@@ -1546,21 +1558,38 @@ export default class extends Controller {
   }
 
   recalculateAllMaterials() {
-    // Existing materials recalculation
     const tbody = this.materialsTableTarget.querySelector('tbody');
     const rows = tbody.querySelectorAll('tr');
     const productQuantity = parseInt(document.getElementById('quote_product_quantity').value);
+    const productWidth = parseFloat(document.getElementById('quote_product_width').value);
+    const productLength = parseFloat(document.getElementById('quote_product_length').value);
+    
+    // Get margin values
+    const marginWidth = parseFloat(document.getElementById('config_margin_width').value) || 0;
+    const marginLength = parseFloat(document.getElementById('config_margin_length').value) || 0;
 
-    // Materials recalculation (keep existing code)
     rows.forEach(row => {
       const input = row.querySelector('.products-per-sheet');
       if (input) {
         const materialPrice = parseFloat(input.dataset.materialPrice);
         const materialWidth = parseFloat(input.dataset.materialWidth);
         const materialLength = parseFloat(input.dataset.materialLength);
-        const productsPerSheet = parseInt(input.value);
         
-        // Recalculate values
+        // Calculate products per sheet based on new dimensions
+        const productWidthWithMargin = productWidth + marginWidth;
+        const productLengthWithMargin = productLength + marginLength;
+        
+        // Calculate how many products fit in each direction
+        const productsAcross = Math.floor(materialWidth / productWidthWithMargin);
+        const productsDown = Math.floor(materialLength / productLengthWithMargin);
+        
+        // Calculate total products per sheet
+        const productsPerSheet = productsAcross * productsDown;
+        
+        // Update the input value but keep it editable
+        input.value = productsPerSheet;
+        
+        // Calculate other values
         const sheetsNeeded = Math.ceil(productQuantity / productsPerSheet);
         const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
         const totalPrice = materialPrice * squareMeters;
@@ -1570,7 +1599,7 @@ export default class extends Controller {
         row.querySelector('td:nth-child(8)').textContent = squareMeters.toFixed(2);
         row.querySelector('td:nth-child(9)').textContent = `$${this.formatPrice(totalPrice)}`;
         
-        // Update hidden fields
+        // Update hidden inputs
         const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
         hiddenInputs.forEach(input => {
           const name = input.name;
@@ -1587,12 +1616,12 @@ export default class extends Controller {
       }
     });
     
-    // Add processes recalculation
+    // Process recalculation
     const processesTable = this.processesTarget;
     const processRows = processesTable.querySelectorAll('tbody tr');
     
     processRows.forEach(row => {
-      if (row.style.display === 'none') return; // Skip hidden rows
+      if (row.style.display === 'none') return;
       
       const unitCell = row.querySelector('td:nth-child(4)');
       const unitPriceInput = row.querySelector('input[type="number"]');
@@ -1600,22 +1629,42 @@ export default class extends Controller {
             
       if (unitCell && unitPriceInput && totalPriceCell) {
         const unit = unitCell.textContent.trim().toLowerCase();
+        const unitPrice = parseFloat(unitPriceInput.value);
+        let totalPrice = 0;
         
-        if (unit === 'pieza') {
-          const unitPrice = parseFloat(unitPriceInput.value);
-          const totalPrice = unitPrice * productQuantity;
-          
-          // Update displayed total price
-          totalPriceCell.textContent = `$${this.formatPrice(totalPrice)}`;
-          
-          // Update hidden price field
-          const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
-          hiddenInputs.forEach(input => {
-            if (input.name.includes('[price]')) {
-              input.value = totalPrice.toFixed(2);
+        // Get the main material row for mt2 and pliego calculations
+        const mainMaterialRow = this.materialsTableTarget.querySelector('input[name="main_material"]:checked')?.closest('tr');
+        
+        switch(unit) {
+          case 'mt2':
+            if (mainMaterialRow) {
+              const squareMeters = parseFloat(mainMaterialRow.querySelector('td:nth-child(8)').textContent);
+              totalPrice = unitPrice * squareMeters;
             }
-          });
+            break;
+            
+          case 'pliego':
+            if (mainMaterialRow) {
+              const sheetsNeeded = parseFloat(mainMaterialRow.querySelector('td:nth-child(7)').textContent);
+              totalPrice = unitPrice * sheetsNeeded;
+            }
+            break;
+            
+          case 'pieza':
+            totalPrice = unitPrice * productQuantity;
+            break;
         }
+        
+        // Update displayed total price
+        totalPriceCell.textContent = `$${this.formatPrice(totalPrice)}`;
+        
+        // Update hidden price field
+        const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
+        hiddenInputs.forEach(input => {
+          if (input.name.includes('[price]')) {
+            input.value = totalPrice.toFixed(2);
+          }
+        });
       }
     });
     
