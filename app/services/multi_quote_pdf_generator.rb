@@ -15,7 +15,23 @@ class MultiQuotePdfGenerator
       logo_path = "#{Rails.root}/app/assets/images/logo.png"
       pdf.image logo_path, width: 120, position: :left if File.exist?(logo_path)
       
-      pdf.text "Guadalajara, Jalisco. A #{Time.current.strftime('%d de %B').upcase} del #{Time.current.year}",
+      current_date = Time.current
+      spanish_month = case current_date.strftime('%B').downcase
+        when 'january' then 'Enero'
+        when 'february' then 'Febrero'
+        when 'march' then 'Marzo'
+        when 'april' then 'Abril'
+        when 'may' then 'Mayo'
+        when 'june' then 'Junio'
+        when 'july' then 'Julio'
+        when 'august' then 'Agosto'
+        when 'september' then 'Septiembre'
+        when 'october' then 'Octubre'
+        when 'november' then 'Noviembre'
+        when 'december' then 'Diciembre'
+      end
+      
+      pdf.text "Guadalajara, Jalisco. A #{current_date.day} de #{spanish_month} del #{current_date.year}",
                align: :right, size: 9
       pdf.stroke_horizontal_rule
       pdf.move_down 15

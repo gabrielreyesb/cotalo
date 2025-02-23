@@ -216,8 +216,8 @@ export default class extends Controller {
       const row = document.createElement('tr');
       row.innerHTML = `
           <td class="align-middle text-center">
-            <div class="d-flex align-items-center justify-content-between" style="min-width: 60px; margin: 0 auto; max-width: 80px;">
-              <div class="form-check mb-0">
+            <div style="display: flex; justify-content: space-between; width: 100px; margin: 0 auto;">
+              <div class="form-check" style="width: 20px;">
                 <input type="radio" 
                        name="main_material" 
                        class="form-check-input" 
@@ -227,12 +227,14 @@ export default class extends Controller {
               <button type="button" 
                       class="btn btn-sm btn-link text-primary p-0"
                       data-action="click->quotes#openMaterialComments"
-                      title="Agregar comentarios">
+                      title="Agregar comentarios"
+                      style="width: 20px;">
                 <i class="fas fa-comments" style="color: ${material.comments ? '#0d6efd' : ''}"></i>
               </button>
               <button type="button" 
                       class="btn btn-sm btn-link text-danger p-0"
-                      data-action="click->quotes#removeMaterial">
+                      data-action="click->quotes#removeMaterial"
+                      style="width: 20px;">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -904,6 +906,7 @@ export default class extends Controller {
 
     // Add to table with manual flag and placeholder material ID
     const tr = document.createElement('tr');
+
     tr.innerHTML = `
       <td class="align-middle text-center">
         <div style="display: flex; justify-content: space-between; width: 100px; margin: 0 auto;">
@@ -1071,45 +1074,8 @@ export default class extends Controller {
   }
 
   updateMaterialCalculations(event) {
-    const input = event.target;
-    const row = input.closest('tr');
-    const productQuantity = parseInt(document.getElementById('quote_product_quantity').value);
-    
-    // Get values from data attributes
-    const materialPrice = parseFloat(input.dataset.materialPrice);
-    const materialWidth = parseFloat(input.dataset.materialWidth);
-    const materialLength = parseFloat(input.dataset.materialLength);
-    
-    // Get new products per sheet value
-    const productsPerSheet = parseInt(input.value);
-    
-    // Recalculate values
-    const sheetsNeeded = Math.ceil(productQuantity / productsPerSheet);
-    const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
-    const totalPrice = materialPrice * squareMeters;
-    
-    // Update displayed values in cells
-    row.querySelector('td:nth-child(7)').textContent = sheetsNeeded;  // Material requerido column
-    row.querySelector('td:nth-child(8)').textContent = squareMeters.toFixed(2);  // Mts2 column
-    row.querySelector('td:nth-child(9)').textContent = `$${this.formatPrice(totalPrice)}`;  // Total column
-    
-    // Update hidden fields
-    const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
-    hiddenInputs.forEach(input => {
-      const name = input.name;
-      if (name.includes('[products_per_sheet]')) {
-        input.value = productsPerSheet;
-      } else if (name.includes('[sheets_needed]')) {
-        input.value = sheetsNeeded;
-      } else if (name.includes('[square_meters]')) {
-        input.value = squareMeters;
-      } else if (name.includes('[total_price]')) {
-        input.value = totalPrice;
-      }
-    });
-    
-    // Update subtotal and recalculate totals
-    this.updateMaterialsSubtotal();
+    // Instead of doing partial calculations, let's use our comprehensive method
+    this.recalculateAllMaterials();
   }
 
   drawMaterialVisualization(materialWidth, materialLength, productWidth, productLength) {
@@ -1202,7 +1168,7 @@ export default class extends Controller {
     
     tr.innerHTML = `
       <td class="align-middle text-center">
-        <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; width: 100px; margin: 0 auto;">
           <div class="form-check" style="width: 20px;">
             <input type="radio" 
                    name="main_material" 
@@ -1564,32 +1530,17 @@ export default class extends Controller {
     const productWidth = parseFloat(document.getElementById('quote_product_width').value);
     const productLength = parseFloat(document.getElementById('quote_product_length').value);
     
-    // Get margin values
-    const marginWidth = parseFloat(document.getElementById('config_margin_width').value) || 0;
-    const marginLength = parseFloat(document.getElementById('config_margin_length').value) || 0;
-
     rows.forEach(row => {
+      if (row.style.display === 'none') return;
+
       const input = row.querySelector('.products-per-sheet');
       if (input) {
         const materialPrice = parseFloat(input.dataset.materialPrice);
         const materialWidth = parseFloat(input.dataset.materialWidth);
         const materialLength = parseFloat(input.dataset.materialLength);
+        const productsPerSheet = parseInt(input.value);
         
-        // Calculate products per sheet based on new dimensions
-        const productWidthWithMargin = productWidth + marginWidth;
-        const productLengthWithMargin = productLength + marginLength;
-        
-        // Calculate how many products fit in each direction
-        const productsAcross = Math.floor(materialWidth / productWidthWithMargin);
-        const productsDown = Math.floor(materialLength / productLengthWithMargin);
-        
-        // Calculate total products per sheet
-        const productsPerSheet = productsAcross * productsDown;
-        
-        // Update the input value but keep it editable
-        input.value = productsPerSheet;
-        
-        // Calculate other values
+        // Calculate values based on the current products per sheet value
         const sheetsNeeded = Math.ceil(productQuantity / productsPerSheet);
         const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
         const totalPrice = materialPrice * squareMeters;
@@ -1608,14 +1559,14 @@ export default class extends Controller {
           } else if (name.includes('[sheets_needed]')) {
             input.value = sheetsNeeded;
           } else if (name.includes('[square_meters]')) {
-            input.value = squareMeters;
+            input.value = squareMeters.toFixed(2);
           } else if (name.includes('[total_price]')) {
-            input.value = totalPrice;
+            input.value = totalPrice.toFixed(2);
           }
         });
       }
     });
-    
+
     // Process recalculation
     const processesTable = this.processesTarget;
     const processRows = processesTable.querySelectorAll('tbody tr');
