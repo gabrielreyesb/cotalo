@@ -248,7 +248,7 @@ export default class extends Controller {
           </td>
           <td style="text-align: right !important; vertical-align: middle;">${material.sheets_needed}</td>
           <td style="text-align: right !important; vertical-align: middle;">${material.square_meters}</td>
-          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(material.total_price)}</td>
+          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(material.total_price)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
           <input type="hidden" name="quote[quote_materials_attributes][${index}][id]" value="${material.id}">
           <input type="hidden" name="quote[quote_materials_attributes][${index}][material_id]" value="${material.is_manual ? this.manualMaterialId : material.material_id}">
           <input type="hidden" name="quote[quote_materials_attributes][${index}][price_per_unit]" value="${material.price_per_unit}">
@@ -309,7 +309,7 @@ export default class extends Controller {
                  style="width: 100px; display: inline-block;">
         </td>
         <td style="text-align: right !important; vertical-align: middle;">${process.manufacturing_process?.unit?.description || ''}</td>
-        <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(process.price)}</td>
+        <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(parseFloat(process.price)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
         <input type="hidden" name="quote[quote_processes_attributes][${index}][id]" value="${process.id}">
         <input type="hidden" name="quote[quote_processes_attributes][${index}][manufacturing_process_id]" value="${process.manufacturing_process_id}">
         <input type="hidden" name="quote[quote_processes_attributes][${index}][unit_price]" value="${process.unit_price}">
@@ -351,10 +351,10 @@ export default class extends Controller {
           </div>
         </td>
         <td style="text-align: left !important; vertical-align: middle;">${extra.extra?.description || 'Extra no encontrado'}</td>
-        <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(price))}</td>
+        <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(price)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
         <td style="text-align: right !important; vertical-align: middle;">${extra.extra?.unit?.description || ''}</td>
         <td style="text-align: right !important; vertical-align: middle;">${quantity}</td>
-        <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
+        <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
         <input type="hidden" name="quote[quote_extras_attributes][${index}][id]" value="${extra.id}">
         <input type="hidden" name="quote[quote_extras_attributes][${index}][extra_id]" value="${extra.extra_id}">
         <input type="hidden" name="quote[quote_extras_attributes][${index}][quantity]" value="${quantity}">
@@ -506,7 +506,7 @@ export default class extends Controller {
                style="width: 100px; display: inline-block;">
       </td>
       <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
-      <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(totalPrice)}</td>
+      <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(totalPrice).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
       <input type="hidden" name="quote[quote_processes_attributes][][manufacturing_process_id]" value="${processId}">
       <input type="hidden" name="quote[quote_processes_attributes][][price]" value="${totalPrice.toFixed(2)}">
       <input type="hidden" name="quote[quote_processes_attributes][][unit_price]" value="${price.toFixed(2)}">
@@ -607,10 +607,10 @@ export default class extends Controller {
             </div>
           </td>
           <td style="text-align: left !important; vertical-align: middle;">${extraDescription}</td>
-          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(extraPrice))}</td>
+          <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(parseFloat(extraPrice)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
           <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
           <td style="text-align: right !important; vertical-align: middle;">${extraQuantity}</td>
-          <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice))}</td>
+          <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
           <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extraId}">
           <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${extraQuantity}">
           <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${extraPrice}">
