@@ -2,7 +2,36 @@
   <div class="container">
     <h2>Configuraciones de la Aplicación</h2>
     
-    <%= form_with(url: app_settings_path, method: :patch) do |f| %>
+    <%= form_with(url: app_settings_path, 
+                  method: :patch,
+                  local: true,
+                  data: { turbo: false }) do |f| %>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Logo de la Empresa</h3>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <% if (logo = AppSetting.get(:logo, current_user)).present? %>
+              <div class="mb-3">
+                <p>Logo actual:</p>
+                <%= image_tag logo, class: "img-thumbnail", style: "max-width: 250px" %>
+              </div>
+            <% end %>
+            
+            <%= f.label :logo, "Seleccionar nuevo logo" %>
+            <div class="custom-file">
+              <%= f.file_field :logo, 
+                             class: "form-control",
+                             accept: 'image/png,image/jpeg,image/jpg' %>
+              <small class="form-text text-muted">
+                Formatos aceptados: PNG, JPEG. Tamaño máximo: 5MB
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card mb-4">
         <div class="card-header">
           <h3>Configuraciones Financieras</h3>
@@ -88,7 +117,7 @@
         </div>
       </div>
 
-      <%= f.submit "Guardar", class: "btn btn-primary mt-3" %>
+      <%= f.submit "Guardar", class: "btn btn-green mt-3" %>
     <% end %>
   </div>
 

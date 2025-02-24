@@ -36,3 +36,11 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 .env
+
+# Ignore storage directory where Active Storage files are kept
+/storage/*
+!/storage/.keep
+
+# Also ignore temporary storage used in tests
+/tmp/storage/*
+!/tmp/storage/.keep

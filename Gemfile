@@ -27,6 +27,9 @@ gem 'terser'
 # New gem
 gem 'fastimage'
 
+# Active Storage validations
+gem 'activestorage-validator'
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem 'dotenv-rails'
