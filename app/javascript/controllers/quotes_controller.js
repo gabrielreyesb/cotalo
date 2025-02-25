@@ -473,6 +473,7 @@ export default class extends Controller {
     }
 
     const tbody = this.processesTarget.querySelector('tbody');
+    const timestamp = new Date().getTime(); // Add timestamp for unique identifier
 
     const newRow = document.createElement('tr');
     newRow.innerHTML = `
@@ -507,10 +508,10 @@ export default class extends Controller {
       </td>
       <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
       <td style="text-align: right !important; vertical-align: middle;" class="process-price-total">$${this.formatPrice(totalPrice).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-      <input type="hidden" name="quote[quote_processes_attributes][][manufacturing_process_id]" value="${processId}">
-      <input type="hidden" name="quote[quote_processes_attributes][][price]" value="${totalPrice.toFixed(2)}">
-      <input type="hidden" name="quote[quote_processes_attributes][][unit_price]" value="${price.toFixed(2)}">
-      <input type="hidden" name="quote[quote_processes_attributes][][comments]" value="">
+      <input type="hidden" name="quote[quote_processes_attributes][${timestamp}][manufacturing_process_id]" value="${processId}">
+      <input type="hidden" name="quote[quote_processes_attributes][${timestamp}][price]" value="${totalPrice.toFixed(2)}">
+      <input type="hidden" name="quote[quote_processes_attributes][${timestamp}][unit_price]" value="${price.toFixed(2)}">
+      <input type="hidden" name="quote[quote_processes_attributes][${timestamp}][comments]" value="">
     `;
 
     tbody.appendChild(newRow);
@@ -527,18 +528,22 @@ export default class extends Controller {
     event.preventDefault();
     const row = event.target.closest('tr'); 
     if (row) {
-      // Add _destroy field if it's an existing process
-      const processIdInput = row.querySelector('input[name*="quote_processes_attributes"][name*="[id]"]');
-      const processIndex = processIdInput?.name.match(/quote\[quote_processes_attributes\]\[(\d+)\]/)?.[1];
-      if (processIndex) {
-        const destroyField = document.createElement('input');
-        destroyField.type = 'hidden';
-        destroyField.name = `quote[quote_processes_attributes][${processIndex}][_destroy]`;
-        destroyField.value = '1';
-        row.appendChild(destroyField);
-        row.style.display = 'none';
+      // Find the process ID input - look for the hidden id field
+      const processIdInput = row.querySelector('input[name*="[id]"]');
+      if (processIdInput) {
+        // If it's an existing process, mark it for deletion
+        const timestamp = processIdInput.name.match(/quote\[quote_processes_attributes\]\[([^\]]+)\]/)?.[1];
+        if (timestamp) {
+          const destroyField = document.createElement('input');
+          destroyField.type = 'hidden';
+          destroyField.name = `quote[quote_processes_attributes][${timestamp}][_destroy]`;
+          destroyField.value = '1';
+          row.appendChild(destroyField);
+          row.style.display = 'none';
+        }
       } else {
-      row.remove();
+        // If it's a new process, just remove the row
+        row.remove();
       }
       this.updateProcessesSubtotal();
       this.calculateTotals();
@@ -588,6 +593,8 @@ export default class extends Controller {
 
         // Create a new row for the extra
         const newRow = document.createElement('tr');
+        const timestamp = new Date().getTime(); // Add timestamp for unique identifier
+
         newRow.innerHTML = `
           <td class="align-middle text-center">
             <div style="display: flex; justify-content: space-between; width: 80px; margin: 0 auto;">
@@ -611,10 +618,10 @@ export default class extends Controller {
           <td style="text-align: right !important; vertical-align: middle;">${unit}</td>
           <td style="text-align: right !important; vertical-align: middle;">${extraQuantity}</td>
           <td style="text-align: right !important; vertical-align: middle;" class="extra-price-total">$${this.formatPrice(parseFloat(totalPrice)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-          <input type="hidden" name="quote[quote_extras_attributes][][extra_id]" value="${extraId}">
-          <input type="hidden" name="quote[quote_extras_attributes][][quantity]" value="${extraQuantity}">
-          <input type="hidden" name="quote[quote_extras_attributes][][price]" value="${extraPrice}">
-          <input type="hidden" name="quote[quote_extras_attributes][][comments]" value="">
+          <input type="hidden" name="quote[quote_extras_attributes][${timestamp}][extra_id]" value="${extraId}">
+          <input type="hidden" name="quote[quote_extras_attributes][${timestamp}][quantity]" value="${extraQuantity}">
+          <input type="hidden" name="quote[quote_extras_attributes][${timestamp}][price]" value="${extraPrice}">
+          <input type="hidden" name="quote[quote_extras_attributes][${timestamp}][comments]" value="">
         `;
 
         const tbody = this.extrasTarget.querySelector('tbody');
@@ -635,21 +642,22 @@ export default class extends Controller {
     event.preventDefault();
     const row = event.target.closest('tr');
     if (row) {
-      // Add _destroy field if it's an existing extra
-      const extraIdInput = row.querySelector('input[name*="quote_extras_attributes"][name*="[id]"]');
+      // Find the extra ID input - look for the hidden id field
+      const extraIdInput = row.querySelector('input[name*="[id]"]');
       if (extraIdInput) {
-        // Extract the index from the id input's name
-        const extraIndex = extraIdInput.name.match(/quote\[quote_extras_attributes\]\[(\d+)\]/)?.[1];
-        if (extraIndex) {
+        // If it's an existing extra, mark it for deletion
+        const timestamp = extraIdInput.name.match(/quote\[quote_extras_attributes\]\[([^\]]+)\]/)?.[1];
+        if (timestamp) {
           const destroyField = document.createElement('input');
           destroyField.type = 'hidden';
-          destroyField.name = `quote[quote_extras_attributes][${extraIndex}][_destroy]`;
+          destroyField.name = `quote[quote_extras_attributes][${timestamp}][_destroy]`;
           destroyField.value = '1';
           row.appendChild(destroyField);
           row.style.display = 'none';
         }
       } else {
-      row.remove();
+        // If it's a new extra, just remove the row
+        row.remove();
       }
       this.updateExtrasSubtotal();
       this.calculateTotals();
@@ -657,15 +665,13 @@ export default class extends Controller {
   }
 
   showAdditionalExtraInfo(event) {
-    const selectElement = event.target; 
-    const selectedOption = selectElement.selectedOptions[0];
+    const selectedOption = event.target.selectedOptions[0];
     
     if (selectedOption) {
-      const rawPrice = selectedOption.dataset.price;
-      const price = parseFloat(rawPrice).toFixed(2);
+      const price = parseFloat(selectedOption.dataset.price);
       const unit = selectedOption.dataset.unit;
       
-      document.getElementById('extra_price_display').value = price;
+      document.getElementById('extra_price_display').value = price.toFixed(2);
       document.getElementById('extra_unit_display').textContent = unit;
     } else {
       document.getElementById('extra_price_display').value = '';
@@ -1159,12 +1165,17 @@ export default class extends Controller {
   }
 
   calculateSquareMeters(material, sheetsNeeded) {
-    return (material.width * material.length * sheetsNeeded) / 10000.0;
+    const squareMeters = (material.width * material.length * sheetsNeeded) / 10000.0;
+    return parseFloat(squareMeters.toFixed(2));
   }
 
   addMaterialToTable(material, productsPerSheet, sheetsNeeded, squareMeters, totalPrice) {
     const tbody = this.materialsTableTarget.querySelector('tbody');
     const tr = document.createElement('tr');
+    const timestamp = new Date().getTime(); // Use timestamp as a unique identifier
+    
+    // Format square meters to exactly 2 decimal places
+    const formattedSquareMeters = parseFloat(squareMeters).toFixed(2);
     
     tr.innerHTML = `
       <td class="align-middle text-center">
@@ -1199,48 +1210,52 @@ export default class extends Controller {
         <input type="number" class="form-control form-control-sm text-end products-per-sheet" value="${productsPerSheet}" min="1" data-material-price="${material.price_per_unit}" data-material-width="${material.width}" data-material-length="${material.length}" data-action="change->quotes#updateMaterialCalculations" style="width: 80px; display: inline-block;">
       </td>
       <td style="text-align: right !important; vertical-align: middle;">${sheetsNeeded}</td>
-      <td style="text-align: right !important; vertical-align: middle;">${squareMeters.toFixed(2)}</td>
+      <td style="text-align: right !important; vertical-align: middle;">${formattedSquareMeters}</td>
       <td style="text-align: right !important; vertical-align: middle;">$${this.formatPrice(totalPrice)}</td>
-      <input type="hidden" name="quote[quote_materials_attributes][][material_id]" value="${material.id}">
-      <input type="hidden" name="quote[quote_materials_attributes][][price_per_unit]" value="${material.price_per_unit}">
-      <input type="hidden" name="quote[quote_materials_attributes][][width]" value="${material.width}">
-      <input type="hidden" name="quote[quote_materials_attributes][][length]" value="${material.length}">
-      <input type="hidden" name="quote[quote_materials_attributes][][products_per_sheet]" value="${productsPerSheet}">
-      <input type="hidden" name="quote[quote_materials_attributes][][sheets_needed]" value="${sheetsNeeded}">
-      <input type="hidden" name="quote[quote_materials_attributes][][square_meters]" value="${squareMeters.toFixed(2)}">
-      <input type="hidden" name="quote[quote_materials_attributes][][total_price]" value="${totalPrice.toFixed(2)}">
-      <input type="hidden" name="quote[quote_materials_attributes][][is_main]" value="${material.is_main}" class="is-main-input">
-      <input type="hidden" name="quote[quote_materials_attributes][][comments]" value="${material.comments || ''}">
+      
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][material_id]" value="${material.id}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][products_per_sheet]" value="${productsPerSheet}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][sheets_needed]" value="${sheetsNeeded}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][square_meters]" value="${formattedSquareMeters}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][total_price]" value="${totalPrice}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][price_per_unit]" value="${material.price_per_unit}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][width]" value="${material.width}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][length]" value="${material.length}">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][is_main]" value="${material.is_main}" class="is-main-input">
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][is_manual]" value="${material.is_manual}">
       ${material.is_manual ? `
-        <input type="hidden" name="quote[quote_materials_attributes][][is_manual]" value="true">
-        <input type="hidden" name="quote[quote_materials_attributes][][manual_description]" value="${material.manual_description}">
-        <input type="hidden" name="quote[quote_materials_attributes][][manual_unit]" value="${material.manual_unit}">
+        <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][manual_description]" value="${material.manual_description}">
+        <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][manual_unit]" value="${material.manual_unit}">
       ` : ''}
+      <input type="hidden" name="quote[quote_materials_attributes][${timestamp}][comments]" value="">
     `;
     
     tbody.appendChild(tr);
+    this.updateMaterialsSubtotal();
   }
 
   removeMaterial(event) {
-    event.preventDefault();
-    
     const row = event.target.closest('tr');
-    if (row) {
-      // Add _destroy field if it's an existing material
-      const materialId = row.querySelector('input[name*="[id]"]')?.value;
-      if (materialId) {
+    const materialIdInput = row.querySelector('input[name*="[id]"]');
+    
+    if (materialIdInput) {
+      // If it's an existing record, mark it for deletion
+      const timestamp = materialIdInput.name.match(/quote\[quote_materials_attributes\]\[([^\]]+)\]/)?.[1];
+      if (timestamp) {
         const destroyField = document.createElement('input');
         destroyField.type = 'hidden';
-        destroyField.name = `quote[quote_materials_attributes][${materialId}][_destroy]`;
+        destroyField.name = `quote[quote_materials_attributes][${timestamp}][_destroy]`;
         destroyField.value = '1';
         row.appendChild(destroyField);
         row.style.display = 'none';
-      } else {
-      row.remove();
       }
-      this.updateMaterialsSubtotal();
-      this.calculateTotals();
+    } else {
+      // If it's a new record, just remove the row
+      row.remove();
     }
+
+    this.updateMaterialsSubtotal();
+    this.calculateTotals();
   }
 
   showAdditionalMaterialInfo(event) {
@@ -1542,7 +1557,7 @@ export default class extends Controller {
         
         // Calculate values based on the current products per sheet value
         const sheetsNeeded = Math.ceil(productQuantity / productsPerSheet);
-        const squareMeters = (sheetsNeeded * materialWidth * materialLength) / 10000;
+        const squareMeters = parseFloat(((sheetsNeeded * materialWidth * materialLength) / 10000).toFixed(2));
         const totalPrice = materialPrice * squareMeters;
         
         // Update displayed values
