@@ -12,7 +12,11 @@ class ExtrasController < ApplicationController
   
     # GET /extras/new
     def new
-      @extra = current_user.extras.build
+      @extra = if params[:extra]
+                current_user.extras.build(copy_extra_params)
+              else
+                current_user.extras.build
+              end
     end
   
     # GET /extras/1/edit
@@ -24,7 +28,7 @@ class ExtrasController < ApplicationController
       @extra = current_user.extras.build(extra_params)
   
       if @extra.save
-        redirect_to extras_path, notice: 'Extra creado exitosamente.'
+        redirect_to extras_path
       else
         render :new, status: :unprocessable_entity
       end
@@ -33,7 +37,7 @@ class ExtrasController < ApplicationController
     # PATCH/PUT /toolings/1 or /toolings/1.json
     def update
       if @extra.update(extra_params)
-        redirect_to extras_path, notice: 'Extra actualizado exitosamente.'
+        redirect_to extras_path
       else
         render :edit, status: :unprocessable_entity
       end
@@ -42,7 +46,16 @@ class ExtrasController < ApplicationController
     # DELETE /extras/1 or /extras/1.json
     def destroy
       @extra.destroy!
-      redirect_to extras_path, notice: "Extra eliminado exitosamente."
+      redirect_to extras_path
+    end
+  
+    def copy
+      original_extra = current_user.extras.find(params[:id])
+      copied_params = original_extra.attributes.except('id', 'created_at', 'updated_at', 'user_id')
+      copied_params['description'] = "Copia de #{original_extra.description}"
+      
+      @extra = current_user.extras.build(copied_params)
+      render :new
     end
   
     private
@@ -53,6 +66,10 @@ class ExtrasController < ApplicationController
   
       # Only allow a list of trusted parameters through.
       def extra_params
+        params.require(:extra).permit(:description, :price, :unit_id, :comments)
+      end
+
+      def copy_extra_params
         params.require(:extra).permit(:description, :price, :unit_id, :comments)
       end
 end 

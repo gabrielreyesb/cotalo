@@ -24,7 +24,11 @@ class MaterialsController < ApplicationController
 
   # GET /materials/new
   def new
-    @material = current_user.materials.build
+    @material = if params[:material]
+                 current_user.materials.build(copy_material_params)
+               else
+                 current_user.materials.build
+               end
   end
 
   # GET /materials/1/edit
@@ -39,7 +43,7 @@ class MaterialsController < ApplicationController
     @material = current_user.materials.build(material_params)
 
     if @material.save
-      redirect_to materials_path, notice: 'Material was successfully created.'
+      redirect_to materials_path
     else
       render :new
     end
@@ -48,7 +52,7 @@ class MaterialsController < ApplicationController
   # PATCH/PUT /materials/1 or /materials/1.json
   def update
     if @material.update(material_params)
-      redirect_to materials_path, notice: 'Material was successfully updated.'
+      redirect_to materials_path
     else
       render :edit
     end
@@ -57,7 +61,15 @@ class MaterialsController < ApplicationController
   # DELETE /materials/1 or /materials/1.json
   def destroy
     @material.destroy
-    redirect_to materials_url, notice: 'Material was successfully destroyed.'
+    redirect_to materials_url
+  end
+
+  def copy
+    original_material = current_user.materials.find(params[:id])
+    copied_params = original_material.attributes.except('id', 'created_at', 'updated_at', 'user_id')
+    copied_params['description'] = "Copia de #{original_material.description}"
+    
+    redirect_to new_material_path(material: copied_params)
   end
 
   private
@@ -68,6 +80,20 @@ class MaterialsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def material_params
+      params.require(:material).permit(
+        :description,
+        :price,
+        :width,
+        :length,
+        :unit_id,
+        :specifications,
+        :name,
+        :comments
+      )
+    end
+
+    # Parameters for copying a material
+    def copy_material_params
       params.require(:material).permit(
         :description,
         :price,

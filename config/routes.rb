@@ -14,9 +14,17 @@ Rails.application.routes.draw do
 
   resources :general_configurations
   devise_for :users
-  resources :extras
+  resources :extras do
+    member do
+      post :copy
+    end
+  end
   resources :units
-  resources :materials
+  resources :materials do
+    member do
+      post :copy
+    end
+  end
   resources :unit_equivalences
 
   resources :manufacturing_processes do

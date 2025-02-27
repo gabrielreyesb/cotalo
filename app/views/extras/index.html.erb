@@ -1,7 +1,8 @@
 <turbo-frame id="main-content">
   <div class="container mt-4">
-    <h1 class="text-center mb-4">Extras</h1> 
-
+    <h1 class="text-center mb-4">Extras</h1>
+    <br>
+    
     <div class="row">
       <div class="col-md-12">
         <table class="table table-hover table-bordered">
@@ -11,7 +12,10 @@
               <th>Precio</th>
               <th>Unidad</th>
               <th>Comentarios</th>
-              <th colspan="3">Acciones</th> 
+              <th style="width: 80px;" class="text-center">Ver</th>
+              <th style="width: 80px;" class="text-center">Editar</th>
+              <th style="width: 80px;" class="text-center">Copiar</th>
+              <th style="width: 80px;" class="text-center">Eliminar</th>
             </tr>
           </thead>
 
@@ -22,9 +26,20 @@
                 <td><%= extra.price %></td>
                 <td><%= extra.unit.description %></td> 
                 <td><%= extra.comments %></td>
-                <td><%= link_to 'Ver', extra, class: 'btn btn-sm btn-outline-success' %></td>
-                <td><%= link_to 'Editar', edit_extra_path(extra), class: 'btn btn-sm btn-outline-primary' %></td>
-                <td>
+                <td class="text-center">
+                  <%= link_to 'Ver', extra, class: 'btn btn-sm btn-outline-success' %>
+                </td>
+                <td class="text-center">
+                  <%= link_to 'Editar', edit_extra_path(extra), class: 'btn btn-sm btn-outline-primary' %>
+                </td>
+                <td class="text-center">
+                  <%= button_to 'Copiar',
+                      copy_extra_path(extra),
+                      method: :post,
+                      class: 'btn btn-sm btn-outline-info',
+                      form: { data: { turbo_frame: '_top' } } %>
+                </td>
+                <td class="text-center">
                   <%= button_to 'Eliminar', 
                       extra_path(extra), 
                       method: :delete, 
@@ -42,7 +57,7 @@
         </table>
 
         <div class="text-center mt-3">
-          <%= link_to 'Nuevo extra', new_extra_path, class: 'btn btn-green' %> 
+          <%= link_to 'Nuevo extra', new_extra_path, class: 'btn btn-green' %>
         </div>
       </div>
     </div>

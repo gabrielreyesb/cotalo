@@ -1,12 +1,14 @@
 <turbo-frame id="main-content">
   <div class="container mt-4">
-    <h1 class="text-center mb-4">Procesos</h1> 
+    <h1 class="text-center mb-4">Procesos</h1>
+    <br>
+    
     <div class="row">
       <div class="col-md-12">
         <table class="table table-hover table-bordered">
           <thead style="background-color: #76a835; color: white"> 
             <tr>
-              <th>Nombre</th> 
+              <th>Nombre</th>
               <th>Descripción</th>
               <th>Especificaciones</th>
               <th>Ancho max</th>
@@ -16,42 +18,58 @@
               <th>Precio</th>
               <th>Unidad</th>
               <th>Comentarios</th>
-              <th colspan="4">Acciones</th> 
+              <th style="width: 80px;" class="text-center">Ver</th>
+              <th style="width: 80px;" class="text-center">Editar</th>
+              <th style="width: 80px;" class="text-center">Copiar</th>
+              <th style="width: 80px;" class="text-center">Eliminar</th>
             </tr>
           </thead>
 
           <tbody>
-            <% @manufacturing_processes.each do |process| %> 
+            <% @manufacturing_processes.each do |process| %>
               <tr>
-                <td><%= process.name %></td> 
+                <td><%= process.name %></td>
                 <td><%= process.description %></td>
-                <td><%= process.specifications %></td> 
-                <td><%= process.maximum_width %></td> 
-                <td><%= process.maximum_length %></td> 
-                <td><%= process.minimum_width %></td> 
-                <td><%= process.minimum_length %></td> 
+                <td><%= process.specifications %></td>
+                <td><%= process.maximum_width %></td>
+                <td><%= process.maximum_length %></td>
+                <td><%= process.minimum_width %></td>
+                <td><%= process.minimum_length %></td>
                 <td><%= process.price %></td>
-                <td><%= process.unit.description %></td> 
-                <td><%= process.comments %></td> 
-                <td><%= link_to 'Ver', process, class: 'btn btn-sm btn-outline-success' %></td> 
-                <td><%= link_to 'Editar', edit_manufacturing_process_path(process), class: 'btn btn-sm btn-outline-primary' %></td> 
-                <td><%= button_to 'Copiar', 
-                    copy_manufacturing_process_path(process), 
-                    method: :post, 
-                    class: 'btn btn-sm btn-outline-info',
-                    form: { data: { turbo_frame: '_top' } } %></td> 
-                <td><%= button_to 'Eliminar', 
-                    process, 
-                    method: :delete, 
-                    class: 'btn btn-sm btn-outline-danger',
-                    form: { data: { turbo_confirm: '¿Estás seguro?' } } %></td> 
+                <td><%= process.unit.description %></td>
+                <td><%= process.comments %></td>
+                <td class="text-center">
+                  <%= link_to 'Ver', process, class: 'btn btn-sm btn-outline-success' %>
+                </td>
+                <td class="text-center">
+                  <%= link_to 'Editar', edit_manufacturing_process_path(process), class: 'btn btn-sm btn-outline-primary' %>
+                </td>
+                <td class="text-center">
+                  <%= button_to 'Copiar',
+                      copy_manufacturing_process_path(process),
+                      method: :post,
+                      class: 'btn btn-sm btn-outline-info',
+                      form: { data: { turbo_frame: '_top' } } %>
+                </td>
+                <td class="text-center">
+                  <%= button_to 'Eliminar', 
+                      manufacturing_process_path(process), 
+                      method: :delete, 
+                      class: 'btn btn-sm btn-outline-danger',
+                      form: { 
+                        data: { 
+                          turbo_frame: '_top',
+                          turbo_confirm: '¿Estás seguro?' 
+                        } 
+                      } %>
+                </td>
               </tr>
             <% end %>
           </tbody>
         </table>
 
         <div class="text-center mt-3">
-          <%= link_to 'Nuevo Proceso', new_manufacturing_process_path, class: 'btn btn-green' %> 
+          <%= link_to 'Nuevo proceso', new_manufacturing_process_path, class: 'btn btn-green' %>
         </div>
       </div>
     </div>
