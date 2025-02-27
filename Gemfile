@@ -24,8 +24,9 @@ gem 'sassc-rails'
 # For JavaScript compression
 gem 'terser'
 
-# New gem
+# Image handling
 gem 'fastimage'
+gem 'cloudinary'
 
 # Active Storage validations
 gem 'activestorage-validator'

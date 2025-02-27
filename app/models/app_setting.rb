@@ -58,34 +58,45 @@ class AppSetting < ApplicationRecord
       
       # Special handling for logo
       if key.to_sym == :logo
-        return setting&.logo&.attached? ? setting.logo : ActionController::Base.helpers.asset_path(SETTINGS[:logo][:default])
-      end
-      
-      # Regular handling for other settings
-      return SETTINGS[key][:default] if setting.nil?
-      
-      case setting.value_type
-      when 'number'
-        setting.value.to_f
+        if setting&.value.present?
+          setting.value # Return Cloudinary URL
+        else
+          ActionController::Base.helpers.asset_path(SETTINGS[:logo][:default])
+        end
       else
-        setting.value
+        # Regular handling for other settings
+        return SETTINGS[key][:default] if setting.nil?
+        
+        case setting.value_type
+        when 'number'
+          setting.value.to_f
+        else
+          setting.value
+        end
       end
     end
 
     def set(key, value, user)
-      key_sym = key.to_sym  # Convert string key to symbol
-      return unless SETTINGS.key?(key_sym)  # Check if it's a valid setting
+      key_sym = key.to_sym
+      return unless SETTINGS.key?(key_sym)
       
       setting = user.app_settings.find_or_initialize_by(key: key.to_s)
+      setting.value_type = SETTINGS[key_sym][:type]
+      setting.category = SETTINGS[key_sym][:category]
       
-      if SETTINGS[key_sym][:type] == 'logo'
-        setting.logo.attach(value) if value.present?
+      if key_sym == :logo && value.present?
+        # Upload to Cloudinary with user-specific folder
+        upload_result = Cloudinary::Uploader.upload(
+          value,
+          folder: "user_#{user.id}/logos",
+          public_id: "logo_#{Time.current.to_i}",
+          overwrite: true
+        )
+        setting.value = upload_result['secure_url']
       else
         setting.value = value
       end
       
-      setting.value_type = SETTINGS[key_sym][:type]
-      setting.category = SETTINGS[key_sym][:category]
       setting.save
     end
   end
