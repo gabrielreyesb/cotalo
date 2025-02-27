@@ -15,26 +15,26 @@ class MultiQuotePdfGenerator
       logo_path = "#{Rails.root}/app/assets/images/logo.png"
       pdf.image logo_path, width: 120, position: :left if File.exist?(logo_path)
       
-      current_date = Time.current
-      spanish_month = case current_date.strftime('%B').downcase
-        when 'january' then 'Enero'
-        when 'february' then 'Febrero'
-        when 'march' then 'Marzo'
-        when 'april' then 'Abril'
-        when 'may' then 'Mayo'
-        when 'june' then 'Junio'
-        when 'july' then 'Julio'
-        when 'august' then 'Agosto'
-        when 'september' then 'Septiembre'
-        when 'october' then 'Octubre'
-        when 'november' then 'Noviembre'
-        when 'december' then 'Diciembre'
-      end
+      # Get next quote number
+      quote_number = PdfCounter.next_number
       
-      pdf.text "Guadalajara, Jalisco. A #{current_date.day} de #{spanish_month} del #{current_date.year}",
-               align: :right, size: 9
-      pdf.stroke_horizontal_rule
+      # Add quote number and date in the same row
+      pdf.bounding_box([0, pdf.cursor], width: pdf.bounds.width, height: 20) do
+        pdf.text_box "Cotización: #{quote_number}", 
+                    at: [pdf.bounds.width/2 - 50, pdf.bounds.top],
+                    width: 100,
+                    align: :center,
+                    size: 12,
+                    style: :bold
+        pdf.text_box "Guadalajara, Jalisco. A #{Time.current.strftime('%d de %B').upcase} del #{Time.current.year}",
+                    at: [pdf.bounds.width - 300, pdf.bounds.top],
+                    width: 300,
+                    align: :right,
+                    size: 9
+      end
       pdf.move_down 15
+      pdf.stroke_horizontal_rule
+      pdf.move_down 10
 
       watermark_path = "#{Rails.root}/app/assets/images/box_watermark.png"
       if File.exist?(watermark_path)

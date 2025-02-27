@@ -15,10 +15,26 @@ class QuotePdfGenerator
       logo_path = "#{Rails.root}/app/assets/images/logo.png"
       pdf.image logo_path, width: 120, position: :left if File.exist?(logo_path)
       
-      # Add date on the right with line below
-      pdf.text "Guadalajara, Jalisco. A #{Time.current.strftime('%d de %B').upcase} del #{Time.current.year}", align: :right, size: 9
-      pdf.stroke_horizontal_rule
+      # Get next quote number
+      quote_number = PdfCounter.next_number
+      
+      # Add quote number and date in the same row
+      pdf.bounding_box([0, pdf.cursor], width: pdf.bounds.width, height: 20) do
+        pdf.text_box "Cotización: #{quote_number}", 
+                    at: [pdf.bounds.width/2 - 50, pdf.bounds.top],
+                    width: 100,
+                    align: :center,
+                    size: 12,
+                    style: :bold
+        pdf.text_box "Guadalajara, Jalisco. A #{Time.current.strftime('%d de %B').upcase} del #{Time.current.year}",
+                    at: [pdf.bounds.width - 300, pdf.bounds.top],
+                    width: 300,
+                    align: :right,
+                    size: 9
+      end
       pdf.move_down 15
+      pdf.stroke_horizontal_rule
+      pdf.move_down 10
 
       # Add box watermark if exists
       watermark_path = "#{Rails.root}/app/assets/images/box_watermark.png"

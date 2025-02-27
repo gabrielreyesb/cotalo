@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_24_164158) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_27_175621) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -107,6 +107,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_24_164158) do
     t.string "name"
     t.index ["unit_id"], name: "index_materials_on_unit_id"
     t.index ["user_id"], name: "index_materials_on_user_id"
+  end
+
+  create_table "pdf_counters", force: :cascade do |t|
+    t.integer "current_number", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "pdf_generations", force: :cascade do |t|
+    t.integer "number", null: false
+    t.integer "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["number"], name: "index_pdf_generations_on_number", unique: true
+    t.index ["user_id"], name: "index_pdf_generations_on_user_id"
   end
 
   create_table "quote_extras", force: :cascade do |t|
@@ -227,6 +242,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_24_164158) do
   add_foreign_key "manufacturing_processes", "users"
   add_foreign_key "materials", "units"
   add_foreign_key "materials", "users"
+  add_foreign_key "pdf_generations", "users"
   add_foreign_key "quote_extras", "extras"
   add_foreign_key "quote_extras", "quotes"
   add_foreign_key "quote_materials", "materials", on_delete: :nullify
